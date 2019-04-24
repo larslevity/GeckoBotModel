@@ -16,8 +16,7 @@ sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 
 from Src import save
-from Src import kin_model
-from Src import predict_pose as pp
+from Src import kinematic_model as model
 
 
 def start_pose(alp, feet, eps0=90, F1=(0, 0)):
@@ -33,7 +32,7 @@ def calc_gait_and_draw_tikz(ref, filename='test', eps0=90, shift=True,
     len_tor = 1.2
 
     init_pose = start_pose(*ref[0], eps0=eps0, F1=F1)
-    x, r, data, cst, marks = pp.predict_pose(ref, init_pose, True, False,
+    x, r, data, cst, marks = model.predict_pose(ref, init_pose, True, False,
                                              len_leg=len_leg, len_tor=len_tor,
                                              dev_ang=.1)
     pp.plot_gait(*data)

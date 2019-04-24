@@ -1,392 +1,206 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Feb 21 15:33:12 2019
+Created on Wed Apr 24 11:38:56 2019
 
-@author: AmP
+@author: ls
 """
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as pat
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
-import eval as ev
-import save
-
-
-def plot_track(db, cyc, incl, prop, dirpath):
-    col = ev.get_marker_color()
-    fig, ax = plt.subplots(subplot_kw=dict(aspect='equal'),
-                           num='Track of feet '+incl)
-    prop_track = prop*.5
-
-    for idx in range(6):
-        x, sigx = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'x{}'.format(idx))
-        y, sigy = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'y{}'.format(idx))
-        if idx == 1:
-            DIST = x[-1] - x[0]
-        x = ev.downsample(x, proportion=prop_track)
-        y = ev.downsample(y, proportion=prop_track)
-        sigx = ev.downsample(sigx, proportion=prop_track)
-        sigy = ev.downsample(sigy, proportion=prop_track)
-        plt.plot(x, y, color=col[idx])
-    #    plt.plot(x[0], y[0], 'o', markersize=20, color=col[idx])
-        for xx, yy, sigxx, sigyy in zip(x, y, sigx, sigy):
-            if not np.isnan(xx):
-                el = pat.Ellipse((xx, yy), sigxx*2, sigyy*2,
-                                 facecolor=col[idx], alpha=.3)
-                ax.add_artist(el)
-    ax.grid()
-    ax.set_xlabel('x position (cm)')
-    ax.set_ylabel('y position (cm)')
-    ax.set_xlim((-20, 65))
-    ax.set_ylim((-20, 20))
-    kwargs = {'extra_axis_parameters': {'x=.1cm', 'y=.1cm'}}
-    save.save_as_tikz('tikz/'+dirpath+'track.tex', **kwargs)
-    return DIST
-
-
-def plot_eps(db, cyc, incl, prop, dirpath):
-    fig, ax = plt.subplots(num='epsilon during cycle '+incl)
-
-    eps, sige = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'eps')
-    t, sigt = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'time')
-    eps = ev.downsample(eps, proportion=prop)
-    t = ev.downsample(t, proportion=prop)
-    sige = ev.downsample(sige, proportion=prop)
-
-    t = ev.rm_offset(t)
-    TIME = t[-1]
-    ax.plot(t, eps, '-', color='mediumpurple', linewidth=2)
-    ax.fill_between(t, eps+sige, eps-sige,
-                    facecolor='mediumpurple', alpha=0.5)
-    ax.set_ylim((-20, 50))
-    ax.grid()
-    ax.set_xlabel(r'time $t$ (s)')
-    ax.set_ylabel(r'orientation angle $\varepsilon$ ($^\circ$)')
-    kwargs = {'extra_axis_parameters': {'x=.1cm', 'y=.05cm'}}
-    save.save_as_tikz('tikz/'+dirpath+'eps.tex', **kwargs)
-    return TIME
-
-
-def plot_alpha(db, cyc, incl, prop, dirpath):
-    col = ev.get_actuator_color()
-    fig, ax = plt.subplots(nrows=2, ncols=1,
-                           num='Alpha during cycle'+incl, sharex=True)
-    ALPHA, SIGALPHA = [], []
-    t, sigt = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'time')
-    t_s = ev.rm_offset(ev.downsample(t, proportion=prop))
-
-    alp_dfx_0 = {}
-    for exp in range(len(db)):
-        alp_dfx_0[exp] = {}
-        dfx_0 = ev.find_dfx_idx(db[exp], 'f0')
-        for axis in range(6):
-            alp_dfx_0[exp][axis] = [db[exp]['aIMG{}'.format(axis)][idx] for idx in dfx_0]
-    alp_dfx_1 = {}
-    for exp in range(len(db)):
-        alp_dfx_1[exp] = {}
-        dfx_1 = ev.find_dfx_idx(db[exp], 'f1')
-        for axis in range(6):
-            alp_dfx_1[exp][axis] = [db[exp]['aIMG{}'.format(axis)][idx] for idx in dfx_1]
-
-    
-    TIMEA = t
-    for axis in range(6):
-        alp_, siga_ = ev.calc_mean_of_axis_multi_cyc(
-                db, cyc, 'aIMG{}'.format(axis))
-
-        # downsample for tikz
-        alp = ev.downsample(alp_, proportion=prop)
-        siga = ev.downsample(siga_, proportion=prop)
-        ALPHA.append(alp_)
-        SIGALPHA.append(siga_)
-
-        if axis in [0, 3, 4]:
-            axidx = 0
-        elif axis in [1, 2, 5]:
-            axidx = 1
-        ax[axidx].plot(t_s, alp, '-', color=col[axis])
-        ax[axidx].fill_between(t_s, alp+siga, alp-siga, facecolor=col[axis],
-                               alpha=0.5)
-    ax[0].grid()
-    ax[1].grid()
-    ax[0].set_ylim((-95, 95))
-    ax[1].set_ylim((-95, 95))
-
-    ax[0].set_ylabel(r'bending angle $\alpha$ ($^\circ$)')
-    ax[1].set_ylabel(r'bending angle $\alpha$ ($^\circ$)')
-    ax[1].set_xlabel(r'time $t$ (s)')
-
-    kwargs = {'extra_axis_parameters': {'x=.1cm', 'y=.02cm',
-                                        'ytick={-90,-45,0,45, 90}'}}
-    save.save_as_tikz('tikz/'+dirpath+'alpha.tex', **kwargs)
-    return ALPHA, SIGALPHA, TIMEA, alp_dfx_0, alp_dfx_1
-
-
-def plot_velocity(db, cyc, incl, prop, dirpath, Ts, DIST, TIME, VELX, VELY,
-                  SIGVELX, SIGVELY):
-    db = ev.calc_velocity(db, Ts)
-    col = ev.get_actuator_color()
-    fig, ax = plt.subplots(nrows=2, ncols=1,
-                           num='velocity during cycle'+incl, sharex=True)
-    VX, VY = [], []
-    SIGVX, SIGVY = [], []
-    for axis in [2, 3]:
-        vx, sigvx = ev.calc_mean_of_axis_multi_cyc(
-                db, cyc, 'x{}dot'.format(axis))
-        vy, sigvy = ev.calc_mean_of_axis_multi_cyc(
-                db, cyc, 'y{}dot'.format(axis))
-        t, sigt = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'time')
-        VX.append(np.nanmean(vx))
-        VY.append(np.nanmean(vy))
-        vxm = [np.nanmean(db[exp]['x{}dot'.format(axis)][cyc[exp][1]:cyc[exp][-2]])
-               for exp in range(len(db))]
-        vym = [np.nanmean(db[exp]['y{}dot'.format(axis)][cyc[exp][1]:cyc[exp][-2]])
-               for exp in range(len(db))]
-        SIGVX.append(np.nanstd(vxm))
-        SIGVY.append(np.nanstd(vym))
-
-        # downsample for tikz
-        vx = ev.downsample(vx, proportion=prop)
-        vy = ev.downsample(vy, proportion=prop)
-        t_s = ev.rm_offset(ev.downsample(t, proportion=prop))
-        sigvx = ev.downsample(sigvx, prop)
-        sigvy = ev.downsample(sigvy, prop)
-
-        ax[0].plot(t_s, vx, '-', color=col[axis])
-        ax[0].fill_between(t_s, vx+sigvx, vx-sigvx,
-          facecolor=col[axis], alpha=0.5)
-
-        ax[1].plot(t_s, vy, '-', color=col[axis])
-        ax[1].fill_between(t_s, vy+sigvy, vy-sigvy,
-          facecolor=col[axis], alpha=0.5)
-
-    vxmean_ = DIST/TIME
-    vxmean = np.mean(VX)
-    vymean = np.mean(VY)
-    sigvxmean = np.mean(SIGVX)
-    sigvymean = np.mean(SIGVY)
-    VELX.append(vxmean_)
-    VELY.append(vymean)
-    SIGVELX.append(sigvxmean)
-    SIGVELY.append(sigvymean)
-
-    ax[0].plot([t_s[0], t_s[-1]], [vxmean]*2, ':', linewidth=2, color='gray')
-    ax[0].plot([t_s[0], t_s[-1]], [vxmean_]*2, ':', linewidth=2, color='k')
-    ax[1].plot([t_s[0], t_s[-1]], [vymean]*2, ':', linewidth=2, color='gray')
-
-    ax[0].grid()
-    ax[1].grid()
-
-    ax[0].set_ylabel(r'velocity $\dot{x}$ (cm/s)')
-    ax[1].set_ylabel(r'velocity $\dot{y}$ (cm/s)')
-    ax[1].set_xlabel(r'time $t$ (s)')
-    ax[1].set_ylim((-5, 5))
-    ax[0].set_ylim((-5, 10))
-
-    kwargs = {'extra_axis_parameters': {'x=.1cm', 'y=.2cm',
-                                        'ytick={-10, -5, 0, 5, 10}'}}
-    save.save_as_tikz('tikz/'+dirpath+'velocity.tex', **kwargs)
-    return VELX, SIGVELX, VELY, SIGVELY
-
-
-def plot_pressure(db, cyc, incl, prop, dirpath, ptrn, VOLUME, version, DIST,
-                  ENERGY):
-    col = ev.get_actuator_color()
-    fig, ax = plt.subplots(nrows=2, ncols=1,
-                           num='pressure during cycle'+incl, sharex=True)
-    MAXPressure = {}
-    for axis in range(6):
-        p, sigp = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'p{}'.format(axis))
-        r, _ = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'r{}'.format(axis))
-        t, sigt = ev.calc_mean_of_axis_multi_cyc(db, cyc, 'time')
-        MAXPressure[axis] = max(r)
-
-        # downsample for tikz
-        p = ev.downsample(p, proportion=prop)
-        t_s = ev.rm_offset(ev.downsample(t, proportion=prop))
-        sigp = ev.downsample(sigp, proportion=prop)
-
-        if axis in [0, 3, 4]:
-            axidx = 0
-        elif axis in [1, 2, 5]:
-            axidx = 1
-        ax[axidx].plot(t_s, p, '-', color=col[axis])
-        ax[axidx].fill_between(t_s, p+sigp, p-sigp, facecolor=col[axis],
-                               alpha=0.5)
-    ax[0].grid()
-    ax[1].grid()
-    ax[0].set_ylim((0, 1.2))
-    ax[1].set_ylim((0, 1.2))
-
-    ax[0].set_ylabel(r'pressure $p$ (bar)')
-    ax[1].set_ylabel(r'pressure $p$ (bar)')
-    ax[1].set_xlabel(r'time $t$ (s)')
-
-    kwargs = {'extra_axis_parameters': {'x=.1cm', 'y=2cm',
-                                        'ytick={0, .5, 1}'}}
-    save.save_as_tikz('tikz/'+dirpath+'pressure.tex', **kwargs)
-
-    min_len = min([len(cycle) for cycle in cyc])
-    n_cyc = min_len - 2  # first is skipped and last too
-    if int(incl) >= 76 and ptrn == 'adj_ptrn':
-        n_cyc = n_cyc*10./12.  # ptrn for 76 has twice actuation of each leg
-
-    energy = (sum([val[1]*1e2 for val in MAXPressure.items()])
-              * VOLUME[version] * n_cyc/DIST)
-
-    ENERGY.append(abs(energy))
-    return ENERGY
-
-
-def plot_vel_incl(VELX, VELY, SIGVELX, SIGVELY, INCL, ENERGY, version, ptrn):
-    VELX = np.array(VELX)
-    VELY = np.array(VELY)
-    SIGVELX = np.array(SIGVELX)
-    SIGVELY = np.array(SIGVELY)
-
-    fig, ax = plt.subplots(num='incl - vel')
-    ax.plot(INCL, VELX, color='red')
-    ax.fill_between(INCL, VELX+SIGVELX, VELX-SIGVELX,
-                    facecolor='red', alpha=0.5)
-
-    ax.set_xlabel(r'inclination angle $\delta$ ($^\circ$)')
-    ax.set_ylabel(r'mean of velocity $\Delta \bar{x} / \Delta t$ (cm/s)')
-    ax.grid()
-
-    ax2 = ax.twinx()
-    ax2.plot(INCL, ENERGY)
-    ax2.set_ylabel(r'Energy Consumption per shift (kJ/cm)')
-
-    kwargs = {'extra_axis_parameters': {'xtick={0, 28, 48, 63, 76}'}}
-    save.save_as_tikz('tikz/'+version+'/incl-vel-energy-{}.tex'.format(ptrn),
-                      **kwargs)
+import kinematic_model as model
 
 
 
-def plot_alpha_incl(VELX, VELY, SIGVELX, SIGVELY, INCL, ENERGY, version, ptrn):
-    VELX = np.array(VELX)
-    VELY = np.array(VELY)
-    SIGVELX = np.array(SIGVELX)
-    SIGVELY = np.array(SIGVELY)
-
-    fig, ax = plt.subplots(num='incl - vel')
-    ax.plot(INCL, VELX, color='red')
-    ax.fill_between(INCL, VELX+SIGVELX, VELX-SIGVELX,
-                    facecolor='red', alpha=0.5)
-
-    ax.set_xlabel(r'inclination angle $\delta$ ($^\circ$)')
-    ax.set_ylabel(r'mean of velocity $\Delta \bar{x} / \Delta t$ (cm/s)')
-    ax.grid()
-
-    ax2 = ax.twinx()
-    ax2.plot(INCL, ENERGY)
-    ax2.set_ylabel(r'Energy Consumption per shift (kJ/cm)')
-
-    kwargs = {'extra_axis_parameters': {'xtick={0, 28, 48, 63, 76}'}}
-    save.save_as_tikz('tikz/'+version+'/incl-vel-energy-{}.tex'.format(ptrn),
-                      **kwargs)
+def plot_gait(data_xy, data_fp, data_nfp, data_x):
+    for idx in range(len(data_xy)):
+        (x, y) = data_xy[idx]
+        (fpx, fpy) = data_fp[idx]
+        (nfpx, nfpy) = data_nfp[idx]
+        c = (1-float(idx)/len(data_xy))*.8
+        col = (c, c, c)
+        plt.plot(x, y, '.', color=col)
+        plt.plot(fpx, fpy, 'o', markersize=10, color=col)
+        plt.plot(nfpx, nfpy, 'x', markersize=10, color=col)
+    plt.axis('equal')
 
 
-
-def calc_prop(db, cyc):
-    min_len = min([len(cycle) for cycle in cyc])
-    n_cyc = min_len - 1
-    len_exp = cyc[0][n_cyc] - cyc[0][1]
-    prop = 400./len_exp
-    prop = .99 if prop >= 1. else prop
-    return prop
+def start_end(data_xy, data_fp, data_nfp, data_x):
+    return ([data_xy[0], data_xy[-1]], [data_fp[0], data_fp[-1]],
+            [data_nfp[0], data_nfp[-1]], [data_x[0], data_x[-1]])
 
 
-def epsilon_correction(db, cyc):
-    # correction of epsilon
-    rotate = 5
-    for exp in range(len(db)):
-        # eps0 = db[exp]['eps'][cyc[exp][1]]
-        eps0 = 0
-        for marker in range(6):
-            X = db[exp]['x{}'.format(marker)]
-            Y = db[exp]['y{}'.format(marker)]
-            X, Y = ev.rotate_xy(X, Y, -eps0+rotate)
-            db[exp]['x{}'.format(marker)] = X
-            db[exp]['y{}'.format(marker)] = Y
-        db[exp]['eps'] = ev.add_offset(db[exp]['eps'], -eps0+rotate)
-    return db
+def start_mid_end(data_xy, data_fp, data_nfp, data_x):
+    mid = len(data_xy)/2
+    return ([data_xy[0], data_xy[mid], data_xy[-1]],
+            [data_fp[0], data_fp[mid], data_fp[-1]],
+            [data_nfp[0], data_nfp[mid], data_nfp[-1]],
+            [data_x[0], data_x[mid], data_x[-1]])
 
 
-def plot_incl_alp_dfx(TIMEA, incls, ALP, ALP_dfx_0, ALP_dfx_1, version, ptrn):
-    col = ev.get_actuator_color()
-    alp_dfx = {}
-    act = {0: 0,
-           1: 1,
-           2: 1,
-           3: 0,
-           4: 0,
-           5: 1}
-    for incl in incls:
-        alp_dfx[incl] = {}
-        for axis in range(6):
-            mean_alp_dfx_0 = np.nan
-            mean_alp_dfx_1 = np.nan
-            for exp in range(len(ALP_dfx_0[incl])):
-                mean_ = np.nanmean(ALP_dfx_0[incl][exp][axis])
-                mean_alp_dfx_0 = np.nanmean([mean_alp_dfx_0, mean_])
-            for exp in range(len(ALP_dfx_1[incl])):
-                mean_ = np.nanmean(ALP_dfx_1[incl][exp][axis])
-                mean_alp_dfx_1 = np.nanmean([mean_alp_dfx_1, mean_])
-            alp_dfx[incl][axis] = {}
-            alp_dfx[incl][axis][0] = mean_alp_dfx_0
-            alp_dfx[incl][axis][1] = mean_alp_dfx_1
-#            idx = len(TIMEA['00'])
-#            if axis in [2]:
-#                t = ev.rm_offset(TIMEA[incl][:idx])
-#                plt.plot(t, ALP[incl][axis][:idx], color=col[axis])
-#                t = ev.rm_offset([TIMEA[incl][0], TIMEA[incl][idx-1]])
-#                plt.plot(t, [alp_dfx[incl][axis][act[axis]]]*2, color=col[axis])
+def animate_gait(fig1, data_xy, data_markers, inv=500,
+                 col=['red', 'orange', 'green', 'blue', 'magenta', 'darkred']):
 
-    alp_dfx_act = {}
-    alp_dfx_uact = {}
+    def update_line(num, data_xy, line_xy, data_markers,
+                    lm0, lm1, lm2, lm3, lm4, lm5, leps):
+        x, y = data_xy[num]
+        line_xy.set_data(np.array([[x], [y]]))
 
-    for axis in range(6):
-        alp_dfx_act[axis] = [alp_dfx[incl][axis][act[axis]] for incl in incls]
-    for axis in range(6):
-        alp_dfx_uact[axis] = [alp_dfx[incl][axis][int(not act[axis])] for incl in incls]
+        xm0, ym0 = data_markers[num][0][0], data_markers[num][1][0]
+        xm1, ym1 = data_markers[num][0][1], data_markers[num][1][1]
+        xm2, ym2 = data_markers[num][0][2], data_markers[num][1][2]
+        xm3, ym3 = data_markers[num][0][3], data_markers[num][1][3]
+        xm4, ym4 = data_markers[num][0][4], data_markers[num][1][4]
+        xm5, ym5 = data_markers[num][0][5], data_markers[num][1][5]
+        lm0.set_data(np.array([[xm0], [ym0]]))
+        lm1.set_data(np.array([[xm1], [ym1]]))
+        lm2.set_data(np.array([[xm2], [ym2]]))
+        lm3.set_data(np.array([[xm3], [ym3]]))
+        lm4.set_data(np.array([[xm4], [ym4]]))
+        lm5.set_data(np.array([[xm5], [ym5]]))
+        leps.set_data(np.array([[xm1, xm4], [ym1, ym4]]))
+        return line_xy, lm0, lm1, lm2, lm3, lm4, lm5, leps
 
-    INCL = [float(incl) for incl in incls]
-    plt.figure('raw data')
-    for axis in [0, 1, 2, 3, 4, 5]:
-        plt.plot(INCL, alp_dfx_act[axis], color=col[axis])
-    for axis in [0, 1, 4, 5]:
-        plt.plot(INCL, alp_dfx_uact[axis], ':', color=col[axis])
+    n = len(data_xy)
+    l_xy, = plt.plot([], [], 'k.', markersize=3)
+    msize = 5
+    lm0, = plt.plot([], [], 'o', color=col[0], markersize=msize)
+    lm1, = plt.plot([], [], 'o', color=col[1], markersize=msize)
+    lm2, = plt.plot([], [], 'o', color=col[2], markersize=msize)
+    lm3, = plt.plot([], [], 'o', color=col[3], markersize=msize)
+    lm4, = plt.plot([], [], 'o', color=col[4], markersize=msize)
+    lm5, = plt.plot([], [], 'o', color=col[5], markersize=msize)
+    leps, = plt.plot([], [], '-', color='mediumpurple', linewidth=1)
 
-    plt.grid()
-    plt.xlabel(r'inclination angle $\delta$ ($^\circ$)')
-    plt.ylabel(r'bending angle just before defixation')
+    minx, maxx, miny, maxy = 0, 0, 0, 0
+    for dataset in data_markers:
+        x, y = dataset
+        minx = min(x) if minx > min(x) else minx
+        maxx = max(x) if maxx < max(x) else maxx
+        miny = min(y) if miny > min(y) else miny
+        maxy = max(y) if maxy < max(y) else maxy
+    plt.xlim(minx-5, maxx+5)
+    plt.ylim(miny-5, maxy+5)
+    line_ani = animation.FuncAnimation(
+        fig1, update_line, n, fargs=(data_xy, l_xy, data_markers,
+                                     lm0, lm1, lm2, lm3, lm4, lm5, leps),
+        interval=inv, blit=True)
+    return line_ani
 
 
-    plt.figure('')
-    alp_dfx_act_ = {}
-    alp_dfx_uact_ = {}
-    sigalp_dfx_act_ = {}
-    sigalp_dfx_uact_ = {}
-    for axis in [0, 2, 4]:
-        alp_dfx_act_[axis] = np.array([np.mean([alp_dfx_act[axis][idx], alp_dfx_act[axis+1][idx]]) for idx in range(len(alp_dfx_act[axis]))])
-        sigalp_dfx_act_[axis] = np.array([np.std([alp_dfx_act[axis][idx], alp_dfx_act[axis+1][idx]]) for idx in range(len(alp_dfx_act[axis]))])
-        alp_dfx_uact_[axis] = np.array([np.mean([alp_dfx_uact[axis][idx], alp_dfx_uact[axis+1][idx]]) for idx in range(len(alp_dfx_act[axis]))])
-        sigalp_dfx_uact_[axis] = np.array([np.std([alp_dfx_uact[axis][idx], alp_dfx_uact[axis+1][idx]]) for idx in range(len(alp_dfx_act[axis]))])
-    
-        plt.plot(INCL, alp_dfx_act_[axis], color=col[axis])
-        plt.fill_between(INCL, alp_dfx_act_[axis]+sigalp_dfx_act_[axis], alp_dfx_act_[axis]-sigalp_dfx_act_[axis], facecolor=col[axis],
-                                   alpha=0.5)
-    for axis in [0, 4]:
-        plt.plot(INCL, alp_dfx_uact_[axis], ':', color=col[axis])
-        plt.fill_between(INCL, alp_dfx_uact_[axis]+sigalp_dfx_uact_[axis], alp_dfx_uact_[axis]-sigalp_dfx_uact_[axis], facecolor=col[axis],
-                                   alpha=0.5)
-    
-    plt.grid()
-    plt.xlabel(r'inclination angle $\delta$ ($^\circ$)')
-    plt.ylabel(r'bending angle $\alpha$ just before defixation ($^\circ$)')
+def save_animation(line_ani, name='gait.mp4', conv='avconv'):
+    """
+    To create gif:
+        0. EASY: Use : https://ezgif.com/video-to-gif
+        OR:
+        1. Create a directory called frames in the same directory with
+           your .mp4 file. Use command:
+            ffmpeg -i video.mp4  -r 5 'frames/frame-%03d.jpg'
 
-    kwargs = {'extra_axis_parameters': {'xtick={0, 28, 48, 63, 76}'}}
-    save.save_as_tikz('tikz/'+version+'/incl-alp_dfx-{}.tex'.format(ptrn),
-                      **kwargs)
+            -r 5 stands for FPS value
+                for better quality choose bigger number
+                adjust the value with the -delay in 2nd step
+                to keep the same animation speed
+
+            %03d gives sequential filename number in decimal form
+
+        1a. Loop the thing (python):
+            import os
+            for jdx, idx in enumerate(range(1, 114)[::-1]):
+                os.rename('frame-'+'{}'.format(idx).zfill(3)+'.jpg',
+                          'frame-'+'{}'.format(114+jdx).zfill(3)+'.jpg')
+
+        1b. Reduce size of single frames (bash):
+            for i in *.jpg; do convert "$i" -quality 20 "${i%%.jpg*}_new.jpg"; done
+
+        2. Convert Images to gif (bash):
+            cd frames
+            convert -delay 20 -loop 0 *.jpg myimage.gif
+
+            -delay 20 means the time between each frame is 0.2 seconds
+               which match 5 fps above.
+               When choosing this value
+                   1 = 100 fps
+                   2 = 50 fps
+                   4 = 25 fps
+                   5 = 20 fps
+                   10 = 10 fps
+                   20 = 5 fps
+                   25 = 4 fps
+                   50 = 2 fps
+                   100 = 1 fps
+                   in general 100/delay = fps
+
+            -loop 0 means repeat forever
+        2a. To further compress you can skip frames:
+            gifsicle -U input.gif `seq -f "#%g" 0 2 99` -O2 -o output.gif
+
+    """
+    # Set up formatting for the movie files
+    Writer = animation.writers[conv]
+    writer = Writer(fps=15, metadata=dict(artist='Lars Schiller'),
+                    bitrate=1800)
+    line_ani.save(name, writer=writer)
+
+
+if __name__ == "__main__":
+    """
+    To save the animation you need the libav-tool to be installed:
+    sudo apt-get install libav-tools
+    """
+
+    col = ['red', 'orange', 'green', 'blue', 'magenta', 'darkred']
+
+
+#   init_pose = [(alp)          , eps, pos foot1]
+    init_pose = [(90, 1, -90, 90, 1), 0, (0, 0)]
+
+    ref = [[[45-gam/2., 45+gam/2., gam, 45-gam/2., 45+gam/2.], [0, 1, 1, 0]]
+           for gam in range(-90, 91, 45)]
+    ref2 = [[[45-gam/2., 45+gam/2., gam, 45-gam/2., 45+gam/2.], [1, 0, 0, 1]]
+            for gam in range(-90, 90, 45)[::-1]]  # revers
+    ref = ref + ref2
+
+    x, r, data, cst, marks = model.predict_pose(ref, init_pose, True, False)
+
+#    plt.figure()
+#    plot_gait(*start_end(*data))
+#
+#    markers = marker_history(marks)
+#    for idx, marker in enumerate(markers):
+#        x, y = marker
+#        plt.plot(x, y, color=col[idx])
+
+    # ## withot stretching
+    init_pose = [(90, 1, -90, 90, 1), 0, (0, 0)]
+    step = 45
+    ref = [[[45-gam/2., 45+gam/2., gam, 45-gam/2., 45+gam/2.], [0, 1, 0, 0]]
+           for gam in range(-90, 91, step)]
+    ref2 = [[[45-gam/2., 45+gam/2., gam, 45-gam/2., 45+gam/2.], [1, 0, 0, 0]]
+            for gam in range(-90, 90, step)[::-1]]  # revers
+    ref = ref + ref2
+
+    x, r, data, cst, marks = model.predict_pose(ref, init_pose, True, False,
+                                          dev_ang=.1)
+
+    plt.figure()
+    plot_gait(*start_mid_end(*data))
+
+    markers = model.marker_history(marks)
+    for idx, marker in enumerate(markers):
+        x, y = marker
+        plt.plot(x, y, '-', color=col[idx])
+
+    # Animation
+    data_xy = data[0]
+    fig_ani = plt.figure()
+    plt.title('Test')
+    _ = animate_gait(fig_ani, data_xy, marks)  # _ = --> important
+
+    for idx, marker in enumerate(markers):
+        x, y = marker
+        plt.plot(x, y, '-', color=col[idx])
+
+    plt.show()
+
