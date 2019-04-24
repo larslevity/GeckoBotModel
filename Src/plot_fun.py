@@ -12,6 +12,106 @@ import matplotlib.animation as animation
 import kinematic_model as model
 
 
+n_limbs = 5
+n_foot = 4
+arc_res = 40    # resolution of arcs
+
+
+class GeckoBotPose(object):
+    def __init__(self, x, marks, f):
+        self.x = x
+        self.markers = marks
+        self.f = f
+        self.point_repr = get_point_repr(x, marks, f)
+
+    def plot(self):
+        (x, y), (fpx, fpy), (nfpx, nfpy) = self.point_repr
+        plt.plot(x, y, '.', color=col)
+        plt.plot(fpx, fpy, 'o', markersize=10, color=col)
+        plt.plot(nfpx, nfpy, 'x', markersize=10, color=col)
+        plt.axis('equal')
+
+
+def get_point_repr(x, marks, f):
+    alp, ell, eps = x[0:n_limbs], x[n_limbs:2*n_limbs], x[-1]
+    c1, _, _, _ = model._calc_phi(alp, eps)
+    l1, l2, lg, l3, l4 = ell
+    alp1, bet1, gam, alp2, bet2 = alp
+    xf, yf = model.get_feet_pos(marks)
+
+    x, y = [xf[0]], [yf[0]]
+    # draw upper left leg
+    xl1, yl1 = _calc_arc_coords((x[-1], y[-1]), c1, c1+alp1,
+                                model._calc_rad(l1, alp1))
+    x = x + xl1
+    y = y + yl1
+    # draw torso
+    xt, yt = _calc_arc_coords((x[-1], y[-1]), -90+c1+alp1, -90+c1+alp1+gam,
+                              model._calc_rad(lg, gam))
+    x = x + xt
+    y = y + yt
+    # draw lower right leg
+    xl4, yl4 = _calc_arc_coords((x[-1], y[-1]), -90+gam-(90-c1-alp1),
+                                -90+gam-(90-c1-alp1)-bet2,
+                                model._calc_rad(l4, bet2))
+    x = x + xl4
+    y = y + yl4
+    # draw upper right leg
+    xl2, yl2 = _calc_arc_coords((xl1[-1], yl1[-1]), c1+alp1,
+                                c1+alp1+bet1, model._calc_rad(l2, bet1))
+    x = x + xl2
+    y = y + yl2
+    # draw lower left leg
+    xl3, yl3 = _calc_arc_coords((xt[-1], yt[-1]), -90+gam-(90-c1-alp1),
+                                -90+gam-(90-c1-alp1)+alp2,
+                                model._calc_rad(l3, alp2))
+    x = x + xl3
+    y = y + yl3
+
+    fp = ([], [])
+    nfp = ([], [])
+    for idx in range(n_foot):
+        if f[idx]:
+            fp[0].append(xf[idx])
+            fp[1].append(yf[idx])
+        else:
+            nfp[0].append(xf[idx])
+            nfp[1].append(yf[idx])
+
+    return (x, y), fp, nfp
+
+
+def _calc_arc_coords(xy, alp1, alp2, rad):
+    x0, y0 = xy
+    x, y = [x0], [y0]
+    xr = x0 + np.cos(np.deg2rad(alp1))*rad
+    yr = y0 + np.sin(np.deg2rad(alp1))*rad
+    steps = [angle for angle in np.linspace(0, alp2-alp1, arc_res)]
+    for dangle in steps:
+        x.append(xr - np.sin(np.deg2rad(90-alp1-dangle))*rad)
+        y.append(yr - np.cos(np.deg2rad(90-alp1-dangle))*rad)
+
+    return x, y
+
+
+
+
+
+def extract_eps(data):
+    (data_, data_fp, data_nfp, data_x) = data
+    eps = []
+    for pose_idx in range(len(data_x)):
+        eps.append(data_x[pose_idx][-1])
+    return eps
+
+
+def extract_ell(data):
+    (data_, data_fp, data_nfp, data_x) = data
+    ell = []
+    for pose_idx in range(len(data_x)):
+        ell.append(data_x[pose_idx][n_limbs:2*n_limbs])
+    return ell
+
 
 def plot_gait(data_xy, data_fp, data_nfp, data_x):
     for idx in range(len(data_xy)):
@@ -93,7 +193,9 @@ def save_animation(line_ani, name='gait.mp4', conv='avconv'):
     """
     To create gif:
         0. EASY: Use : https://ezgif.com/video-to-gif
-        OR:
+
+        OR (hard way):
+
         1. Create a directory called frames in the same directory with
            your .mp4 file. Use command:
             ffmpeg -i video.mp4  -r 5 'frames/frame-%03d.jpg'
