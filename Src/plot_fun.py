@@ -18,18 +18,68 @@ arc_res = 40    # resolution of arcs
 
 
 class GeckoBotPose(object):
-    def __init__(self, x, marks, f):
+    def __init__(self, x, marks, f, constraint=0, cost=0):
         self.x = x
         self.markers = marks
         self.f = f
-        self.point_repr = get_point_repr(x, marks, f)
+        self.constraint = constraint
+        self.cost = cost
 
-    def plot(self):
-        (x, y), (fpx, fpy), (nfpx, nfpy) = self.point_repr
+    def plot(self, col='k'):
+        (x, y), (fpx, fpy), (nfpx, nfpy) = \
+            get_point_repr(self.x, self.markers, self.f)
         plt.plot(x, y, '.', color=col)
         plt.plot(fpx, fpy, 'o', markersize=10, color=col)
         plt.plot(nfpx, nfpy, 'x', markersize=10, color=col)
         plt.axis('equal')
+
+    def show_stats(self):
+        alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
+                         self.x[-1])
+        phi = model._calc_phi(alp, eps)
+        mx, my = self.markers
+        print 'constraint function: \t', round(self.constraint, 2)
+        print 'objective function: \t', round(self.cost, 2)
+        print 'alp: \t\t\t', [round(xx, 2) for xx in alp]
+        print 'ell: \t\t\t', [round(xx, 2) for xx in ell]
+        print 'mx: \t\t\t', [round(xx, 2) for xx in mx]
+        print 'my: \t\t\t', [round(xx, 2) for xx in my]
+        print 'phi: \t\t\t', [round(xx, 2) for xx in phi]
+        print 'eps: \t\t\t', round(eps, 2), '\n'
+
+
+class GeckoBotGait(object):
+    def __init__(self):
+        self.poses = []
+
+    def append_pose(self, pose):
+        self.poses.append(pose)
+
+    def plot_gait(self):
+        plt.figure('GeckoBotGait')
+        for idx, pose in enumerate(self.poses):
+            c = (1-float(idx)/len(self.poses))*.8
+            col = (c, c, c)
+            pose.plot(col)
+
+    def plot_markers(self):
+        plt.figure('GeckoBotGait')
+        marks = [pose.markers for pose in self.poses]
+        markers = marker_history(marks)
+        col = markers_color()
+        for idx, marker in enumerate(markers):
+            x, y = marker
+            plt.plot(x, y, color=col[idx])
+        plt.axis('equal')
+
+    def plot_stress(self):
+        plt.figure('GeckoBotGaitStress')
+        stress = [pose.cost for pose in self.poses]
+        plt.plot(stress)
+
+
+def markers_color():
+    return ['red', 'orange', 'green', 'blue', 'magenta', 'darkred']
 
 
 def get_point_repr(x, marks, f):
@@ -94,7 +144,17 @@ def _calc_arc_coords(xy, alp1, alp2, rad):
     return x, y
 
 
-
+def marker_history(marks):
+    """ formats the marks from predictpose to:
+        marks[marker_idx][x/y][pose_idx]
+    """
+    markers = [([], []), ([], []), ([], []), ([], []), ([], []), ([], [])]
+    for pose in range(len(marks)):
+        x, y = marks[pose]
+        for xm, ym, idx in zip(x, y, range(len(x))):
+            markers[idx][0].append(xm)
+            markers[idx][1].append(ym)
+    return markers
 
 
 def extract_eps(data):
@@ -289,7 +349,7 @@ if __name__ == "__main__":
     plt.figure()
     plot_gait(*start_mid_end(*data))
 
-    markers = model.marker_history(marks)
+    markers = marker_history(marks)
     for idx, marker in enumerate(markers):
         x, y = marker
         plt.plot(x, y, '-', color=col[idx])

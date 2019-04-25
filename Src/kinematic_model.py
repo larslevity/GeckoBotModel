@@ -9,15 +9,15 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-f_l = 100.     # factor on length objective
-f_o = 0.001  # .0003     # factor on orientation objective
-f_a = 10     # factor on angle objective
+f_l = 100.      # factor on length objective
+f_o = 0.1     # .0003     # factor on orientation objective
+f_a = 10        # factor on angle objective
 len_leg = 1
-len_tor = 1.1
+len_tor = 1.2
 
 blow = .9       # lower stretching bound
 bup = 1.1       # upper stretching bound
-dev_ang = 100  # allowed deviation of angles
+dev_ang = 100   # allowed deviation of angles
 
 n_foot = 4
 n_limbs = 5
@@ -30,13 +30,13 @@ def get_feet_pos(markers):
     return (xf, yf)
 
 
-def predict_next_pose(reference, initial_pose, stats=False, debug=False,
+def predict_next_pose(reference, initial_pose, stats=False,
                       f=[f_l, f_o, f_a], len_leg=len_leg, len_tor=len_tor,
                       dev_ang=dev_ang, bounds=(blow, bup)):
     blow, bup = bounds
     f_len, f_ori, f_ang = f
     ell_nominal = (len_leg, len_leg, len_tor, len_leg, len_leg)
-    x_init, markers_init = initial_pose
+    x_init, markers_init = initial_pose.x, initial_pose.markers
 
     alpref_, f = reference
     alpref = _check_alpha(alpref_)
@@ -52,7 +52,8 @@ def predict_next_pose(reference, initial_pose, stats=False, debug=False,
         obj_ori, obj_len, obj_ang = 0, 0, 0
         for idx in range(n_foot):
             if f[idx]:
-                obj_ori = (obj_ori + (phi[idx] - phi_init[idx])**2)
+                obj_ori = (obj_ori
+                           + calc_difference(phi[idx], phi_init[idx])**2)
         for idx in range(n_limbs):
             obj_ang = obj_ang + (alpref[idx]-alp[idx])**2
         for idx in range(n_limbs):
@@ -87,32 +88,11 @@ def predict_next_pose(reference, initial_pose, stats=False, debug=False,
     x = solution.x
     mx, my = _calc_coords(x, markers_init, f)
 
-    def _print_debug_str(x):
-        alp, ell, eps = x[0:n_limbs], x[n_limbs:2*n_limbs], x[-1]
-        phi = _calc_phi(alp, eps)
-        mx, my = _calc_coords(x, markers_init, f)
-        print 'constraint function: \t', round(constraint1(x), 2)
-        print 'objective function: \t', round(objective(x), 2)
-        print 'alpref: \t\t', [round(xx, 2) for xx in alpref]
-        print 'alp: \t\t\t', [round(xx, 2) for xx in alp]
-        print 'ell: \t\t\t', [round(xx, 2) for xx in ell]
-        print 'mx: \t\t\t', [round(xx, 2) for xx in mx]
-        print 'my: \t\t\t', [round(xx, 2) for xx in my]
-        print 'phi: \t\t\t', [round(xx, 2) for xx in phi]
-        print 'eps: \t\t\t', round(eps, 2)
+    constraint = constraint1(x)
+    cost = objective(x)
 
-    if debug:
-        _print_debug_str(x)
-#    if stats:
-#        costs.append(objective(x))
-#        (xa, ya), (fpx, fpy), (nfpx, nfpy) = get_point_repr(x, (px, py), f)
-#        data.append((xa, ya))
-#        data_fp.append((fpx, fpy))
-#        data_nfp.append((nfpx, nfpy))
-#        data_x.append(x)
-#        data_marks.append((mx, my))
+    return pf.GeckoBotPose(x, (mx, my), f, (constraint, cost))
 
-    return x, (mx, my), f
 
 # , # (px, py), (data, data_fp, data_nfp, data_x), costs, data_marks
 
@@ -240,19 +220,6 @@ def calc_difference(phi0, phi1):
     return diff
 
 
-def marker_history(marks):
-    """ formats the marks from predictpose to:
-        marks[marker_idx][x/y][pose_idx]
-    """
-    markers = [([], []), ([], []), ([], []), ([], []), ([], []), ([], [])]
-    for pose in range(len(marks)):
-        x, y = marks[pose]
-        for xm, ym, idx in zip(x, y, range(len(x))):
-            markers[idx][0].append(xm)
-            markers[idx][1].append(ym)
-    return markers
-
-
 def _check_alpha(alpha):
     alpref = []
     for alp in alpha:
@@ -267,26 +234,24 @@ def set_initial_pose(alp_, ell, eps, F1):
     marks_init = ([F1[0], None, None, None, None, None],
                   [F1[1], None, None, None, None, None])
     mx, my = _calc_coords(x, marks_init, f)
-    return (x, (mx, my))
+    # return (x, (mx, my), f)
+    return pf.GeckoBotPose(x, (mx, my), f, 0, 0)
 
 
 if __name__ == "__main__":
-    alpha = [0, 0, 0, 0, 0]
+    import plot_fun as pf
+
+    alpha = [90, 0, -90, 90, 0]
     ell_nominal = (len_leg, len_leg, len_tor, len_leg, len_leg)
     eps = 90
     F1 = (0, 0)
-
     initial_pose = set_initial_pose(alpha, ell_nominal, eps, F1)
+    gait = pf.GeckoBotGait()
+    gait.append_pose(initial_pose)
 
-    ref = [[40, 20, 60, 20, 10], [1, 0, 0, 1]]
-    x, marks, f = predict_next_pose(ref, initial_pose, debug=1)
+    ref = [[0, 90, 90, 0, 90], [0, 1, 1, 0]]
+    gait.append_pose(predict_next_pose(ref, initial_pose))
 
-
-#    data, data_fp, data_nfp, data_x, costs, data_marks = [], [], [], [], [], []
-#    (x, y), (fpx, fpy), (nfpx, nfpy) = get_point_repr(xlast, rlast, (1, 0, 0, 0))
-#    data.append((x, y))
-#    data_fp.append((fpx, fpy))
-#    data_nfp.append((nfpx, nfpy))
-#    data_x.append(xlast)
-#    data_marks.append(markers)
-
+    gait.plot_gait()
+    gait.plot_stress()
+    gait.plot_markers()
