@@ -8,7 +8,7 @@ Created on Thu Feb 14 14:21:07 2019
 import numpy as np
 from scipy.optimize import minimize
 
-import plot_fun as pf
+from Src import plot_fun as pf
 
 f_l = 100.      # factor on length objective
 f_o = 0.1     # .0003     # factor on orientation objective
@@ -241,7 +241,6 @@ def set_initial_pose(alp_, eps, F1, len_leg=1, len_tor=1.2):
 
 
 if __name__ == "__main__":
-    import plot_fun as pf
 
     alpha = [90, 0, -90, 90, 0]
     eps = 90
@@ -258,4 +257,4 @@ if __name__ == "__main__":
     gait.plot_gait()
     gait.plot_stress()
     gait.plot_markers()
-    gait.save_as_tikz('asd')
+    gait.save_as_tikz('test')

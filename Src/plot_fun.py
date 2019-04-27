@@ -17,8 +17,8 @@ except ImportError:
     from scandir import scandir
 
 
-import kinematic_model as model
-import save as mysave
+from Src import kinematic_model as model
+from Src import save as mysave
 
 n_limbs = 5
 n_foot = 4
@@ -49,14 +49,14 @@ class GeckoBotPose(object):
                          self.x[-1])
         phi = model._calc_phi(alp, eps)
         mx, my = self.markers
-        print 'constraint function: \t', round(self.constraint, 2)
-        print 'objective function: \t', round(self.cost, 2)
-        print 'alp: \t\t\t', [round(xx, 2) for xx in alp]
-        print 'ell: \t\t\t', [round(xx, 2) for xx in ell]
-        print 'mx: \t\t\t', [round(xx, 2) for xx in mx]
-        print 'my: \t\t\t', [round(xx, 2) for xx in my]
-        print 'phi: \t\t\t', [round(xx, 2) for xx in phi]
-        print 'eps: \t\t\t', round(eps, 2), '\n'
+        print('constraint function: \t', round(self.constraint, 2))
+        print('objective function: \t', round(self.cost, 2))
+        print('alp: \t\t\t', [round(xx, 2) for xx in alp])
+        print('ell: \t\t\t', [round(xx, 2) for xx in ell])
+        print('mx: \t\t\t', [round(xx, 2) for xx in mx])
+        print('my: \t\t\t', [round(xx, 2) for xx in my])
+        print('phi: \t\t\t', [round(xx, 2) for xx in phi])
+        print('eps: \t\t\t', round(eps, 2), '\n')
 
     def get_tikz_repr(self, col='black'):
         alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
@@ -74,9 +74,9 @@ class GeckoBotPose(object):
         name = direc+filename+'.tex'
         mysave.save_geckostr_as_tikz(name, gstr)
         out_dir = os.path.dirname(name)
-        print name
+        print(name)
         os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
-        print 'Done'
+        print('Done')
 
 
 class GeckoBotGait(object):
@@ -124,7 +124,7 @@ class GeckoBotGait(object):
             gstr += pose.get_tikz_repr(col)
         mysave.save_geckostr_as_tikz(name, gstr)
         os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
-        print 'Done'
+        print('Done')
 
 
 def predict_gait(references, initial_pose):
