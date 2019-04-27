@@ -8,12 +8,11 @@ Created on Thu Feb 14 14:21:07 2019
 import numpy as np
 from scipy.optimize import minimize
 
+import plot_fun as pf
 
 f_l = 100.      # factor on length objective
 f_o = 0.1     # .0003     # factor on orientation objective
 f_a = 10        # factor on angle objective
-len_leg = 1
-len_tor = 1.2
 
 blow = .9       # lower stretching bound
 bup = 1.1       # upper stretching bound
@@ -30,11 +29,12 @@ def get_feet_pos(markers):
     return (xf, yf)
 
 
-def predict_next_pose(reference, initial_pose, stats=False,
-                      f=[f_l, f_o, f_a], len_leg=len_leg, len_tor=len_tor,
+def predict_next_pose(reference, initial_pose,
+                      f=[f_l, f_o, f_a],
                       dev_ang=dev_ang, bounds=(blow, bup)):
     blow, bup = bounds
     f_len, f_ori, f_ang = f
+    len_leg, len_tor = initial_pose.len_leg, initial_pose.len_tor
     ell_nominal = (len_leg, len_leg, len_tor, len_leg, len_leg)
     x_init, markers_init = initial_pose.x, initial_pose.markers
 
@@ -52,8 +52,9 @@ def predict_next_pose(reference, initial_pose, stats=False,
         obj_ori, obj_len, obj_ang = 0, 0, 0
         for idx in range(n_foot):
             if f[idx]:
-                obj_ori = (obj_ori
-                           + calc_difference(phi[idx], phi_init[idx])**2)
+                # dphi = calc_difference(phi[idx], phi_init[idx])
+                dphi = phi[idx] - phi_init[idx]
+                obj_ori = (obj_ori + dphi**2)
         for idx in range(n_limbs):
             obj_ang = obj_ang + (alpref[idx]-alp[idx])**2
         for idx in range(n_limbs):
@@ -227,8 +228,9 @@ def _check_alpha(alpha):
     return alpref
 
 
-def set_initial_pose(alp_, ell, eps, F1):
+def set_initial_pose(alp_, eps, F1, len_leg=1, len_tor=1.2):
     alp = _check_alpha(alp_)
+    ell = (len_leg, len_leg, len_tor, len_leg, len_leg)
     x = flat_list([alp, ell, [eps]])
     f = [1, 0, 0, 0]
     marks_init = ([F1[0], None, None, None, None, None],
@@ -242,16 +244,18 @@ if __name__ == "__main__":
     import plot_fun as pf
 
     alpha = [90, 0, -90, 90, 0]
-    ell_nominal = (len_leg, len_leg, len_tor, len_leg, len_leg)
     eps = 90
     F1 = (0, 0)
-    initial_pose = set_initial_pose(alpha, ell_nominal, eps, F1)
+    initial_pose = set_initial_pose(alpha, eps, F1)
     gait = pf.GeckoBotGait()
     gait.append_pose(initial_pose)
 
-    ref = [[0, 90, 90, 0, 90], [0, 1, 1, 0]]
+    ref = [[0, 90, 91, 0, 180], [0, 1, 1, 0]]
+    ref2 = [[10, 30, -110, 2, 10], [1, 0, 0, 1]]
     gait.append_pose(predict_next_pose(ref, initial_pose))
+    gait.append_pose(predict_next_pose(ref2, initial_pose))
 
     gait.plot_gait()
     gait.plot_stress()
     gait.plot_markers()
+    gait.save_as_tikz('asd')

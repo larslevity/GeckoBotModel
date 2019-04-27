@@ -8,9 +8,17 @@ Created on Wed Apr 24 11:38:56 2019
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from os import path
+import os
+
+try:
+    from os import scandir
+except ImportError:
+    from scandir import scandir
+
 
 import kinematic_model as model
-
+import save as mysave
 
 n_limbs = 5
 n_foot = 4
@@ -18,12 +26,15 @@ arc_res = 40    # resolution of arcs
 
 
 class GeckoBotPose(object):
-    def __init__(self, x, marks, f, constraint=0, cost=0):
+    def __init__(self, x, marks, f, constraint=0, cost=0,
+                 len_leg=1, len_tor=1.2):
         self.x = x
         self.markers = marks
         self.f = f
         self.constraint = constraint
         self.cost = cost
+        self.len_leg = len_leg
+        self.len_tor = len_tor
 
     def plot(self, col='k'):
         (x, y), (fpx, fpy), (nfpx, nfpy) = \
@@ -47,10 +58,32 @@ class GeckoBotPose(object):
         print 'phi: \t\t\t', [round(xx, 2) for xx in phi]
         print 'eps: \t\t\t', round(eps, 2), '\n'
 
+    def get_tikz_repr(self, col='black'):
+        alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
+                         self.x[-1])
+        mx, my = self.markers
+        geckostring = tikz_draw_gecko(
+                alp, ell, eps, (mx[0], my[0]), fix=self.f, col=col,
+                linewidth='1mm')
+        geckostring += '\n'
+        return geckostring
+
+    def save_as_tikz(self, filename):
+        direc = path.dirname(path.dirname(path.abspath(__file__))) + '/tikz/'
+        gstr = self.get_tikz_repr()
+        name = direc+filename+'.tex'
+        mysave.save_geckostr_as_tikz(name, gstr)
+        out_dir = os.path.dirname(name)
+        print name
+        os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
+        print 'Done'
+
 
 class GeckoBotGait(object):
-    def __init__(self):
+    def __init__(self, initial_pose=None):
         self.poses = []
+        if initial_pose:
+            self.append_pose(initial_pose)
 
     def append_pose(self, pose):
         self.poses.append(pose)
@@ -77,6 +110,28 @@ class GeckoBotGait(object):
         stress = [pose.cost for pose in self.poses]
         plt.plot(stress)
 
+    def save_as_tikz(self, filename):
+        direc = path.dirname(path.dirname(path.abspath(__file__))) + '/tikz/'
+        name = direc+filename+'.tex'
+        out_dir = os.path.dirname(name)
+        gstr = ''
+        for idx, pose in enumerate(self.poses):
+            if len(self.poses) == 1:
+                col = 'black'
+            else:
+                c = 50 + int((float(idx)/(len(self.poses)-1))*50)
+                col = 'black!{}'.format(c)
+            gstr += pose.get_tikz_repr(col)
+        mysave.save_geckostr_as_tikz(name, gstr)
+        os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
+        print 'Done'
+
+
+def predict_gait(references, initial_pose):
+    gait = GeckoBotGait(initial_pose)
+    for idx, ref in enumerate(references):
+        gait.append_pose(model.predict_next_pose(ref, gait.poses[idx]))
+    return gait
 
 def markers_color():
     return ['red', 'orange', 'green', 'blue', 'magenta', 'darkred']
@@ -304,6 +359,64 @@ def save_animation(line_ani, name='gait.mp4', conv='avconv'):
     writer = Writer(fps=15, metadata=dict(artist='Lars Schiller'),
                     bitrate=1800)
     line_ani.save(name, writer=writer)
+
+
+def tikz_draw_gecko(alp, ell, eps, F1, col='black',
+                    linewidth='.5mm', fix=None):
+    c1, c2, c3, c4 = model._calc_phi(alp, eps)
+    l1, l2, lg, l3, l4 = ell
+    for idx, a in enumerate(alp):
+        if abs(a) < 2:
+            alp[idx] = 2 * a/abs(a)
+    alp1, bet1, gam, alp2, bet2 = alp
+    r1, r2, rg, r3, r4 = [model._calc_rad(ell[i], alp[i]) for i in range(5)]
+
+    elem = """
+\\def\\col{%s}
+\\def\\lw{%s}
+\\def\\alpi{%f}
+\\def\\beti{%f}
+\\def\\gam{%f}
+\\def\\alpii{%f}
+\\def\\betii{%f}
+\\def\\gamh{%f}
+
+\\def\\eps{%f}
+\\def\\ci{%f}
+\\def\\cii{%f}
+\\def\\ciii{%f}
+\\def\\civ{%f}
+
+\\def\\ri{%f}
+\\def\\rii{%f}
+\\def\\rg{%f}
+\\def\\riii{%f}
+\\def\\riv{%f}
+
+\\path (%f, %f)coordinate(F1);
+
+\\draw[\\col, line width=\\lw] (F1)arc(180+\\ci:180+\\ci+\\alpi:\\ri)coordinate(OM);
+\\draw[\\col, line width=\\lw] (OM)arc(180+\\ci+\\alpi:180+\\ci+\\alpi+\\beti:\\rii)coordinate(F2);
+\\draw[\\col, line width=\\lw] (OM)arc(90+\\ci+\\alpi:90+\\ci+\\alpi+\\gam:\\rg)coordinate(UM);
+\\draw[\\col, line width=\\lw] (UM)arc(\\gam+\\ci+\\alpi:\\gam+\\ci+\\alpi+\\alpii:\\riii)coordinate(F3);
+\\draw[\\col, line width=\\lw] (UM)arc(\\gam+\\ci+\\alpi:\\gam+\\ci+\\alpi-\\betii:\\riv)coordinate(F4);
+
+""" % (col, linewidth, alp1, bet1, gam, alp2, bet2, gam*.5, eps, c1, c2, c3, c4,
+       r1, r2, rg, r3, r4, F1[0], F1[1])
+    if fix:
+        for idx, fixation in enumerate(fix):
+            c = [c1, c2, c3, c4]
+            if fixation:
+                fixs = '\\draw[\\col, line width=\\lw, fill] (F%s)++(%f :.15) circle(.15);\n' % (str(idx+1), 
+                              c[idx]+90 if idx in [0, 3] else c[idx]-90)
+                elem += fixs
+            else:
+                fixs = '\\draw[\\col, line width=\\lw] (F%s)++(%f :.15) circle(.15);\n' % (str(idx+1),
+                              c[idx]+90 if idx in [0, 3] else c[idx]-90)
+                elem += fixs
+
+    return elem
+
 
 
 if __name__ == "__main__":
