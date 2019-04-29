@@ -8,7 +8,11 @@ Created on Thu Feb 14 14:21:07 2019
 import numpy as np
 from scipy.optimize import minimize
 
-from Src import plot_fun as pf
+try:
+    from Src import plot_fun as pf
+except ImportError:
+    import plot_fun as pf
+    import search_tree as st
 
 f_l = 100.      # factor on length objective
 f_o = 0.1     # .0003     # factor on orientation objective
@@ -249,12 +253,21 @@ if __name__ == "__main__":
     gait = pf.GeckoBotGait()
     gait.append_pose(initial_pose)
 
-    ref = [[0, 90, 91, 0, 180], [0, 1, 1, 0]]
-    ref2 = [[10, 30, -110, 2, 10], [1, 0, 0, 1]]
-    gait.append_pose(predict_next_pose(ref, initial_pose))
-    gait.append_pose(predict_next_pose(ref2, initial_pose))
+#    ref = [[0, 90, 91, 0, 180], [0, 1, 1, 0]]
+#    ref2 = [[10, 30, -110, 2, 10], [1, 0, 0, 1]]
+#    gait.append_pose(predict_next_pose(ref, initial_pose))
+#    gait.append_pose(predict_next_pose(ref2, initial_pose))
 
+#    gait.plot_stress()
+#    gait.plot_markers()
+#    gait.save_as_tikz('test')
+    
+    ref = st.ReferenceGenerator('010')    
+    x_ref = (5,5)
+    for i in range(20):
+        act_pose = gait.poses[-1]
+        ref_new, pose_id = ref.get_next_reference(act_pose, x_ref)
+        gait.append_pose(predict_next_pose(ref_new, act_pose))
+        
+        
     gait.plot_gait()
-    gait.plot_stress()
-    gait.plot_markers()
-    gait.save_as_tikz('test')

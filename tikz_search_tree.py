@@ -24,6 +24,8 @@ ref = [[0, 90, 90, 0, 90], [0, 1, 1, 0]]
 g1000 = pf.predict_gait([ref], p0000)
 # g1000.plot_gait()
 g1000.save_as_tikz('1000')
+g1000.plot_gait()
+print(g1000.get_travel_distance())
 
 # %% POSE 0000_
 ref = [[0, 0, 0, 0, 0], [1, 0, 0, 1]]
@@ -35,6 +37,7 @@ ref = [[90, 0, -90, 90, 0], [1, 0, 0, 1]]
 g0100 = pf.predict_gait([ref], p0000)
 g0100.plot_gait()
 g0100.save_as_tikz('0100')
+print(g0100.get_travel_distance())
 
 # %% POSE 0100_
 alpha = [0, 90, 90, 0, 90]
@@ -45,16 +48,22 @@ p1000 = model.set_initial_pose(alpha, eps, F1)
 ref = [[90, 0, -90, 90, 0], [1, 0, 0, 1]]
 g0100_ = pf.predict_gait([ref], p1000)
 g0100_.save_as_tikz('_0100')
+print(g0100_.get_travel_distance())
 
 # %% POSE 1001
-ref = [[40, 1, -10, 60, 10], [1, 0, 0, 1]]
-g1001 = pf.predict_gait([ref], p1000)
+ref1001 = [[40, 1, -10, 60, 10], [1, 0, 0, 1]]
+g1001 = pf.predict_gait([ref1001], p1000)
 g1001.save_as_tikz('1001')
 
 # %% POSE 1000_
-ref = [[0, 90, 90, 0, 90], [0, 1, 1, 0]]
-g1000_ = pf.predict_gait([ref], g1001.poses[-1])
+ref1000 = [[0, 90, 90, 0, 90], [0, 1, 1, 0]]
+g1000_ = pf.predict_gait([ref1000], g1001.poses[-1])
 g1000_.save_as_tikz('1000_')
+
+# %% Gait 1001
+g1001_ = pf.predict_gait([ref1001, ref1000], p1000)
+g1001_.plot_gait()
+print(g1001_.get_travel_distance())
 
 # %% POSE 1002
 ref = [[48, 104, 114, 27, 124], [0, 1, 1, 0]]

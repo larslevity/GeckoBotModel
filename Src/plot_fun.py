@@ -16,9 +16,12 @@ try:
 except ImportError:
     from scandir import scandir
 
-
-from Src import kinematic_model as model
-from Src import save as mysave
+try:
+    from Src import kinematic_model as model
+    from Src import save as mysave
+except ImportError:
+    import kinematic_model as model
+    import save as mysave
 
 n_limbs = 5
 n_foot = 4
@@ -35,6 +38,13 @@ class GeckoBotPose(object):
         self.cost = cost
         self.len_leg = len_leg
         self.len_tor = len_tor
+
+    def get_eps(self):
+        return self.x[-1]
+
+    def get_m1_pos(self):
+        mx, my = self.markers
+        return (mx[1], my[1])
 
     def plot(self, col='k'):
         (x, y), (fpx, fpy), (nfpx, nfpy) = \
@@ -104,6 +114,19 @@ class GeckoBotGait(object):
             x, y = marker
             plt.plot(x, y, color=col[idx])
         plt.axis('equal')
+
+    def get_travel_distance(self):
+        last = self.poses[-1].get_m1_pos()
+        start = self.poses[0].get_m1_pos()
+        dist = (last[0]-start[0], last[-1]-start[1])
+        deps = self.poses[-1].get_eps() - self.poses[0].get_eps()
+        return dist, deps
+
+    def plot_travel_distance(self):
+        plt.figure('GeckoBotGait')
+        dist, eps = self.get_travel_distance()
+        start = self.poses[0].get_m1_pos()
+        plt.plot([start[0], start[0]+dist[0]], [start[1], start[1]+dist[1]])
 
     def plot_stress(self):
         plt.figure('GeckoBotGaitStress')
@@ -425,57 +448,15 @@ if __name__ == "__main__":
     sudo apt-get install libav-tools
     """
 
-    col = ['red', 'orange', 'green', 'blue', 'magenta', 'darkred']
+    alpha = [0, 0, -0, 0, 0]
+    eps = 88
+    F1 = (0, 0)
+    p0000 = model.set_initial_pose(alpha, eps, F1)
 
-
-#   init_pose = [(alp)          , eps, pos foot1]
-    init_pose = [(90, 1, -90, 90, 1), 0, (0, 0)]
-
-    ref = [[[45-gam/2., 45+gam/2., gam, 45-gam/2., 45+gam/2.], [0, 1, 1, 0]]
-           for gam in range(-90, 91, 45)]
-    ref2 = [[[45-gam/2., 45+gam/2., gam, 45-gam/2., 45+gam/2.], [1, 0, 0, 1]]
-            for gam in range(-90, 90, 45)[::-1]]  # revers
-    ref = ref + ref2
-
-    x, r, data, cst, marks = model.predict_pose(ref, init_pose, True, False)
-
-#    plt.figure()
-#    plot_gait(*start_end(*data))
-#
-#    markers = marker_history(marks)
-#    for idx, marker in enumerate(markers):
-#        x, y = marker
-#        plt.plot(x, y, color=col[idx])
-
-    # ## withot stretching
-    init_pose = [(90, 1, -90, 90, 1), 0, (0, 0)]
-    step = 45
-    ref = [[[45-gam/2., 45+gam/2., gam, 45-gam/2., 45+gam/2.], [0, 1, 0, 0]]
-           for gam in range(-90, 91, step)]
-    ref2 = [[[45-gam/2., 45+gam/2., gam, 45-gam/2., 45+gam/2.], [1, 0, 0, 0]]
-            for gam in range(-90, 90, step)[::-1]]  # revers
-    ref = ref + ref2
-
-    x, r, data, cst, marks = model.predict_pose(ref, init_pose, True, False,
-                                          dev_ang=.1)
-
-    plt.figure()
-    plot_gait(*start_mid_end(*data))
-
-    markers = marker_history(marks)
-    for idx, marker in enumerate(markers):
-        x, y = marker
-        plt.plot(x, y, '-', color=col[idx])
-
-    # Animation
-    data_xy = data[0]
-    fig_ani = plt.figure()
-    plt.title('Test')
-    _ = animate_gait(fig_ani, data_xy, marks)  # _ = --> important
-
-    for idx, marker in enumerate(markers):
-        x, y = marker
-        plt.plot(x, y, '-', color=col[idx])
-
-    plt.show()
+    ref = [[0, 90, 90, 0, 90], [0, 1, 1, 0]]
+    g1000 = predict_gait([ref], p0000)
+#    g1000.save_as_tikz('1000')
+    g1000.plot_gait()
+    g1000.plot_travel_distance()
+    print(g1000.get_travel_distance())
 
