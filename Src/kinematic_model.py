@@ -247,7 +247,7 @@ def set_initial_pose(alp_, eps, F1, len_leg=1, len_tor=1.2):
 if __name__ == "__main__":
 
     alpha = [90, 0, -90, 90, 0]
-    eps = 90
+    eps = 120
     F1 = (0, 0)
     initial_pose = set_initial_pose(alpha, eps, F1)
     gait = pf.GeckoBotGait()
@@ -261,13 +261,5 @@ if __name__ == "__main__":
 #    gait.plot_stress()
 #    gait.plot_markers()
 #    gait.save_as_tikz('test')
+
     
-    ref = st.ReferenceGenerator('010')    
-    x_ref = (5,5)
-    for i in range(20):
-        act_pose = gait.poses[-1]
-        ref_new, pose_id = ref.get_next_reference(act_pose, x_ref)
-        gait.append_pose(predict_next_pose(ref_new, act_pose))
-        
-        
-    gait.plot_gait()
