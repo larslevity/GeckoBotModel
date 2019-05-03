@@ -23,11 +23,12 @@ def draw_line(point1, point2, color='gray', linestyle='dashed'):
     x2, y2 = point2
     plt.plot([x1, x2], [y1, y2], color=color, linestyle=linestyle)
 
+
 g = {  # manually tuned
      '000': [('100', ((.0, .0), -1)), ('010', ((0, 0), 1)),
              ('000', ((0, 0), 0))],
 
-     '100': [#('000', ((0, 0), 0)),
+     '100': [  # ('000', ((0, 0), 0)),
              ('100f', ((0, .71), 1)), ('100f', ((0.15, -.2), -80)),
              ('100f', ((.1, .4), -10)), ('102', ((.1, .3), -20))],
      '100f': [('100df', None)],
@@ -40,9 +41,9 @@ g = {  # manually tuned
      '111f': [('111df', None)],
      '111df': [('112', None)],
      '112': [('112f', None)],
-     '112f': [('112df', ((0, 1), 1)), ('110df', ((0.15, -.2), -80))],
+     '112f': [('112df', ((0, 1), -1)), ('110df', ((0.15, -.2), -80)),
+              ('115df', ((0, 1), 1)), ('113df', ((-0.15, -.2), 80))],
      '112df': [('100', None)],
-
 #     '104': [('104f', None)],
 #     '104f': [('104df', None)],
 #     '104df': [('105', None)],
@@ -65,35 +66,33 @@ g = {  # manually tuned
      '103f': [('103df', None)],
      '103df': [('102', ((0, .4), -30)), ('100', ((0, .6), -15))],
 
-     '010': [#('000', ((0, 0), 0)),
-             ('010f', ((0, .71), -1)), #('010f', ((-.2, .2), 90)),
-             ('010f', ((-.1, .53), 30)), ('012', ((-.15, .4), 60))],
+     '010': [  # ('000', ((0, 0), 0)),
+             ('010f', ((0, .71), -1)), ('010f', ((-.15, -.2), 80)),
+             ('010f', ((-.1, .4), 10)), ('012', ((-.1, .4), 20))],
      '010f': [('010df', None)],
-     '010df': [('100', ((0, .71), -1)),  # ('014', ((-.2, .2), 90)),
-               ('011', ((-.1, .53), 30))],
-
+     '010df': [('100', ((0, .71), -1)), ('113', ((-.15, -.2), 80)),
+               ('011', ((-.1, .4), 10))],
      '113': [('113f', None)],
      '113f': [('113df', None)],
      '113df': [('114', None)],
      '114': [('114f', None)],
      '114f': [('114df', None)],
      '114df': [('115', None)],
-     '115': [('115f', None)],
-     '115f': [('115df', ((0, 1), -1)), ('113df', ((0.15, -.2), 80))],
+     '115': [('112f', None)],
+#     '115f': [('115df', ((0, 1), 1)), ('113df', ((-0.15, -.2), 80))],
      '115df': [('010', None)],
-
-     '014': [('014f', None)],
-     '014f': [('014df', None)],
-     '014df': [('015', None)],
-     '015': [('015f', None)],
-     '015f': [('015df', None)],
-     '015df': [('016', ((0, .2), 130)), ('017', ((0, .4), 70))],
-     '016': [('016f', None)],
-     '016f': [('016df', None)],
-     '016df': [('015', None)],
-     '017': [('017f', None)],
-     '017f': [('017df', None)],
-     '017df': [('010', None)],
+#     '014': [('014f', None)],
+#     '014f': [('014df', None)],
+#     '014df': [('015', None)],
+#     '015': [('015f', None)],
+#     '015f': [('015df', None)],
+#     '015df': [('016', ((0, .2), 130)), ('017', ((0, .4), 70))],
+#     '016': [('016f', None)],
+#     '016f': [('016df', None)],
+#     '016df': [('015', None)],
+#     '017': [('017f', None)],
+#     '017f': [('017df', None)],
+#     '017df': [('010', None)],
      '011': [('011f', None)],
      '011f': [('011df', None)],
      '011df': [('010', None)],
@@ -122,7 +121,7 @@ ref = {
 
      '112': [[45, 45, 10, 45, 45], [0, 0, 1, 1], .8],
      '112f': [[45, 45, 0, 45, 45], [1, 1, 1, 1], .1],
-     '112df': [[45, 45, 0, 45, 45], [1, 1, 0, 0], .1],
+     '112df': [[45, 45, 0, 45, 45], [0, 1, 1, 0], .1],
 
      '104': [[50, 30, 90, 30, 150], [1, 0, 0, 1], .8],
      '104f': [[50, 30, 90, 30, 150], [1, 1, 1, 1], .1],
@@ -157,6 +156,18 @@ ref = {
      '010': [[90, 0, -90, 90, 0], [1, 0, 0, 1], .8],
      '010f': [[90, 0, -90, 90, 0], [1, 1, 1, 1], .1],
      '010df': [[90, 0, -90, 90, 0], [0, 1, 1, 0], .1],
+
+     '113': [[45, 45, 0, 45, 45], [0, 1, 1, 0], .8],
+     '113f': [[45, 45, 0, 45, 45], [1, 1, 1, 1], .1],
+     '113df': [[45, 45, 0, 45, 45], [1, 1, 0, 0], .1],
+
+     '114': [[45, 45, 90, 45, 45], [1, 1, 0, 0], .8],
+     '114f': [[45, 45, 90, 45, 45], [1, 1, 1, 1], .1],
+     '114df': [[45, 45, 90, 45, 45], [0, 0, 1, 1], .1],
+
+     '115': [[45, 45, -10, 45, 45], [0, 0, 1, 1], .8],
+#     '115f': [[45, 45, 0, 45, 45], [1, 1, 1, 1], .1],
+     '115df': [[45, 45, 0, 45, 45], [1, 0, 0, 1], .1],
 
      '014': [[30, 50, -90, 150, 30], [0, 1, 1, 0], .8],
      '014f': [[30, 50, -90, 150, 30], [1, 1, 1, 1], .1],
@@ -220,6 +231,24 @@ class ReferenceGenerator(object):
         self.ref = ref
         self.idx = 0
         self.last_deps = None
+        self.check_consistency()
+
+    def check_consistency(self):
+        for key in self.graph.vertices():
+            try:
+                self.ref[key]
+            except KeyError as err:
+                print(err, 'there is no ref')
+        for key in self.ref:
+            if key[-1] == 'f' and key[-2] != 'd':
+                assert sum(self.ref[key][1]) == 4  # all feet must be fix
+            if key[-1] == 'f' and key[-2] == 'd':
+                assert sum(self.ref[key][1]) == 2  # 2 feet must be fix
+            if key[-1] != 'f':
+                try:
+                    assert sum(self.ref[key][1]) == 2  # 2 feet must be fix
+                except AssertionError:
+                    print(key, 'sum is not equal 2')
 
     def get_next_reference(self, act_position, act_eps, xref, act_pose=None):
         xref = np.r_[xref]
@@ -242,7 +271,6 @@ class ReferenceGenerator(object):
                                label='GOAL')
                 act_pose.plot('gray')
 
-                
                 def suitability(translation_, rotation, v=None):
                     translation_ = np.r_[translation_]
                     # translation is configured for eps=90
@@ -258,14 +286,14 @@ class ReferenceGenerator(object):
                     draw_line(act_pos+translation, xref)
 
                     return (dist_, deps_)
-                
+
                 deps = CandidateHandler()
                 ddist = CandidateHandler()
                 for child in self.graph.get_children(self.pose):
                     v, (translation, rotation) = child
                     dist_, deps_ = suitability(translation, rotation, v)
                     deps[v] = round(deps_, 2)
-                    ddist[v] =  round(dist_, 2)
+                    ddist[v] = round(dist_, 2)
 
                 if abs(act_deps) > 70:  # ganz falsche Richtung
                     print('deps:', deps)
@@ -298,6 +326,13 @@ class ReferenceGenerator(object):
             if abs(self.last_deps) < 90:
                 alpha[2] = self.last_deps
                 print('something magic\ndeps:\t', act_deps, '\n', alpha)
+        if pose_id[:3] == '114':
+            if pose_id == '114':
+                self.last_deps = act_deps
+            if abs(self.last_deps) < 90:
+                alpha[2] = self.last_deps
+                print('something magic\ndeps:\t', act_deps, '\n', alpha)
+
         return alpha, feet, process_time, pose_id
 
     def __get_ref(self, pose_id):
@@ -452,7 +487,7 @@ if __name__ == "__main__":
     gait.append_pose(initial_pose)
 
     ref = ReferenceGenerator('010')
-    xref = (10, 2.5)
+    xref = (-10, 4)
 
     def calc_dist(pose, xref):
         mx, my = pose.markers
@@ -469,8 +504,11 @@ if __name__ == "__main__":
         alpha, feet, _,  pose_id = ref.get_next_reference(act_pos, eps, xref, act_pose)
         gait.append_pose(model.predict_next_pose([alpha, feet], act_pose))
         i += 1
-        if i > 30:
+        if i > 15:
             break
 
     gait.plot_gait()
     draw_point_dir(xref, [0, 0], size=20, label='GOAL1')
+
+    gait.animate()
+    

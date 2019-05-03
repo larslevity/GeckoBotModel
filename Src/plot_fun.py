@@ -149,6 +149,18 @@ class GeckoBotGait(object):
         os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
         print('Done')
 
+    def animate(self):
+        fig1 = plt.figure('GeckoBotGaitAnimation')
+        data_xy, data_markers = [], []
+        for pose in self.poses:
+            (x, y), (fpx, fpy), (nfpx, nfpy) = \
+                get_point_repr(pose.x, pose.markers, pose.f)
+            data_xy.append((x, y))
+            data_markers.append(pose.markers)
+        line_ani = animate_gait(fig1, data_xy, data_markers)
+        plt.show('GeckoBotGaitAnimation')
+        return line_ani
+
 
 def predict_gait(references, initial_pose):
     gait = GeckoBotGait(initial_pose)
