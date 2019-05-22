@@ -487,7 +487,7 @@ if __name__ == "__main__":
     gait.append_pose(initial_pose)
 
     ref = ReferenceGenerator('010')
-    xref = (-10, 4)
+    xref = (-12, -4)
 
     def calc_dist(pose, xref):
         mx, my = pose.markers
@@ -504,7 +504,7 @@ if __name__ == "__main__":
         alpha, feet, _,  pose_id = ref.get_next_reference(act_pos, eps, xref, act_pose)
         gait.append_pose(model.predict_next_pose([alpha, feet], act_pose))
         i += 1
-        if i > 15:
+        if i > 12:
             break
 
     gait.plot_gait()

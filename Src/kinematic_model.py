@@ -245,21 +245,73 @@ def set_initial_pose(alp_, eps, F1, len_leg=1, len_tor=1.2):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
 
-    alpha = [90, 0, -90, 90, 0]
-    eps = 120
-    F1 = (0, 0)
-    initial_pose = set_initial_pose(alpha, eps, F1)
+    def T0(eps, p0):
+        eps = np.deg2rad(eps)
+        c = np.cos(eps)
+        s = np.sin(eps)
+        return np.matrix([
+            [c, -s, p0[0]],
+            [s, c, p0[1]],
+            [0, 0, 1]
+        ])
+
+    def T(alp, L):
+        alp = np.deg2rad(alp)
+        if alp == 0:
+            alp = .001
+        c = np.cos(alp)
+        s = np.sin(alp)
+        return np.matrix([
+            [c, -s, L/alp*s],
+            [s, c, L/alp*(1-c)],
+            [0, 0, 1]
+         ])
+
+    def vec2lis(vec):
+        return [float(vec[i]) for i in range(2)]
+
+    alp = [90, 0, -90, 90, 0]
+    eps = -10
+    ell = [1, 1, 1.2, 1, 1]
+    p1 = (10, 10)
+
+    T_O1 = T0(eps+alp[2]/2, p1)
+    T_12 = T(alp[1], ell[1])
+    T_10 = T(180, 0)*T(-alp[0], ell[0])
+    T_14 = T(-90, 0)*T(alp[2], ell[2])
+    T_45 = T(90, 0)*T(-alp[4], ell[4])
+    T_43 = T(-90, 0)*T(alp[3], ell[3])
+
+    T_O0 = T0(eps+alp[2]/2, p1)
+    T_01 = T(alp[0], ell[0])
+
+    p = [
+        vec2lis(T_O1*T_10*np.c_[[0, 0, 1]]),
+        vec2lis(T_O1*np.c_[[0, 0, 1]]),
+        vec2lis(T_O1*T_12*np.c_[[0, 0, 1]]),
+        vec2lis(T_O1*T_14*T_43*np.c_[[0, 0, 1]]),
+        vec2lis(T_O1*T_14*np.c_[[0, 0, 1]]),
+        vec2lis(T_O1*T_14*T_45*np.c_[[0, 0, 1]])
+        ]
+
+    F1 = p[0]
+
+    initial_pose = set_initial_pose(alp, eps, F1,
+                                    len_leg=ell[0], len_tor=ell[2])
     gait = pf.GeckoBotGait()
     gait.append_pose(initial_pose)
 
-#    ref = [[0, 90, 91, 0, 180], [0, 1, 1, 0]]
-#    ref2 = [[10, 30, -110, 2, 10], [1, 0, 0, 1]]
-#    gait.append_pose(predict_next_pose(ref, initial_pose))
-#    gait.append_pose(predict_next_pose(ref2, initial_pose))
+    ref = [[0, 90, 91, 0, 90], [0, 1, 1, 0]]
+    gait.append_pose(predict_next_pose(ref, initial_pose))
 
+    gait.plot_gait()
 #    gait.plot_stress()
-#    gait.plot_markers()
+    gait.plot_markers()
 #    gait.save_as_tikz('test')
+
+    for pi in p:
+        plt.plot(pi[0], pi[1], 'ro', markersize=10)
 
     
