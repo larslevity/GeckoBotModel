@@ -6,15 +6,15 @@ Created on Thu Apr 25 17:25:25 2019
 """
 
 
-from Src import plot_fun as pf
-from Src import kinematic_model as model
+from Src.Utils import plot_fun as pf
+from Src.Math import kinematic_model as model
 
 
 # %% POSE 0000
 alpha = [0, 0, -0, 0, 0]
 eps = 88
 F1 = (0, 0)
-p0000 = model.set_initial_pose(alpha, eps, F1)
+p0000 = pf.GeckoBotPose(*model.set_initial_pose(alpha, eps, F1))
 g0000 = pf.GeckoBotGait(p0000)
 g0000.plot_gait()
 g0000.save_as_tikz('0000')
@@ -43,7 +43,7 @@ print(g0100.get_travel_distance())
 alpha = [0, 90, 90, 0, 90]
 eps = 90
 F1 = (0, 0)
-p1000 = model.set_initial_pose(alpha, eps, F1)
+p1000 = pf.GeckoBotPose(*model.set_initial_pose(alpha, eps, F1))
 
 ref = [[90, 0, -90, 90, 0], [1, 0, 0, 1]]
 g0100_ = pf.predict_gait([ref], p1000)
@@ -165,7 +165,7 @@ g0000__.save_as_tikz('0000__')
 alpha = [90, 0, -90, 90, 0]
 eps = 90
 F1 = (0, 0)
-p0100 = model.set_initial_pose(alpha, eps, F1)
+p0100 = pf.GeckoBotPose(*model.set_initial_pose(alpha, eps, F1))
 
 ref = [[0, 90, 90, 0, 90], [0, 1, 1, 0]]
 g1000_ = pf.predict_gait([ref], p0100)
@@ -255,7 +255,3 @@ g0107.save_as_tikz('0107')
 ref = [[90, 0, -90, 90, 0], [1, 0, 0, 1]]
 g0100____ = pf.predict_gait([ref], g0107.poses[-1])
 g0100____.save_as_tikz('0100____')
-
-
-
-

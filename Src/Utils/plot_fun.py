@@ -16,12 +16,8 @@ try:
 except ImportError:
     from scandir import scandir
 
-try:
-    from Src import kinematic_model as model
-    from Src import save as mysave
-except ImportError:
-    import kinematic_model as model
-    import save as mysave
+from Src.Math import kinematic_model as model
+from Src.Utils import save as mysave
 
 n_limbs = 5
 n_foot = 4
@@ -79,7 +75,8 @@ class GeckoBotPose(object):
         return geckostring
 
     def save_as_tikz(self, filename):
-        direc = path.dirname(path.dirname(path.abspath(__file__))) + '/tikz/'
+        direc = path.dirname(path.dirname(path.dirname(
+                    path.abspath(__file__)))) + '/tikz/'
         gstr = self.get_tikz_repr()
         name = direc+filename+'.tex'
         mysave.save_geckostr_as_tikz(name, gstr)
@@ -134,7 +131,8 @@ class GeckoBotGait(object):
         plt.plot(stress)
 
     def save_as_tikz(self, filename):
-        direc = path.dirname(path.dirname(path.abspath(__file__))) + '/tikz/'
+        direc = path.dirname(path.dirname(path.dirname(
+                    path.abspath(__file__)))) + '/tikz/'
         name = direc+filename+'.tex'
         out_dir = os.path.dirname(name)
         gstr = ''
@@ -165,8 +163,10 @@ class GeckoBotGait(object):
 def predict_gait(references, initial_pose):
     gait = GeckoBotGait(initial_pose)
     for idx, ref in enumerate(references):
-        gait.append_pose(model.predict_next_pose(ref, gait.poses[idx]))
+        gait.append_pose(GeckoBotPose(*model.predict_next_pose(
+                ref, gait.poses[idx].x, gait.poses[idx].markers)))
     return gait
+
 
 def markers_color():
     return ['red', 'orange', 'green', 'blue', 'magenta', 'darkred']
@@ -341,6 +341,9 @@ def animate_gait(fig1, data_xy, data_markers, inv=500,
 
 def save_animation(line_ani, name='gait.mp4', conv='avconv'):
     """
+    To save the animation you need the libav-tool to be installed:
+    sudo apt-get install libav-tools
+
     To create gif:
         0. EASY: Use : https://ezgif.com/video-to-gif
 
@@ -451,24 +454,3 @@ def tikz_draw_gecko(alp, ell, eps, F1, col='black',
                 elem += fixs
 
     return elem
-
-
-
-if __name__ == "__main__":
-    """
-    To save the animation you need the libav-tool to be installed:
-    sudo apt-get install libav-tools
-    """
-
-    alpha = [0, 0, -0, 0, 0]
-    eps = 88
-    F1 = (0, 0)
-    p0000 = model.set_initial_pose(alpha, eps, F1)
-
-    ref = [[0, 90, 90, 0, 90], [0, 1, 1, 0]]
-    g1000 = predict_gait([ref], p0000)
-#    g1000.save_as_tikz('1000')
-    g1000.plot_gait()
-    g1000.plot_travel_distance()
-    print(g1000.get_travel_distance())
-

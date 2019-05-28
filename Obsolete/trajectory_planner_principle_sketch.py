@@ -7,16 +7,10 @@ Created on Sun Mar 31 13:02:13 2019
 """
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as pat
-import numpy as np
-
-import sys
-from os import path
-sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
 
-from Src import save
-from Src import kinematic_model as model
+from Src.Utils import save
+from Src.Math import kinematic_model as model
 
 
 def start_pose(alp, feet, eps0=90, F1=(0, 0)):
