@@ -8,11 +8,6 @@ Created on Thu Feb 14 14:21:07 2019
 import numpy as np
 from scipy.optimize import minimize
 
-try:
-    from Src import plot_fun as pf
-except ImportError:
-    import plot_fun as pf
-    import search_tree as st
 
 f_l = 100.      # factor on length objective
 f_o = 0.1     # .0003     # factor on orientation objective
@@ -33,14 +28,13 @@ def get_feet_pos(markers):
     return (xf, yf)
 
 
-def predict_next_pose(reference, initial_pose,
+def predict_next_pose(reference, x_init, markers_init,
                       f=[f_l, f_o, f_a],
+                      len_leg=1, len_tor=1.2,
                       dev_ang=dev_ang, bounds=(blow, bup)):
     blow, bup = bounds
     f_len, f_ori, f_ang = f
-    len_leg, len_tor = initial_pose.len_leg, initial_pose.len_tor
     ell_nominal = (len_leg, len_leg, len_tor, len_leg, len_leg)
-    x_init, markers_init = initial_pose.x, initial_pose.markers
 
     alpref_, f = reference
     alpref = _check_alpha(alpref_)
@@ -96,10 +90,68 @@ def predict_next_pose(reference, initial_pose,
     constraint = constraint1(x)
     cost = objective(x)
 
-    return pf.GeckoBotPose(x, (mx, my), f, (constraint, cost))
+    return (x, (mx, my), f, (constraint, cost))
 
 
 # , # (px, py), (data, data_fp, data_nfp, data_x), costs, data_marks
+
+
+def T0(eps, p0):
+    eps = np.deg2rad(eps)
+    c = np.cos(eps)
+    s = np.sin(eps)
+    return np.matrix([
+        [c, -s, p0[0]],
+        [s, c, p0[1]],
+        [0, 0, 1]])
+
+
+def T(alp, L):
+    alp = np.deg2rad(alp)
+    if alp == 0:
+        alp = .001
+    c = np.cos(alp)
+    s = np.sin(alp)
+    return np.matrix([
+        [c, -s, L/alp*s],
+        [s, c, L/alp*(1-c)],
+        [0, 0, 1]])
+
+
+def vec2lis(vec):
+    return [float(vec[i]) for i in range(2)]
+
+
+def _calc_coords2(x, marks, f):
+    alp, ell, eps = x[0:n_limbs], x[n_limbs:2*n_limbs], x[-1]
+    mx, my = marks
+    if f[0]:
+        p0 = (mx[0], my[0])
+        T_Ori_0 = T0(eps-alp[2]/2-alp[0]-90, p0)
+        T_01 = T(alp[0], ell[0])
+        p1 = vec2lis(T_Ori_0*T_01*np.c_[[0, 0, 1]])
+        T_Ori_1 = T0(eps-alp[2]/2, p1)
+        T_12 = T(-90, 0)*T(alp[1], ell[1])
+        p2 = vec2lis(T_Ori_1*T_12*np.c_[[0, 0, 1]])
+    elif f[1]:
+        p2 = (mx[2], my[2])
+        T_Ori_2 = T0(eps-alp[2]/2+alp[1]+90, p2)
+        T_21 = T(-alp[1], ell[1])
+        p1 = vec2lis(T_Ori_2*T_21*np.c_[[0, 0, 1]])
+        T_Ori_1 = T0(eps-alp[2]/2, p1)
+        T_10 = T(90, 0)*T(-alp[0], ell[0])
+        p0 = vec2lis(T_Ori_1*T_10*np.c_[[0, 0, 1]])
+
+    T_14 = T(180, 0)*T(alp[2], ell[2])
+    T_45 = T(90, 0)*T(-alp[4], ell[4])
+    T_43 = T(-90, 0)*T(alp[3], ell[3])
+
+    p3 = vec2lis(T_Ori_1*T_14*T_43*np.c_[[0, 0, 1]])
+    p4 = vec2lis(T_Ori_1*T_14*np.c_[[0, 0, 1]])
+    p5 = vec2lis(T_Ori_1*T_14*T_45*np.c_[[0, 0, 1]])
+
+    mx, my = zip(p0, p1, p2, p3, p4, p5)
+    return mx, my
 
 
 def _calc_coords(x, marks, f):
@@ -232,86 +284,56 @@ def _check_alpha(alpha):
     return alpref
 
 
-def set_initial_pose(alp_, eps, F1, len_leg=1, len_tor=1.2):
+def set_initial_pose(alp_, eps, p1, len_leg=1, len_tor=1.2):
     alp = _check_alpha(alp_)
     ell = (len_leg, len_leg, len_tor, len_leg, len_leg)
     x = flat_list([alp, ell, [eps]])
     f = [1, 0, 0, 0]
-    marks_init = ([F1[0], None, None, None, None, None],
-                  [F1[1], None, None, None, None, None])
+    T_Ori_1 = T0(eps-alp[2]/2, p1)
+    T_10 = T(90, 0)*T(-alp[0], ell[0])
+    p0 = vec2lis(T_Ori_1*T_10*np.c_[[0, 0, 1]])
+    marks_init = ([p0[0], None, None, None, None, None],
+                  [p0[1], None, None, None, None, None])
     mx, my = _calc_coords(x, marks_init, f)
     # return (x, (mx, my), f)
-    return pf.GeckoBotPose(x, (mx, my), f, 0, 0)
+    return x, (mx, my), f
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-
-    def T0(eps, p0):
-        eps = np.deg2rad(eps)
-        c = np.cos(eps)
-        s = np.sin(eps)
-        return np.matrix([
-            [c, -s, p0[0]],
-            [s, c, p0[1]],
-            [0, 0, 1]
-        ])
-
-    def T(alp, L):
-        alp = np.deg2rad(alp)
-        if alp == 0:
-            alp = .001
-        c = np.cos(alp)
-        s = np.sin(alp)
-        return np.matrix([
-            [c, -s, L/alp*s],
-            [s, c, L/alp*(1-c)],
-            [0, 0, 1]
-         ])
-
-    def vec2lis(vec):
-        return [float(vec[i]) for i in range(2)]
+    import plot_fun as pf
 
     alp = [90, 0, -90, 90, 0]
-    eps = -10
+    eps = 90
     ell = [1, 1, 1.2, 1, 1]
-    p1 = (10, 10)
+    p1 = (5, 10)
 
-    T_O1 = T0(eps+alp[2]/2, p1)
-    T_12 = T(alp[1], ell[1])
-    T_10 = T(180, 0)*T(-alp[0], ell[0])
-    T_14 = T(-90, 0)*T(alp[2], ell[2])
-    T_45 = T(90, 0)*T(-alp[4], ell[4])
-    T_43 = T(-90, 0)*T(alp[3], ell[3])
+    x, marks, f = set_initial_pose(
+            alp, eps, p1, len_leg=ell[0], len_tor=ell[2])
 
-    T_O0 = T0(eps+alp[2]/2, p1)
-    T_01 = T(alp[0], ell[0])
-
-    p = [
-        vec2lis(T_O1*T_10*np.c_[[0, 0, 1]]),
-        vec2lis(T_O1*np.c_[[0, 0, 1]]),
-        vec2lis(T_O1*T_12*np.c_[[0, 0, 1]]),
-        vec2lis(T_O1*T_14*T_43*np.c_[[0, 0, 1]]),
-        vec2lis(T_O1*T_14*np.c_[[0, 0, 1]]),
-        vec2lis(T_O1*T_14*T_45*np.c_[[0, 0, 1]])
-        ]
-
-    F1 = p[0]
-
-    initial_pose = set_initial_pose(alp, eps, F1,
-                                    len_leg=ell[0], len_tor=ell[2])
+    initial_pose = pf.GeckoBotPose(x, marks, f)
     gait = pf.GeckoBotGait()
     gait.append_pose(initial_pose)
 
-    ref = [[0, 90, 91, 0, 90], [0, 1, 1, 0]]
-    gait.append_pose(predict_next_pose(ref, initial_pose))
+    # REF
+    ref1 = [[20, 90, 90, 0, 120], [0, 1, 1, 0]]
+    ref2 = [[100, 10, -70, 80, 2], [1, 0, 0, 1]]
+
+    x, marks, f, stats = predict_next_pose(
+        ref1, x, marks, len_leg=1, len_tor=1.2)
+    gait.append_pose(
+        pf.GeckoBotPose(x, marks, f, constraint=stats[0], cost=stats[1]))
+    x, marks, f, stats = predict_next_pose(
+        ref2, x, marks, len_leg=1, len_tor=1.2)
+    gait.append_pose(
+        pf.GeckoBotPose(x, marks, f, constraint=stats[0], cost=stats[1]))
 
     gait.plot_gait()
 #    gait.plot_stress()
     gait.plot_markers()
 #    gait.save_as_tikz('test')
 
-    for pi in p:
-        plt.plot(pi[0], pi[1], 'ro', markersize=10)
-
-    
+    mx, my = _calc_coords2(x, marks, f)
+    for x, y, i in zip(mx, my, [i for i in range(6)]):
+        plt.plot(x, y, 'ro', markersize=10)
+        plt.text(x, y+.1, str(i))
