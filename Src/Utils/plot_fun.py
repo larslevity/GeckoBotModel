@@ -121,9 +121,17 @@ class GeckoBotGait(object):
 
     def plot_travel_distance(self):
         plt.figure('GeckoBotGait')
-        dist, eps = self.get_travel_distance()
+        dist, deps = self.get_travel_distance()
         start = self.poses[0].get_m1_pos()
         plt.plot([start[0], start[0]+dist[0]], [start[1], start[1]+dist[1]])
+
+    def plot_orientation(self, length=.5, poses=[0, -1]):
+        plt.figure('GeckoBotGait')
+        for pose in poses:
+            start = self.poses[pose].get_m1_pos()
+            eps = self.poses[pose].get_eps()
+            plt.plot([start[0], start[0]+np.cos(np.deg2rad(eps))*length],
+                     [start[1], start[1]+np.sin(np.deg2rad(eps))*length], 'r')
 
     def plot_stress(self):
         plt.figure('GeckoBotGaitStress')

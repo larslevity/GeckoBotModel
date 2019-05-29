@@ -9,20 +9,34 @@ if __name__ == "__main__":
     from Src.Utils import plot_fun as pf
     from Src.Math import kinematic_model as model
 
-    alpha = [0, 0, -0, 0, 0]
     eps = 90
     F1 = (0, 0)
-    init_pose = pf.GeckoBotPose(*model.set_initial_pose(alpha, eps, F1))
+    
 
     ref = [[[0, 90, 90, 0, 90], [0, 1, 1, 0]],
-           [[10, 90, 90, 0, 90], [0, 1, 1, 0]],
-           [[30, 90, -90, 0, 90], [0, 1, 1, 0]]]
+           [[90, 90, 90, 90, 90], [1, 0, 0, 1]],
+           ]
 
-    gait = pf.predict_gait(ref, init_pose)
-    gait.save_as_tikz('test_plot_fun')
+    ref2_ = [[
+             [[45-gam/2.+x, 45+gam/2.+x, gam+x, 45-gam/2.+x, 45+gam/2.+x], [0, 1, 1, 0]],
+             [[45+gam/2.+x, 45-gam/2.+x, -gam+x, 45+gam/2.+x, 45-gam/2.+x], [1, 0, 0, 1]]
+            ] for gam, x in [(80,22), (80,22), (60, 42), (80, 22), (90, 0), (45, 45), (45, -45)]]
+    ref2 = model.flat_list(ref2_)
+#    print(ref2)
+#    ref2 = ref
+
+    init_pose = pf.GeckoBotPose(
+            *model.set_initial_pose(ref2[0][0], eps, ref2[0][1]))
+    gait = pf.predict_gait(ref2, init_pose)
+
     gait.plot_gait()
+    gait.plot_markers()
+    gait.plot_stress()
     gait.plot_travel_distance()
     print(gait.get_travel_distance())
 
-    line_ani = gait.animate()
-    pf.save_animation(line_ani)
+
+
+#    line_ani = gait.animate()
+#    pf.save_animation(line_ani)
+#    gait.save_as_tikz('test_plot_fun')
