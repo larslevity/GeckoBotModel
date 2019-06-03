@@ -114,3 +114,26 @@ if __name__ == "__main__":
     plt.title('Delta y')
 
     plt.show()
+
+    # %%
+    a = np.array([[3, 1, 1], [1, 2, 1]])
+    b = np.array([9, 8, 1])
+    x = np.linalg.solve(a, b)
+    
+
+
+    # %% Auswertung
+    # Model:    alp0,4 = 45 + x2/2
+    #           alp1,3 = 45 - x2/2
+    #           alp2   = x2 + x1
+    
+    A = np.matrix([
+            [-.9,       .03,    .08,    -.0],
+            [-1.45,     .05,    .14,    -.01],
+            [-2.38,     .08,    .30,    -.01],
+            [-2.44,     .08,    .37,    -.02],
+            [-4.16,     .12,    .77,    -.04]
+            ])
+    cycs = np.diag([1, 1/2., 1/4., 1/5., 1/10.])
+    check = cycs*A
+    print(check)

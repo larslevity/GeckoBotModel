@@ -85,6 +85,14 @@ class GeckoBotPose(object):
         os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
         print('Done')
 
+    def get_phi(self):
+        alp, eps = (self.x[0:n_limbs], self.x[-1])
+        phi = model._calc_phi(alp, eps)
+        return phi
+
+    def get_alpha(self):
+        return self.x[0:n_limbs]
+
 
 class GeckoBotGait(object):
     def __init__(self, initial_pose=None):
@@ -95,8 +103,8 @@ class GeckoBotGait(object):
     def append_pose(self, pose):
         self.poses.append(pose)
 
-    def plot_gait(self):
-        plt.figure('GeckoBotGait')
+    def plot_gait(self, fignum=''):
+        plt.figure('GeckoBotGait'+fignum)
         for idx, pose in enumerate(self.poses):
             c = (1-float(idx)/len(self.poses))*.8
             col = (c, c, c)
@@ -132,6 +140,30 @@ class GeckoBotGait(object):
             eps = self.poses[pose].get_eps()
             plt.plot([start[0], start[0]+np.cos(np.deg2rad(eps))*length],
                      [start[1], start[1]+np.sin(np.deg2rad(eps))*length], 'r')
+
+    def plot_phi(self):
+        Phi = [[], [], [], []]
+        for pose in self.poses:
+            phi = pose.get_phi()
+            for idx, phii in enumerate(phi):
+                Phi[idx].append(phii)
+        plt.figure('GeckoBotGaitPhiHistory')
+        for phi in Phi:
+            plt.plot(phi)
+        plt.legend(['0', '1', '2', '3'])
+        return Phi
+
+    def plot_alpha(self):
+        Alp = [[], [], [], [], []]
+        for pose in self.poses:
+            alp = pose.get_alpha()
+            for idx, alpi in enumerate(alp):
+                Alp[idx].append(alpi)
+        plt.figure('GeckoBotGaitAlphaHistory')
+        for alp in Alp:
+            plt.plot(alp)
+        plt.legend(['0', '1', '2', '3', '4'])
+        return Alp
 
     def plot_stress(self):
         plt.figure('GeckoBotGaitStress')
@@ -169,10 +201,16 @@ class GeckoBotGait(object):
 
 
 def predict_gait(references, initial_pose):
+    len_leg = initial_pose.len_leg
+    len_tor = initial_pose.len_tor
+
     gait = GeckoBotGait(initial_pose)
     for idx, ref in enumerate(references):
-        gait.append_pose(GeckoBotPose(*model.predict_next_pose(
-                ref, gait.poses[idx].x, gait.poses[idx].markers)))
+        x, (mx, my), f, (constraint, cost) = model.predict_next_pose(
+                ref, gait.poses[idx].x, gait.poses[idx].markers)
+        gait.append_pose(GeckoBotPose(
+                x, (mx, my), f, constraint=constraint,
+                cost=cost, len_leg=len_leg, len_tor=len_tor))
     return gait
 
 

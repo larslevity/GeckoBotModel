@@ -258,10 +258,14 @@ def _calc_rad(length, angle):
 
 
 def _calc_phi(alpha, eps):
-    c1 = np.mod(eps - alpha[0] - alpha[2]*.5 + 360, 360)
-    c2 = np.mod(c1 + alpha[0] + alpha[1] + 360, 360)
-    c3 = np.mod(180 + alpha[2] - alpha[1] + alpha[3] + c2 + 360, 360)
-    c4 = np.mod(180 + alpha[2] + alpha[0] - alpha[4] + c1 + 360, 360)
+#    c1 = np.mod(eps - alpha[0] - alpha[2]*.5 + 360, 360)
+#    c2 = np.mod(c1 + alpha[0] + alpha[1] + 360, 360)
+#    c3 = np.mod(180 + alpha[2] - alpha[1] + alpha[3] + c2 + 360, 360)
+#    c4 = np.mod(180 + alpha[2] + alpha[0] - alpha[4] + c1 + 360, 360)
+    c1 = eps - alpha[0] - alpha[2]*.5
+    c2 = c1 + alpha[0] + alpha[1]
+    c3 = 180 + alpha[2] - alpha[1] + alpha[3] + c2
+    c4 = 180 + alpha[2] + alpha[0] - alpha[4] + c1
     phi = [c1, c2, c3, c4]
     return phi
 
