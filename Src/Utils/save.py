@@ -5,7 +5,7 @@ Created on Wed Jan 30 17:18:20 2019
 @author: AmP
 """
 
-from matplotlib2tikz import save as tikz_save
+#from matplotlib2tikz import save as tikz_save
 import fileinput
 
 
@@ -14,7 +14,7 @@ def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
     if gecko_str:
         kwargs = {'extra_axis_parameters':
                   {'anchor=origin', 'disabledatascaling', 'x=1cm', 'y=1cm'}}
-    tikz_save(filename, **kwargs)
+#    tikz_save(filename, **kwargs)
     insert_tex_header(filename, gecko_str, scale)
     print('Done!')
 

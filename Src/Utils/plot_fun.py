@@ -165,8 +165,8 @@ class GeckoBotGait(object):
         plt.legend(['0', '1', '2', '3', '4'])
         return Alp
 
-    def plot_stress(self):
-        plt.figure('GeckoBotGaitStress')
+    def plot_stress(self, fignum=''):
+        plt.figure('GeckoBotGaitStress'+fignum)
         stress = [pose.cost for pose in self.poses]
         plt.plot(stress)
 
@@ -200,17 +200,18 @@ class GeckoBotGait(object):
         return line_ani
 
 
-def predict_gait(references, initial_pose):
+def predict_gait(references, initial_pose, weight=None):
     len_leg = initial_pose.len_leg
     len_tor = initial_pose.len_tor
 
     gait = GeckoBotGait(initial_pose)
     for idx, ref in enumerate(references):
         x, (mx, my), f, (constraint, cost) = model.predict_next_pose(
-                ref, gait.poses[idx].x, gait.poses[idx].markers)
+                ref, gait.poses[idx].x, gait.poses[idx].markers,
+                f=weight, len_leg=len_leg, len_tor=len_tor)
         gait.append_pose(GeckoBotPose(
                 x, (mx, my), f, constraint=constraint,
-                cost=cost, len_leg=len_leg, len_tor=len_tor))
+                cost=cost))
     return gait
 
 

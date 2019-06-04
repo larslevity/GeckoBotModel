@@ -7,96 +7,135 @@ Created on Mon Jun 03 14:56:40 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from scipy.optimize import minimize
 from scipy.optimize import basinhopping
 
 from Src.Utils import plot_fun as pf
+from Src.Utils import save_csv
 from Src.Math import kinematic_model as model
 
 eps = 90
-n_cyc = 3
+n_cyc = 5
 idx = 0
 
+f_l, f_o, f_a = 10, 1, 10
+weight = [f_l, f_o, f_a]
+
 x1 = 60
-x4 = .5
+x6 = .5
 
 
 def alpha(x, f):
-    x1, x2, x3, x4 = x
+    x1, x2, x3, x4, x5, x6 = x
     alpha = [45 - x1/2. + (f[0] ^ 1)*(x2) + f[0]*x3,
              45 + x1/2. + (f[1] ^ 1)*(x2) + f[1]*x3,
-             x1 + x4*abs(x1),
-             45 - x1/2. + (f[2] ^ 1)*(x2) + f[2]*x3,
-             45 + x1/2. + (f[3] ^ 1)*(x2) + f[3]*x3
+             x1 + x6*abs(x1),
+             45 - x1/2. + (f[2] ^ 1)*(x4) + f[2]*x5,
+             45 + x1/2. + (f[3] ^ 1)*(x4) + f[3]*x5
              ]
     return alpha
 
+def make_sample(x1, x6, x, x0, deps, cost):
+    data = {}
+    data['x1'] = [x1]
+    data['x6'] = [x6]
+    data['x0'] = [x0]
+    data['x'] = [x]
+    data['deps'] = [deps]
+    data['cost'] = [cost]
+    data['time'] = [time.asctime(time.localtime(time.time()))]
+    return data
+    
 
-def objective(x):
-    global idx
-    x2, x3 = x
-    x = [x1, x2, x3, x4]
-    x_ = [-x1, x2, x3, x4]
-    f1 = [0, 1, 1, 0]
-    f2 = [1, 0, 0, 1]
-    if x[3] < 0:
-        ref2 = [[alpha(x_, f2), f2],
-                [alpha(x_, f2), f1],
-                [alpha(x, f1), f1],
-                [alpha(x, f1), f2]
-                ]
-    else:
-        ref2 = [[alpha(x, f1), f1],
-                [alpha(x, f1), f2],
-                [alpha(x_, f2), f2],
-                [alpha(x_, f2), f1]
-                ]
-    ref2 = ref2*n_cyc + [ref2[0]]
+X1 = [60.01 + x*2 for x in range(20)]
+X6 = [-.5+.05*x for x in range(21)]
 
-    init_pose = pf.GeckoBotPose(
-            *model.set_initial_pose(ref2[0][0], eps, (0, 0)))
-    gait = pf.predict_gait(ref2, init_pose)
+# %%
+for x1 in X1:
+    for x6 in X6:
+        def objective(x):
+            global idx
+            global lastDeps
+            x2, x3= x
+            x = [x1, x2, x3, x3, x2, x6]
+            x_ = [-x1, x2, x3, x3, x2, x6]
+            f1 = [0, 1, 1, 0]
+            f2 = [1, 0, 0, 1]
+            if x[5] < 0:
+                ref2 = [[alpha(x_, f2), f2],
+        #                [alpha(x_, f2), f1],
+                        [alpha(x, f1), f1],
+        #                [alpha(x, f1), f2]
+                        ]
+            else:
+                ref2 = [[alpha(x, f1), f1],
+        #                [alpha(x, f1), f2],
+                        [alpha(x_, f2), f2],
+        #                [alpha(x_, f2), f1]
+                        ]
+            ref2 = ref2*n_cyc + [ref2[0]]
+        
+            init_pose = pf.GeckoBotPose(
+                    *model.set_initial_pose(ref2[0][0], eps, (0, 0)))
+            gait = pf.predict_gait(ref2, init_pose, weight=weight)
+        
+            (dxx, dyy), deps = gait.get_travel_distance()
+            stress = [pose.cost for pose in gait.poses]
+            cum_stress = sum(stress[3:])
+            cum_stress = sum(stress)
+    #        gait.plot_gait(str(idx).zfill(3))
+    #        gait.plot_stress(str(idx).zfill(3))
+    #        plt.show()
+        
+            print('x:', [round(xx, 2)for xx in x], ':', round(deps), round(cum_stress))
+            idx += 1
+            lastDeps = deps
+        
+            return cum_stress
+        
+        
+        
+    
+        X0 = [[10., 19.], [20., 10.]]
+        for x0 in X0:
+            solution = minimize(objective, x0, method='COBYLA')
+            print(solution.x)
 
-    (dxx, dyy), deps = gait.get_travel_distance()
-    stress = [pose.cost for pose in gait.poses]
-    cum_stress = sum(stress)
-    gait.plot_gait(str(idx).zfill(3))
-    plt.show()
+# %%
 
-    print('x:', [round(xx, 2)for xx in x], ':', round(deps), round(cum_stress))
-    idx += 1
-
-    return cum_stress
-
-
-x0 = [20., 20.]
-
-
-class MyTakeStep(object):
-    def __init__(self, stepsize=5):
-        self.stepsize = stepsize
-
-    def __call__(self, x):
-        s = self.stepsize
-        x[0] += np.random.uniform(-2.*s, 2.*s)
-        x[1:] += np.random.uniform(-s, s, x[1:].shape)
-        return x
-
-
-mytakestep = MyTakeStep()
-minimizer_kwargs = {"method": "BFGS"}
-
-ret = basinhopping(objective, x0, minimizer_kwargs=minimizer_kwargs,
-                   niter=200, take_step=mytakestep)
-print("global minimum: x = %.4f, f(x0) = %.4f" % (ret.x, ret.fun))
-
-solution = minimize(objective, x0, method='COBYLA')
-print(solution.x)
+            data = make_sample(x1, x6, solution.x, x0, lastDeps, solution.fun)
+            save_csv.save_sample_as_csv(data, 'Out/simulation_results.csv')
 
 
     # %%
+
+
+#    class MyTakeStep(object):
+#        def __init__(self, stepsize=10):
+#            self.stepsize = stepsize
+#    
+#        def __call__(self, x):
+#            s = self.stepsize
+#            x[0] += np.random.uniform(-2.*s, 2.*s)
+#            x[1:] += np.random.uniform(-s, s, x[1:].shape)
+#            return x
+#    
+#    
+#    mytakestep = MyTakeStep()
+    
+    
+    #minimizer_kwargs = {"method": "BFGS"}
+    #
+    #ret = basinhopping(objective, x0, minimizer_kwargs=minimizer_kwargs,
+    #                   niter=200, take_step=mytakestep)
+    #print("global minimum: x = %.4f, f(x0) = %.4f" % (ret.x, ret.fun))
+    
+    
+
 
 #    X2_, X1_ = np.meshgrid(X2, X1)
 #    # Plot the surface.
