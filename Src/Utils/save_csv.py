@@ -41,7 +41,7 @@ def read_csv(filename):
     filename = adjust_filename(filename)
     dic = {}
     mapping = {}
-    with open(filename, 'rb') as csvfile:
+    with open(filename, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter='\t')
         for idx, row in enumerate(reader):
             # print ', '.join(row)
@@ -74,4 +74,4 @@ def read_csv(filename):
 if __name__ == '__main__':
     filename = save_sample_as_csv({'x0': [1], 'x2': [1]}, 'Out/test2.csv')
     dic = read_csv('Out/test2.csv')
-    print dic
+    print(dic)
