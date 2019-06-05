@@ -16,9 +16,11 @@ if __name__ == "__main__":
     from Src.Math import kinematic_model as model
 
     eps = 90
+    f_l, f_o, f_a = 10, 1, 10
+    weight = [f_l, f_o, f_a]
 
-    X2 = np.arange(90.01, 90.2, 9.9)
-    X1 = np.arange(.31, .32, .1)
+    X2 = np.arange(80.01, 90.2, 9.9)
+    X1 = np.arange(.11, .52, .1)
 
     RESULT_DX = np.zeros((len(X1), len(X2)))
     RESULT_DY = np.zeros((len(X1), len(X2)))
@@ -29,11 +31,11 @@ if __name__ == "__main__":
     dx, dy = 3.5, 1+2.5*n_cyc
 
     def alpha(x1, x2, f):
-        alpha = [45 - x2/2. + (f[0] ^ 1)*abs(x1*x2) - f[0]*abs(x2)*x1,
-                 45 + x2/2. + (f[1] ^ 1)*abs(x1*x2) - f[1]*abs(x2)*x1,
+        alpha = [45 - x2/2. + (f[0] ^ 1)*abs(x1*x2) + f[0]*abs(x2)*x1,
+                 45 + x2/2. + (f[1] ^ 1)*abs(x1*x2) + f[1]*abs(x2)*x1,
                  x2 + x1*abs(x2),
-                 45 - x2/2. + (f[2] ^ 1)*abs(x1*x2) - f[2]*abs(x2)*x1,
-                 45 + x2/2. + (f[3] ^ 1)*abs(x1*x2) - f[3]*abs(x2)*x1
+                 45 - x2/2. + (f[2] ^ 1)*abs(x1*x2) + f[2]*abs(x2)*x1,
+                 45 + x2/2. + (f[3] ^ 1)*abs(x1*x2) + f[3]*abs(x2)*x1
                  ]
         return alpha
 
@@ -46,30 +48,22 @@ if __name__ == "__main__":
             f2 = [1, 0, 0, 1]
             if x1 < 0:
                 ref2 = [[alpha(x1, -x2, f2), f2],
-                        [alpha(x1, -x2, f2), f1],
+#                        [alpha(x1, -x2, f2), f1],
                         [alpha(x1, x2, f1), f1],
-                        [alpha(x1, x2, f1), f2]
+#                        [alpha(x1, x2, f1), f2]
                         ]
             else:
                 ref2 = [[alpha(x1, x2, f1), f1],
-                        [alpha(x1, x2, f1), f2],
+#                        [alpha(x1, x2, f1), f2],
                         [alpha(x1, -x2, f2), f2],
-                        [alpha(x1, -x2, f2), f1]
+#                        [alpha(x1, -x2, f2), f1]
                         ]
             ref2 = ref2*n_cyc + [ref2[0]]
-            print(f1)
-#            ref3 = [
-#                     [[45-x2/2+abs(x1), 45+x2/2., x2+x1, 45-x2/2., 45+x2/2.+abs(x1)],
-#                      [0, 1, 1, 0]],
-#                     [[45+x2/2., 45-x2/2.+abs(x1), -x2+x1, 45+x2/2.+abs(x1), 45-x2/2.],
-#                      [1, 0, 0, 1]]
-#                    ]*n_cyc
-#            ref2 = model.flat_list(ref2)
 
             init_pose = pf.GeckoBotPose(
                     *model.set_initial_pose(ref2[0][0], eps,
                                             (x1_idx*dx, -x2_idx*dy)))
-            gait = pf.predict_gait(ref2, init_pose)
+            gait = pf.predict_gait(ref2, init_pose, weight)
 
             (dxx, dyy), deps = gait.get_travel_distance()
             RESULT_DX[x1_idx][x2_idx] = dxx

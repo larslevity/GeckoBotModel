@@ -203,6 +203,8 @@ class GeckoBotGait(object):
 def predict_gait(references, initial_pose, weight=None):
     len_leg = initial_pose.len_leg
     len_tor = initial_pose.len_tor
+    if not weight:
+        weight = [model.f_l, model.f_o, model.f_a]
 
     gait = GeckoBotGait(initial_pose)
     for idx, ref in enumerate(references):
