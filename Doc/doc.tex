@@ -70,13 +70,26 @@ x_1 + x_2 \\
 
 Simulate for different $x_1$ and $x_2$ (in der Abbildung unten ist $x_1$ = \texttt{gam} und $x_2$ = \texttt{x})
 
+\item Results für 2 Zyklen:
 
 \includegraphics[width=12cm]{../pics/model_1/GeckoBotGait_2cyc.png}
+
+
+\item Observations:
+
+\begin{itemize}
+	\item Es funktioniert. Der Roboter läuft eine Kurve.
+	\item Kurve ist unsymmetrisch. Rechts klappt besser als links.
+	\item Startpose ist besser für Rechtskurve geeignet.
+	\item Noch nichts über die innere SPannung des Roboters herausgefunden
+\end{itemize}
+
+
 
 \end{itemize}
 
 
-\section{Approach: Try }
+\section{Approach: Try another structure}
 
 \begin{itemize}
 
@@ -94,7 +107,15 @@ x_1 + |x_1|x_2 \\
 \end{bmatrix}
 \end{equation}
 
+
+\item Results
 \end{itemize}
+\includegraphics[width=.95\textwidth]{../pics/model_2/GeckoBotGait_003cyc_.png}
+
+\includegraphics[width=.95\textwidth]{../pics/model_2/GeckoBotGait_003cyc_zoom.png}
+
+
+
 
 \section{Approach: Optimize Extra leg bending Angle for given extra torso bending}
 
