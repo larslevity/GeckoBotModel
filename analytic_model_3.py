@@ -51,64 +51,62 @@ def make_sample(x1, x6, x, x0, deps, cost):
     return data
     
 
-X1 = [60.01 + x*2 for x in range(20)]
-X6 = [-.5+.05*x for x in range(21)]
+X1 = [60.01 + x*10 for x in range(5)]
+X6 = [-.501+.05*x for x in range(21)]
+X0 = [[10., 20.], [20., 10.]]
 
 # %%
-for x1 in X1:
-    for x6 in X6:
-        def objective(x):
-            global idx
-            global lastDeps
-            x2, x3= x
-            x = [x1, x2, x3, x3, x2, x6]
-            x_ = [-x1, x2, x3, x3, x2, x6]
-            f1 = [0, 1, 1, 0]
-            f2 = [1, 0, 0, 1]
-            if x[5] < 0:
-                ref2 = [[alpha(x_, f2), f2],
-        #                [alpha(x_, f2), f1],
-                        [alpha(x, f1), f1],
-        #                [alpha(x, f1), f2]
-                        ]
-            else:
-                ref2 = [[alpha(x, f1), f1],
-        #                [alpha(x, f1), f2],
-                        [alpha(x_, f2), f2],
-        #                [alpha(x_, f2), f1]
-                        ]
-            ref2 = ref2*n_cyc + [ref2[0]]
         
-            init_pose = pf.GeckoBotPose(
-                    *model.set_initial_pose(ref2[0][0], eps, (0, 0)))
-            gait = pf.predict_gait(ref2, init_pose, weight=weight)
-        
-            (dxx, dyy), deps = gait.get_travel_distance()
-            stress = [pose.cost for pose in gait.poses]
-            cum_stress = sum(stress[3:])
-            cum_stress = sum(stress)
-    #        gait.plot_gait(str(idx).zfill(3))
-    #        gait.plot_stress(str(idx).zfill(3))
-    #        plt.show()
-        
-            print('x:', [round(xx, 2)for xx in x], ':', round(deps), round(cum_stress))
-            idx += 1
-            lastDeps = deps
-        
-            return cum_stress
-        
-        
-        
-    
-        X0 = [[10., 19.], [20., 10.]]
-        for x0 in X0:
+for x0 in X0:
+    for x1 in X1:
+        for x6 in X6:
+            def objective(x):
+                global idx
+                global lastDeps
+                x2, x3= x
+                x = [x1, x2, x3, x3, x2, x6]
+                x_ = [-x1, x2, x3, x3, x2, x6]
+                f1 = [0, 1, 1, 0]
+                f2 = [1, 0, 0, 1]
+                if x[5] < 0:
+                    ref2 = [[alpha(x_, f2), f2],
+            #                [alpha(x_, f2), f1],
+                            [alpha(x, f1), f1],
+            #                [alpha(x, f1), f2]
+                            ]
+                else:
+                    ref2 = [[alpha(x, f1), f1],
+            #                [alpha(x, f1), f2],
+                            [alpha(x_, f2), f2],
+            #                [alpha(x_, f2), f1]
+                            ]
+                ref2 = ref2*n_cyc + [ref2[0]]
+            
+                init_pose = pf.GeckoBotPose(
+                        *model.set_initial_pose(ref2[0][0], eps, (0, 0)))
+                gait = pf.predict_gait(ref2, init_pose, weight=weight)
+            
+                (dxx, dyy), deps = gait.get_travel_distance()
+                stress = [pose.cost for pose in gait.poses]
+                cum_stress = sum(stress[3:])
+                cum_stress = sum(stress)
+        #        gait.plot_gait(str(idx).zfill(3))
+        #        gait.plot_stress(str(idx).zfill(3))
+        #        plt.show()
+            
+                print('x:', [round(xx, 2)for xx in x], ':', round(deps), round(cum_stress))
+                idx += 1
+                lastDeps = deps
+            
+                return cum_stress
+
             solution = minimize(objective, x0, method='COBYLA')
             print(solution.x)
 
 # %%
 
             data = make_sample(x1, x6, solution.x, x0, lastDeps, solution.fun)
-            save_csv.save_sample_as_csv(data, 'Out/simulation_results.csv')
+            save_csv.save_sample_as_csv(data, 'Out/190604_simulation_results.csv')
 
 
     # %%
