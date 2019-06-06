@@ -20,7 +20,7 @@ if __name__ == "__main__":
     ref2_ = [[
              [[45-gam/2.+x, 45+gam/2.+x, gam+x, 45-gam/2.+x, 45+gam/2.+x], [0, 1, 1, 0]],
              [[45+gam/2.+x, 45-gam/2.+x, -gam+x, 45+gam/2.+x, 45-gam/2.+x], [1, 0, 0, 1]]
-            ] for gam, x in [(80,22), (80,22), (60, 42), (80, 22), (90, 0), (45, 45), (45, -45)]]
+            ] for gam, x in [(80,22), (80,22)]]
     ref2 = model.flat_list(ref2_)
 #    print(ref2)
 #    ref2 = ref
@@ -33,6 +33,9 @@ if __name__ == "__main__":
     gait.plot_markers()
     gait.plot_stress()
     gait.plot_travel_distance()
+    gait.plot_orientation()
+    gait.plot_alpha()
+    gait.plot_phi()
     print(gait.get_travel_distance())
 
 

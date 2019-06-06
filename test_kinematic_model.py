@@ -27,14 +27,15 @@ if __name__ == "__main__":
     ref1 = [[20, 90, 90, 0, 120], [0, 1, 1, 0]]
     ref2 = [[100, 10, -70, 80, 2], [1, 0, 0, 1]]
 
-    x, marks, f, stats = model.predict_next_pose(
+    x, marks, f, constraint, cost = model.predict_next_pose(
         ref1, x, marks, len_leg=1, len_tor=1.2)
     gait.append_pose(
-        pf.GeckoBotPose(x, marks, f, constraint=stats[0], cost=stats[1]))
-    x, marks, f, stats = model.predict_next_pose(
+        pf.GeckoBotPose(x, marks, f, constraint=constraint, cost=cost))
+
+    x, marks, f, constraint, cost = model.predict_next_pose(
         ref2, x, marks, len_leg=1, len_tor=1.2)
     gait.append_pose(
-        pf.GeckoBotPose(x, marks, f, constraint=stats[0], cost=stats[1]))
+        pf.GeckoBotPose(x, marks, f, constraint=constraint, cost=cost))
 
     gait.plot_gait()
 #    gait.plot_stress()

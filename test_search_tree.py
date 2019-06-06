@@ -44,7 +44,7 @@ if __name__ == "__main__":
     gait.append_pose(initial_pose)
 
     ref = st.ReferenceGenerator('010')
-    xref = (-12, -4)
+    xref = (2, 3)
 
     def calc_dist(pose, xref):
         mx, my = pose.markers
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         return np.linalg.norm(dpos)
 
     i = 0
-    while calc_dist(gait.poses[-1], xref) > 1:
+    while calc_dist(gait.poses[-1], xref) > .5:
         act_pose = gait.poses[-1]
         x, y = act_pose.markers
         act_pos = (x[1], y[1])
@@ -65,10 +65,11 @@ if __name__ == "__main__":
         predicted_pose = pf.GeckoBotPose(*predicted_pose)
         gait.append_pose(predicted_pose)
         i += 1
-        if i > 12:
+        if i > 100:
             break
 
     gait.plot_gait()
+    gait.plot_markers(1)
     st.draw_point_dir(xref, [0, 0], size=20, label='GOAL1')
 
     gait.animate()

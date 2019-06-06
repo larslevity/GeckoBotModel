@@ -110,14 +110,17 @@ class GeckoBotGait(object):
             col = (c, c, c)
             pose.plot(col)
 
-    def plot_markers(self):
+    def plot_markers(self, markernum=range(6)):
+        if type(markernum) == int:
+            markernum = [markernum]
         plt.figure('GeckoBotGait')
         marks = [pose.markers for pose in self.poses]
         markers = marker_history(marks)
         col = markers_color()
         for idx, marker in enumerate(markers):
-            x, y = marker
-            plt.plot(x, y, color=col[idx])
+            if idx in markernum:
+                x, y = marker
+                plt.plot(x, y, color=col[idx])
         plt.axis('equal')
 
     def get_travel_distance(self):
@@ -148,8 +151,9 @@ class GeckoBotGait(object):
             for idx, phii in enumerate(phi):
                 Phi[idx].append(phii)
         plt.figure('GeckoBotGaitPhiHistory')
-        for phi in Phi:
-            plt.plot(phi)
+        col = markers_color()
+        for idx, phi in enumerate(Phi):
+            plt.plot(phi, color=col[idx])
         plt.legend(['0', '1', '2', '3'])
         return Phi
 
@@ -160,8 +164,9 @@ class GeckoBotGait(object):
             for idx, alpi in enumerate(alp):
                 Alp[idx].append(alpi)
         plt.figure('GeckoBotGaitAlphaHistory')
-        for alp in Alp:
-            plt.plot(alp)
+        col = markers_color()
+        for idx, alp in enumerate(Alp):
+            plt.plot(alp, color=col[idx])
         plt.legend(['0', '1', '2', '3', '4'])
         return Alp
 
@@ -208,7 +213,7 @@ def predict_gait(references, initial_pose, weight=None):
 
     gait = GeckoBotGait(initial_pose)
     for idx, ref in enumerate(references):
-        x, (mx, my), f, (constraint, cost) = model.predict_next_pose(
+        x, (mx, my), f, constraint, cost = model.predict_next_pose(
                 ref, gait.poses[idx].x, gait.poses[idx].markers,
                 f=weight, len_leg=len_leg, len_tor=len_tor)
         gait.append_pose(GeckoBotPose(

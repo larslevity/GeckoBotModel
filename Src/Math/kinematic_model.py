@@ -90,7 +90,7 @@ def predict_next_pose(reference, x_init, markers_init,
     constraint = constraint1(x)
     cost = objective(x)
 
-    return (x, (mx, my), f, (constraint, cost))
+    return (x, (mx, my), f, constraint, cost)
 
 
 # , # (px, py), (data, data_fp, data_nfp, data_x), costs, data_marks
@@ -284,7 +284,7 @@ def calc_difference(phi0, phi1):
 def _check_alpha(alpha):
     alpref = []
     for alp in alpha:
-        alpref.append(alp if abs(alp) > 0 else 0.01)
+        alpref.append(alp if abs(alp) > 0 else 0.1)
     return alpref
 
 
