@@ -19,8 +19,8 @@ if __name__ == "__main__":
     f_l, f_o, f_a = 10, 1, 10
     weight = [f_l, f_o, f_a]
 
-    X2 = np.arange(80.01, 90.2, 9.9)
-    X1 = np.arange(.11, .52, .1)
+    X2 = np.arange(0.01, 90.2, 9.9)
+    X1 = np.arange(-.51, .52, .1)
 
     RESULT_DX = np.zeros((len(X1), len(X2)))
     RESULT_DY = np.zeros((len(X1), len(X2)))
@@ -30,12 +30,15 @@ if __name__ == "__main__":
 
     dx, dy = 3.5, 1+2.5*n_cyc
 
+    def cut(x):
+        return x if x > 0.001 else 0.001
+
     def alpha(x1, x2, f):
-        alpha = [45 - x2/2. + (f[0] ^ 1)*abs(x1*x2) + f[0]*abs(x2)*x1,
-                 45 + x2/2. + (f[1] ^ 1)*abs(x1*x2) + f[1]*abs(x2)*x1,
+        alpha = [cut(45 - x2/2. + (f[0] ^ 1)*x1*x2 + f[0]*abs(x2)*x1/2.),
+                 cut(45 + x2/2. + (f[1] ^ 1)*x1*x2 + f[1]*abs(x2)*x1/2.),
                  x2 + x1*abs(x2),
-                 45 - x2/2. + (f[2] ^ 1)*abs(x1*x2) + f[2]*abs(x2)*x1,
-                 45 + x2/2. + (f[3] ^ 1)*abs(x1*x2) + f[3]*abs(x2)*x1
+                 cut(45 - x2/2. + (f[2] ^ 1)*x1*x2 + f[2]*abs(x2)*x1/2.),
+                 cut(45 + x2/2. + (f[3] ^ 1)*x1*x2 + f[3]*abs(x2)*x1/2.)
                  ]
         return alpha
 
@@ -136,19 +139,4 @@ if __name__ == "__main__":
 #    plt.title('Delta y')
 
     plt.show()
-
-    # %% Auswertung
-    # Model:    alp0,4 = 45 + x2/2 + not(f[0])*abs(x1)
-    #           alp1,3 = 45 - x2/2 + not(f[0])*abs(x1)
-    #           alp2   = x2 + x1
-    # deps (c1 + c2*x2 + c3*x1 + c4*x1*x2)
-
-    A = np.matrix([
-            [-0.02,     .00,    -.32,    -.0],
-            [0.040,     .00,    -.38,    -.01],
-            [-1.36,     .05,    -.43,    -.03]
-            ])
-    cycs = np.diag([1/2., 1/5., 1/10.])
-    check = cycs*A
-    print(check)
 

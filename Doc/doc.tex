@@ -56,6 +56,10 @@ Die Schrittweite ist hier als $x_1$ beschrieben.
 
 \item Model:
 
+$x_1$ beschreibt hier die Schrittweite
+
+$x_2$ das Maß der Drehung.
+
 \begin{equation}
 \bm{\alpha} = \begin{bmatrix}
 45 - \frac{x_1}{2} \\
@@ -89,31 +93,105 @@ Simulate for different $x_1$ and $x_2$ (in der Abbildung unten ist $x_1$ = \text
 \end{itemize}
 
 
-\section{Approach: Try another structure}
+\section{Approach: Find a reasonable structure}
 
 \begin{itemize}
 
 \item Src can be found: \texttt{analytic\_model\_2.py}
 
-\item Model:
+\item Orientierung der Füße soll konstant bleiben:
 
 \begin{equation}
-\bm{\alpha} = \begin{bmatrix}
-45 - \frac{x_1}{2} + \bar{f}_0|x_1x_2| + f_0|x1|x_2 \\
-45 + \frac{x_1}{2} + \bar{f}_1|x_1x_2| + f_1|x1|x_2 \\
-x_1 + |x_1|x_2 \\
-45 - \frac{x_1}{2} + \bar{f}_2|x_1x_2| + f_2|x1|x_2 \\
-45 + \frac{x_1}{2} + \bar{f}_3|x_1x_2| + f_3|x1|x_2 \\
-\end{bmatrix}
+\varphi_0 = \varepsilon + \frac{\alpha_2}{2} - \alpha_0
+\end{equation}
+
+Da im vorhergegangenem Versuch die asymmetrischen Aktuierung des Torsos schon zu guten Ergebnissen geführt hat, soll dieses Modell beibehalten werden. Allerdings in einer leicht variierten Form. $x_2$ ist nun ein relatives Maß für die Drehung:
+\begin{equation}
+\alpha_2 = x_1 + x_2|x_1|
 \end{equation}
 
 
+Es muss also $\alpha_0$ so gewählt werden, dass $\varphi_0$ möglichst unabhängig von $x_i$ wird.
+Deshalb wird ein noch unbekannter Term $x_3$ hinzugefügt. Damit ergibt sich der Biegewinkel des Beines:
+
+\begin{equation}
+\alpha_0 = 45+ \frac{x_1}{2} + x_3.
+\end{equation}
+
+Für die Orientierung des Fußes bedeutet das:
+\begin{eqnarray}
+\varphi_0 &=& \varepsilon + \frac{x_1 + x_2|x_1|}{2} - \left( 45 + \frac{x_1}{2} + x_3 \right) \\
+			&=& \varepsilon -45 + \frac{x_2|x_1|}{2} -x_3 \\
+\end{eqnarray}
+
+Es wird \textbf{angenommen}, dass die Orientierung des Roboters mit der Schrittweite linear wächst (i.e. Der Roboter dreht sich ein wenig zwischen seinen Extremposen):
+\begin{equation}
+\varepsilon = c_1 x_1 + \varepsilon_0
+\end{equation}
+
+Mit konstantem Orientierungswinkel $\varphi = \varphi_0$ ergibt sich somit:
+
+\begin{eqnarray}
+\varphi_0 &=& c_1 x_1 + \varepsilon_0 - 45 + \frac{x_2|x_1|}{2} -x_3 \\
+x_3 &=&  c_1 x_1 + \frac{x_2|x_1|}{2} + c
+\end{eqnarray}
+
+Unter der \textbf{Annahme}, dass $\varphi_0 \approx \varepsilon_0 - 45$ ist, ergibt sich $c \approx 0$. Das meint, die Orientierung ändert sich nur minimal. entspricht also im Wesentlichen der Ausgangskonfiguration.
+Weiterhin wird \textbf{angenommen}, dass für einen fixierter Fuß der Term $c_1x_1 \approx 0$ vernachlässigbar ist.
+Somit ergibt sich für den Biegewinkel des fixierten vorderen linken Beins:
+
+\begin{equation}
+\alpha_{0,f} = 45-\frac{x_1}{2} + \frac{1}{2}x_2|x1|
+\end{equation}
+
+Wenn das Bein nicht fixiert ist, kann es beliebige Orientierung annehmen.
+Hierfür wird \textbf{angenommen}, dass sich die Drehung des Körpers erst in der nicht fixierten Phase eines Beines in desses Orientierung auswirkt.
+Deshalb, wird der Term $c_1x_1$ in dieser Phase aktiv.
+Weiterhin wird \textbf{angenommen}, dass $c_1 = x_2$. Damit ergibt sich für einen nicht fixierten Fuß:
+
+\begin{equation}
+\alpha_{0,\bar{f}} = 45-\frac{x_1}{2} + x_2x1
+\end{equation}
+
+
+\item Das resultierende Modell sieht so aus:
+
+\begin{equation}
+\bm{\alpha} = \begin{bmatrix}
+45 - \frac{x_1}{2}+ f_0\frac{1}{2}|x1|x_2  + \bar{f}_0x_1x_2  \\
+45 + \frac{x_1}{2} + f_1\frac{1}{2}|x1|x_2+ \bar{f}_1x_1x_2  \\
+x_1 + |x_1|x_2 \\
+45 - \frac{x_1}{2}  + f_2\frac{1}{2}|x1|x_2 + \bar{f}_2x_1x_2\\
+45 + \frac{x_1}{2}  + f_3\frac{1}{2}|x1|x_2+ \bar{f}_3x_1x_2 \\
+\end{bmatrix}
+\end{equation}
+
+Wobei $f_i$ den Zustand des Fußes beschreibt:
+
+\begin{equation}
+f_i = \left[
+\begin{matrix}
+1 & if & \textnormal{foot fixed} \\ 
+0 & else& \\
+\end{matrix} \right.
+\end{equation}
+\begin{equation}
+\bar{f}_i = \left[
+\begin{matrix}
+0 & if& \textnormal{foot fixed} \\ 
+1 & else& \\
+\end{matrix} \right.
+\end{equation}
+
 \item Results
 \end{itemize}
-\includegraphics[width=.95\textwidth]{../pics/model_2/GeckoBotGait_003cyc_.png}
+\includegraphics[width=.95\textwidth]{../pics/model_2/GeckoBotGait_2cyc.png}
 
-\includegraphics[width=.95\textwidth]{../pics/model_2/GeckoBotGait_003cyc_zoom.png}
+\includegraphics[width=.95\textwidth]{../pics/model_2/GeckoBotGait_2cyc_zoom.png}
 
+Delta Epsilon: $\frac{\Delta \varepsilon}{cycle} (x_1, x_2) = f$
+
+\includegraphics[width=.95\textwidth]{../pics/model_2/Delta_Epsilon_2cyc.png}
 
 
 
@@ -123,13 +201,16 @@ x_1 + |x_1|x_2 \\
 
 \item Src can be found: \texttt{analytic\_model\_3.py}
 
+
+\item Nun soll untersucht werden, welche Extra Leg Bending Angle die ineere Spannung des Roboters minimiert.
+
 \item Model:
 
 \begin{equation}
 \bm{\alpha} = \begin{bmatrix}
 45 - \frac{x_1}{2} + \bar{f}_0x_3 + f_0x_4 \\
 45 + \frac{x_1}{2} + \bar{f}_1x_3 + f_1x_4 \\
-x_1 + x_2 \\
+x_1|x_2| \\
 45 - \frac{x_1}{2} + \bar{f}_2x_4 + f_3x_3 \\
 45 + \frac{x_1}{2} + \bar{f}_3x_4 + f_4x_3 \\
 \end{bmatrix}
@@ -140,6 +221,10 @@ x_1 + x_2 \\
 
 Die Extra Biegung $x_3$ für freie Beine und die Extra Biegung $x_4$ für fixierte Beine sind abhängig von der Extra Biegung $x_2$ für den Torso.
 
+Hinter- und Vorderbeine sind nicht symmetrisch, aber kreuzweise symmetrisch:
+Die Extrabiegung für ein \textbf{nicht fixiertes Vorderbein} entspricht der Extrabiegung eines \textbf{fixierten Hinterbeins} und anderesherum.
+
+
 \item Methode:
 
 Für gegebenes Extra Torso Bending $x_2$ und gegebenene Torso Biegung $x1$ minimiere die Innere Spannung über den Gang mit $n$ Zyklen aufsummiert:
@@ -149,7 +234,6 @@ Gegeben: 	& $x_1$ & Torsobiegung \\
 			& $x_2$	& Extra Torsobiegung \\
 Gesucht:	& $x_3$	& Extra Beinbiegung fixiert vorn \\
 			& $x_4$	& Extra Beinbiegung fixiert hinten \\
-
 \end{tabular}
 
 
@@ -157,12 +241,18 @@ Gesucht:	& $x_3$	& Extra Beinbiegung fixiert vorn \\
 cost(\bm{x}) = \sum gait(\bm{x}).stress
 \end{equation}
 
-\item Observations:
-
-Hinter- und Vorderbeine sind nicht symmetrisch, aber kreuzweise symmetrisch:
-Die Extrabiegung für ein \textbf{nicht fixiertes Vorderbein} entspricht der Extrabiegung eines \textbf{fixierten Hinterbeins} und anderesherum.
 
 
+\item Results:
 \end{itemize}
+
+\includegraphics[width=.45\textwidth]{../pics/model_3/X3-x0_0.png}
+\includegraphics[width=.45\textwidth]{../pics/model_3/X3-x0_1.png}
+
+\includegraphics[width=.45\textwidth]{../pics/model_3/X4-x0_0.png}
+\includegraphics[width=.45\textwidth]{../pics/model_3/X4-x0_1.png}
+
+\includegraphics[width=.45\textwidth]{../pics/model_3/X3-X4_-_x0_0_-_2D.png}
+\includegraphics[width=.45\textwidth]{../pics/model_3/X3-X4_-_x0_1_-_2D.png}
 
 \end{document}
