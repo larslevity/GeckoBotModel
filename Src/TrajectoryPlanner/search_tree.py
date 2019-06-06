@@ -263,15 +263,20 @@ class ReferenceGenerator(object):
             pose_id = '000'
         else:
             if len(self.graph.get_children(self.pose)) > 1:
+                verts = [v for v, weight in self.graph.get_children(self.pose)]
+                plot = False if all(v[-1] == 'f' for v in verts) else True
 
-                plt.figure('dec'+str(self.idx))
-                draw_point_dir(act_pos, act_dir, size=20,
-                               label='HOME (%s)' % self.pose)
-                draw_point_dir(xref, [0, 0], size=20,
-                               label='GOAL')
-                act_pose.plot('gray')
+                if plot:
+                    figname = 'dec'+str(self.idx)
+                    plt.figure(figname)
+                    draw_point_dir(act_pos, act_dir, size=20)
+                    draw_point_dir(act_pos, [0, 0], size=20,
+                                   label='ROBOT (%s)' % self.pose)
+                    draw_point_dir(xref, [0, 0], size=20,
+                                   label='GOAL')
+                    act_pose.plot('gray')
 
-                def suitability(translation_, rotation, v=None):
+                def suitability(translation_, rotation, v=None, plot=True):
                     translation_ = np.r_[translation_]
                     # translation is configured for eps=90
                     translation = rotate(translation_, np.radians(act_eps-90))
@@ -282,8 +287,9 @@ class ReferenceGenerator(object):
                     deps_ = calc_angle(xref-pos_, dir_)
 
                     # Label the thing
-                    draw_point_dir(pos_, dir_, label=v+' '+str(round(deps_,0)))
-                    draw_line(act_pos+translation, xref)
+                    if plot:
+                        draw_point_dir(pos_, dir_, label=v)
+                        draw_line(act_pos+translation, xref)
 
                     return (dist_, deps_)
 
@@ -291,12 +297,11 @@ class ReferenceGenerator(object):
                 ddist = CandidateHandler()
                 for child in self.graph.get_children(self.pose):
                     v, (translation, rotation) = child
-                    dist_, deps_ = suitability(translation, rotation, v)
+                    dist_, deps_ = suitability(translation, rotation, v, plot)
                     deps[v] = round(deps_, 2)
                     ddist[v] = round(dist_, 2)
 
                 if abs(act_deps) > 70:  # ganz falsche Richtung
-                    print('deps:', deps)
                     _, pose_id = deps.minimum()
                 else:
                     max_deps, _ = deps.maximum()
@@ -308,10 +313,12 @@ class ReferenceGenerator(object):
                         for dist, eps in zip(ddist[key], deps[key]):
                             dec[key] = w*dist/min_ddist + (1-w)*abs(eps)/max_deps
                     min_dec, pose_id = dec.minimum()
-                    print('dec:', dec)
-                
-                draw_point_dir(xref+np.r_[0, -1], [0, 0], size=1,
-                               label='choose (%s)' % pose_id)
+
+                if plot:
+                    draw_point_dir(act_pos-act_dir*2, [0, 0], size=1,
+                                   label='choose (%s)' % pose_id)
+                    plt.savefig('pics/pathplanner/'+figname+'.png',
+                                transparent=True, dpi=200)
 #            plt.show()
             else:  # only 1 child
                 pose_id, _ = self.graph.get_children(self.pose)[0]
