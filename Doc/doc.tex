@@ -8,15 +8,187 @@
 \usepackage{graphicx}
 \usepackage{lmodern}
 \usepackage{bm}
+\usepackage{tikz}
 
 \author{Lars Schiller}
 \begin{document}
 
 
-\section{Problem Statement}
+\section{Predicting the next pose of the robot}
+\subsection{Modeling of Soft Bending Actuator}
 
 \begin{itemize}
+	\item Einführung virtueller Längen, um größeren Bereich erreichen zu können, und dennoch die Annahme von \textsl{Constant curvature} nutzen zu können.
+	\item Weil Sehr effektiv zu rechnen.
+\end{itemize}
 
+\includegraphics[scale=1]{pics/Virtual_length/virtual_length.pdf}
+
+
+
+\subsection{Modeling of the robot}
+
+	\includegraphics[scale=1]{pics/general_model/model_plain.pdf}
+
+	\begin{itemize}
+		\item Zustands- und Eingangsgrößen:
+		$$
+		\bm{x} = \left[~\bm{\alpha}~\bm{\ell}~\varepsilon~\right],~~~
+		\bm{r} = \left[~\bm{\alpha}_{\textnormal{ref}}~\bm{f}~\right]
+		$$
+		
+		\item Innere Spannung:
+		$$
+		\begin{array}{rcl}
+		\sigma(\bm{x}_{k}) 
+		&=&  w_\ell\big| \bm{\ell}_{k} - \bm{\ell}_n \big|_2 \\
+		&&	+ w_\alpha\big| \bm{\alpha}_{k} - \bm{\alpha}_{\textnormal{ref},k} \big|_2 \\
+		&&	+ w_\varphi \big| \textnormal{diag}(\bm{f}_k) ( \bm{\varphi}_{k} - \bm{\varphi}_{k-1}) \big|_2 \\
+		\end{array}
+		$$
+		
+		\item Minimale Spannung:
+		$$
+		\begin{array}{l}
+		\displaystyle\min_{\bm{x}_k \in \mathcal{X}} ~ \sigma(\bm{x}_k) \\
+		s.~t.~~~
+		\big|\big|\textnormal{diag}(\bm{f}_k)(\bm{P}_{k} - \bm{P}_{k-1})\big|\big|_2 = 0
+		\end{array}
+		$$
+		
+		\item Folgepose:
+		$$
+		\bm{\rho}_k = [\bm{x}_k~\bm{P}_k~\bm{f}_k] = \textnormal{fun}_{\mathcal{P}}\left( \bm{r}_k, \bm{\rho}_{k-1} \right)
+		$$
+	\end{itemize}
+	
+
+
+\section{Path Planning with Search Tree}
+
+
+\subsection{Different Gait Patterns for a curve}
+
+\begin{itemize}
+	\item Vom Kinematic Paper sind schon verschieden Laufmuster für Kurven bekannt, basierend auf dem Minimierungsproblem:
+	
+	\begin{equation}
+		\displaystyle\min_{\bm{\alpha} \in \mathcal{A}} ~ \varepsilon(\bm{\alpha})
+	\end{equation}
+	
+	wobei $\bm{\alpha}$ die Referenzwinkel von zwei Posen, also einem Zyklus enthält.
+
+	\item Beispiele:
+
+\end{itemize}
+
+\includegraphics[width=.95\textwidth]{pics/trajectory_planner/elements.pdf}
+
+\begin{itemize}
+	\item Idee: Eine ausgewählte Anzahl an Posen, als Grundbausteine für einen beliebigen Gang.
+	
+	\item Diese dann wie Legosteine aufeinander setzen, um von A nach B zu gelangen.
+\end{itemize}
+
+
+\subsection{Search Tree}
+
+\begin{itemize}
+	\item Folgender Suchbaum wurde implementiert.
+\end{itemize}
+
+\includegraphics[width=.99\textwidth]{pics/trajectory_planner/tree.pdf}
+
+\begin{tabular}{r|l}
+
+\tikz\node[fill=green]{Green}; & Ruhe Pose \\
+\tikz\node[fill=blue]{Blue}; & Rechte Adapter Pose\\
+\tikz\node[fill=red]{Red}; & Linke Adapter Pose\\
+\tikz\node[fill=yellow]{Yellow}; & Zwischen-Adapterpose für Kurven Looping\\
+\tikz\node[fill=gray]{Gray}; & Zwischenpose \\
+
+\end{tabular}
+
+\begin{itemize}
+	\item Dabei hat jede Kante des Baums eine Richtung und eine Gewichtung $w$.
+
+	\item Die Gewichtung $w = ((\delta x, \delta y), \delta \varepsilon)$ gibt an, inwieweit das entsprechende Kind (Folgepose repräsentiert durch den Knoten, der mit der gewichteten Kante mit dem momentanen Knoten $k$ verbunden ist) den Roboter relativ zur momentanen Orientierung bewegt: $(\delta x, \delta y)$ und wie weit diese Pose ihn drehen wird: $\delta \varepsilon$.
+
+	\item Für eine gegebene, momentane Pose $\bm{\rho}_k$ wird für alle Kandidaten $j \in [0,\cdots,J-1]$ ausgerechnet, wieweit der Abstand $d_j$ der potentiell neuen Pose $\bm{\rho}_j$ zum Ziel $\bar{\bm{x}}$ ist:
+
+	\begin{equation}
+	d(\bm{\rho}_k, w_j, \bar{\bm{x}}) = \bigg| \bar{\bm{x}} - \left(\bm{p}_{1,k} + \bm{R}(\varepsilon_k)\begin{bmatrix}
+	\delta x \\ \delta y
+\end{bmatrix}	 \right)\bigg|_2
+	\end{equation}	
+	
+	\item Außerdem wird die Richtungsabweichung $\Delta \varepsilon_j$ aller potentiell neuen Pose $j$ berechnet:
+	
+	\begin{equation}
+	\Delta \varepsilon (\bm{\rho}_k, w_j, \bar{\bm{x}}) = \measuredangle\left( \bar{\bm{x}} - \left(\bm{p}_{1,k} + \bm{R}(\varepsilon_0)\begin{bmatrix}
+	\delta x \\ \delta y
+\end{bmatrix} \right), \bm{R}(\varepsilon_k + \delta \varepsilon) \begin{bmatrix}
+1 \\ 0
+\end{bmatrix} \right)
+	\end{equation}
+
+	\item Die Folgepose $\bm{\rho}_{k+1}$ ergibt sich dann aus dem Minimum der mit $a=.5$ gewichteten Summe von Abstand und Orientierungsabweichung für alle Möglichkeiten $\bm{\rho}_{j}$:
+	
+	\begin{equation}
+	\bm{\rho}_{k+1} = \min_j \left( a \frac{d_j}{d_{\textnormal{min}}}  + (a-1)\frac{\Delta \varepsilon_j}{\Delta \varepsilon_{\textnormal{max}}} \right)
+	\end{equation}
+
+	\item wobei $\Delta \varepsilon_{\textnormal{max}}$ die maximale Orientierungsabweichung aller Möglichkeiten ist; und $d_{\textnormal{min}}$ der minimale Abstand aller Möglichkeiten ist.
+
+\end{itemize}
+
+
+\subsection{Search Tree with weights}
+\includegraphics[width=.95\textwidth]{pics/trajectory_planner/tree_detail.pdf}
+
+\subsection{Simulation Results Curve}
+
+\includegraphics[width=.95\textwidth]{pics/pathplanner_without_noise/example_curve/gait.png}
+
+
+\begin{tabular}{ccc}
+\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec0.png}
+&
+\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec2.png}
+&
+\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec3.png}
+\\
+\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec9.png}
+&
+\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec10.png}
+&
+\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec12.png}
+\\
+\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec16.png}
+&
+\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec18.png}
+&
+\\
+\end{tabular}
+
+\subsection{Simulation Results Straight}
+\includegraphics[width=.95\textwidth]{pics/pathplanner_without_noise/example_straight/gait.png}
+
+
+\subsection{What happens if Process Noise occurs?}
+
+
+
+\subsection{Conclusion}
+
+
+
+
+\section{Path Planning with Analytic Model}
+
+\subsection{Problem Statement}
+
+\begin{itemize}
 
 \item Angenommen die Konfiguration / Pose des Roboters $\bm{\rho} = [\bm{\alpha}, \bm{p}_1, \varepsilon]$ ist vollständig bekannt, wobei $\bm{\alpha}$ die Gelenkkoordinaten / Biegewinkel der einzelnen Glieder sind, $\bm{p}_1$ die Position des vorderen Torsoendes und $\varepsilon$ die Orientierung des Roboters.
 Siehe Bild:
@@ -48,7 +220,7 @@ Die Schrittweite ist hier als $x_1$ beschrieben.
 
 
 
-\section{Approach: Guess structure for a analytic model for walking curves}
+\subsection{Approach: Guess structure for a analytic model for walking curves}
 
 \begin{itemize}
 
@@ -93,7 +265,7 @@ Simulate for different $x_1$ and $x_2$ (in der Abbildung unten ist $x_1$ = \text
 \end{itemize}
 
 
-\section{Approach: Find a reasonable structure}
+\subsection{Approach: Find a reasonable structure}
 
 \begin{itemize}
 
@@ -195,7 +367,7 @@ Delta Epsilon: $\frac{\Delta \varepsilon}{cycle} (x_1, x_2) = f$
 
 
 
-\section{Approach: Optimize Extra leg bending Angle for given extra torso bending}
+\subsection{Approach: Optimize Extra leg bending Angle for given extra torso bending}
 
 \begin{itemize}
 

@@ -259,7 +259,7 @@ class ReferenceGenerator(object):
         act_deps = calc_angle(dpos, act_dir)
         act_dist = np.linalg.norm(dpos)
 
-        if act_dist < 1:
+        if act_dist < .5:
             pose_id = '000'
         else:
             if len(self.graph.get_children(self.pose)) > 1:
@@ -318,7 +318,7 @@ class ReferenceGenerator(object):
                     draw_point_dir(act_pos-act_dir*2, [0, 0], size=1,
                                    label='choose (%s)' % pose_id)
                     plt.savefig('pics/pathplanner/'+figname+'.png',
-                                transparent=True, dpi=200)
+                                transparent=True, dpi=300)
 #            plt.show()
             else:  # only 1 child
                 pose_id, _ = self.graph.get_children(self.pose)[0]

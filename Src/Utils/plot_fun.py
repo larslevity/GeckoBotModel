@@ -111,10 +111,49 @@ class GeckoBotGait(object):
             pose.plot(col)
 
     def plot_markers(self, markernum=range(6)):
+        """plots the history of markers in *markernum*"""
         if type(markernum) == int:
             markernum = [markernum]
         plt.figure('GeckoBotGait')
         marks = [pose.markers for pose in self.poses]
+        markers = marker_history(marks)
+        col = markers_color()
+        for idx, marker in enumerate(markers):
+            if idx in markernum:
+                x, y = marker
+                plt.plot(x, y, color=col[idx])
+        plt.axis('equal')
+
+    def plot_com(self, markernum=range(6)):
+        """plots the history of center of markers in *markernum*"""
+        if type(markernum) == int:
+            markernum = [markernum]
+        plt.figure('GeckoBotGait')
+        marks = [pose.markers for pose in self.poses]
+        markers = marker_history(marks)
+        x = np.zeros(len(markers[0][0]))
+        y = np.zeros(len(markers[0][0]))
+        for idx, marker in enumerate(markers):
+            if idx in markernum:
+                xi, yi = marker
+                x = x + np.r_[xi]
+                y = y + np.r_[yi]
+        x = x/len(markernum)
+        y = y/len(markernum)
+        plt.plot(x, y, color='purple')
+        plt.axis('equal')
+
+    def plot_markers2(self, markernum=range(6)):
+        """
+        plots every value of markers in *markernum*
+        if torso is bent positive"""
+        if type(markernum) == int:
+            markernum = [markernum]
+        plt.figure('GeckoBotGait')
+        marks = []
+        for pose in self.poses:
+            if pose.x[2] > 0:
+                marks.append(pose.markers)
         markers = marker_history(marks)
         col = markers_color()
         for idx, marker in enumerate(markers):

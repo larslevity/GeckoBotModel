@@ -22,7 +22,7 @@ if __name__ == "__main__":
     gait.append_pose(initial_pose)
 
     ref = st.ReferenceGenerator('010')
-    xref = (2, 13)
+    xref = (2, 3)
 
     def calc_dist(pose, xref):
         mx, my = pose.markers
@@ -40,6 +40,7 @@ if __name__ == "__main__":
         alpha, feet, _,  pose_id = ref.get_next_reference(
                 act_pos, eps, xref, act_pose)
         print(alpha)
+        print(calc_dist(gait.poses[-1], xref))
 
         predicted_pose = model.predict_next_pose(
                 [alpha, feet], act_pose.x, (x, y))
@@ -47,18 +48,19 @@ if __name__ == "__main__":
         predicted_pose = pf.GeckoBotPose(*predicted_pose)
         gait.append_pose(predicted_pose)
         i += 1
-        if i > 40:
+        if i > 100:
             break
 
 
 # %%
 
     gait.plot_gait()
-    gait.plot_markers(1)
+#    gait.plot_markers(1)
+    gait.plot_com()
     st.draw_point_dir(xref, [0, 0], size=20, label='GOAL1')
 
 
-    plt.savefig('pics/pathplanner/gait.png', transparent=True, dpi=200)
+    plt.savefig('pics/pathplanner/gait.png', transparent=True, dpi=300)
 
 # %%
 
