@@ -7,11 +7,13 @@ Created on Thu Apr 25 17:25:25 2019
 import numpy as np
 import matplotlib.pyplot as plt
 
+from Src.Utils import save
 
-def draw_point_dir(point, direction, size=12, label=None):
+
+def draw_point_dir(point, direction, size=12, label=None, colp='red'):
     x1, y1 = point
     dx, dy = direction
-    plt.plot([x1], [y1], marker='o', color='red', markersize=size)
+    plt.plot([x1], [y1], marker='o', color=colp, markersize=size)
     plt.plot([x1, x1+dx], [y1, y1+dy], color='blue')
     if label:
         plt.text(x1+dx, y1+dy, label)
@@ -250,7 +252,8 @@ class ReferenceGenerator(object):
                 except AssertionError:
                     print(key, 'sum is not equal 2')
 
-    def get_next_reference(self, act_position, act_eps, xref, act_pose=None):
+    def get_next_reference(self, act_position, act_eps, xref, act_pose=None,
+                           vis_dec=False, gait=False):
         xref = np.r_[xref]
         act_pos = np.r_[act_position]
         dpos = xref - act_pos
@@ -267,7 +270,7 @@ class ReferenceGenerator(object):
                 plot = False if all(v[-1] == 'f' for v in verts) else True
 
                 if plot:
-                    figname = 'dec'+str(self.idx)
+                    figname = 'dec_'+str(self.idx)
                     plt.figure(figname)
                     draw_point_dir(act_pos, act_dir, size=20)
                     draw_point_dir(act_pos, [0, 0], size=20,
@@ -275,6 +278,13 @@ class ReferenceGenerator(object):
                     draw_point_dir(xref, [0, 0], size=20,
                                    label='GOAL')
                     act_pose.plot('gray')
+                    if vis_dec:
+                        plt.figure('tikz_'+figname)
+                        draw_point_dir(act_pos, act_dir*.5, size=8)
+                        draw_point_dir(act_pos, [.1, 0], size=1,
+                                       label='ROBOT (%s)' % self.pose)
+                        draw_point_dir(xref, [0, 0], size=8)
+                    
 
                 def suitability(translation_, rotation, v=None, plot=True):
                     translation_ = np.r_[translation_]
@@ -288,8 +298,14 @@ class ReferenceGenerator(object):
 
                     # Label the thing
                     if plot:
+                        plt.figure(figname)
                         draw_point_dir(pos_, dir_, label=v)
                         draw_line(act_pos+translation, xref)
+                        if vis_dec:
+                            plt.figure('tikz_'+figname)
+                            draw_point_dir(pos_, dir_, label=v, size=5,
+                                           colp='orange')
+                            draw_line(act_pos+translation, xref)
 
                     return (dist_, deps_)
 
@@ -315,10 +331,24 @@ class ReferenceGenerator(object):
                     min_dec, pose_id = dec.minimum()
 
                 if plot:
+                    plt.figure(figname)
                     draw_point_dir(act_pos-act_dir*2, [0, 0], size=1,
                                    label='choose (%s)' % pose_id)
-                    plt.savefig('pics/pathplanner/'+figname+'.png',
-                                transparent=True, dpi=300)
+                    if vis_dec:
+                        plt.figure('tikz_'+figname)
+                        draw_point_dir(act_pos-act_dir*2, [0, 0], size=1,
+                                       label='choose (%s)' % pose_id)
+                        if gait:
+                            gait.plot_markers(1, figname='tikz_'+figname)
+                        plt.axis('off')
+                        geckostr = act_pose.get_tikz_repr('gray')
+                        save.save_plt_as_tikz('pics/pathplanner/'+figname+'.tex',
+                                              geckostr)
+                        plt.close('tikz_'+figname)
+                    else:
+                        plt.savefig('pics/pathplanner/'+figname+'.png',
+                                    transparent=True, dpi=300)
+                    
 #            plt.show()
             else:  # only 1 child
                 pose_id, _ = self.graph.get_children(self.pose)[0]

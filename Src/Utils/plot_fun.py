@@ -103,18 +103,27 @@ class GeckoBotGait(object):
     def append_pose(self, pose):
         self.poses.append(pose)
 
-    def plot_gait(self, fignum=''):
-        plt.figure('GeckoBotGait'+fignum)
+    def plot_gait(self, fignum='', figname='GeckoBotGait'):
+        plt.figure(figname+fignum)
         for idx, pose in enumerate(self.poses):
             c = (1-float(idx)/len(self.poses))*.8
             col = (c, c, c)
             pose.plot(col)
 
-    def plot_markers(self, markernum=range(6)):
+    def get_tikz_repr(self):
+        gait_str = ''
+        for idx, pose in enumerate(self.poses):
+            c = int(20 + (float(idx)/len(self.poses))*80.)
+            col = 'black!{}'.format(c)
+            gait_str += pose.get_tikz_repr(col)
+        return gait_str
+        
+
+    def plot_markers(self, markernum=range(6), figname='GeckoBotGait'):
         """plots the history of markers in *markernum*"""
         if type(markernum) == int:
             markernum = [markernum]
-        plt.figure('GeckoBotGait')
+        plt.figure(figname)
         marks = [pose.markers for pose in self.poses]
         markers = marker_history(marks)
         col = markers_color()

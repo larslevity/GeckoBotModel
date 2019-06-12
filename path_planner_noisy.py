@@ -11,6 +11,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from Src.TrajectoryPlanner import search_tree as st
     from Src.Utils import plot_fun as pf
+    from Src.Utils import save
     from Src.Math import kinematic_model as model
 
     alpha = [90, 0, -90, 90, 0]
@@ -38,7 +39,7 @@ if __name__ == "__main__":
         eps = act_pose.x[-1]
 
         alpha, feet, _,  pose_id = ref.get_next_reference(
-                act_pos, eps, xref, act_pose)
+                act_pos, eps, xref, act_pose, vis_dec=True, gait=gait)
         print(alpha)
         print(calc_dist(gait.poses[-1], xref))
 
@@ -54,14 +55,18 @@ if __name__ == "__main__":
 
 # %%
 
-    gait.plot_gait()
-#    gait.plot_markers(1)
-    gait.plot_com()
+    gait.plot_markers(1)
+#    gait.plot_com()
     st.draw_point_dir(xref, [0, 0], size=20, label='GOAL1')
+    plt.axis('off')
 
 
-    plt.savefig('pics/pathplanner/gait.png', transparent=True, dpi=300)
+    gait_str = gait.get_tikz_repr()
+    save.save_plt_as_tikz('pics/pathplanner/gait.tex', gait_str)
 
+    plt.savefig('pics/pathplanner/gait.png', transparent=False,
+                dpi=300)
+    
 # %%
 
     gait.animate()

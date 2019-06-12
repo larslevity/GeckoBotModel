@@ -5,17 +5,31 @@ Created on Wed Jan 30 17:18:20 2019
 @author: AmP
 """
 
-#from matplotlib2tikz import save as tikz_save
+from matplotlib2tikz import save as tikz_save
 import fileinput
-
+from PIL import Image, ImageChops
 
 def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
     print('Saving as TikZ-Picture...')
+    aux_fn = filename + '_aux'
     if gecko_str:
         kwargs = {'extra_axis_parameters':
                   {'anchor=origin', 'disabledatascaling', 'x=1cm', 'y=1cm'}}
-#    tikz_save(filename, **kwargs)
-    insert_tex_header(filename, gecko_str, scale)
+    tikz_save(aux_fn, **kwargs)
+    insert_tex_header(aux_fn, gecko_str, scale)
+
+    # remove blank lines:    
+    with open(aux_fn, 'r') as file:
+        try:
+            with open(filename, 'x') as ofile:
+                for line in file:
+                    if not line == '\n':
+                        ofile.write(line)
+        except FileExistsError:
+            with open(filename, 'w') as ofile:
+                for line in file:
+                    if not line == '\n':
+                        ofile.write(line)
     print('Done!')
 
 
@@ -68,3 +82,19 @@ def line_pre_adder(filename, line_to_prepend):
             print(line_to_prepend.rstrip('\r\n') + '\n' + xline,)
         else:
             print(xline,)
+
+
+def trim(filename, border=1):
+    im = Image.open(filename)
+    bg = Image.new(im.mode, im.size, border)
+    diff = ImageChops.difference(im, bg)
+    bbox = diff.getbbox()
+    if bbox:
+        im2 = im.crop(bbox)
+        im2.save(filename)
+
+def crop_img(filename):
+    im = Image.open(filename)
+    print(im.getbbox())
+    im2 = im.crop(im.getbbox())
+    im2.save(filename)
