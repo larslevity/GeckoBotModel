@@ -8,6 +8,8 @@ Created on Wed Jan 30 17:18:20 2019
 from matplotlib2tikz import save as tikz_save
 import fileinput
 from PIL import Image, ImageChops
+import os
+
 
 def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
     print('Saving as TikZ-Picture...')
@@ -18,7 +20,7 @@ def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
     tikz_save(aux_fn, **kwargs)
     insert_tex_header(aux_fn, gecko_str, scale)
 
-    # remove blank lines:    
+    # remove blank lines:
     with open(aux_fn, 'r') as file:
         try:
             with open(filename, 'x') as ofile:
@@ -30,6 +32,7 @@ def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
                 for line in file:
                     if not line == '\n':
                         ofile.write(line)
+    os.remove(aux_fn)
     print('Done!')
 
 
