@@ -65,6 +65,10 @@
 		$$
 		\bm{\rho}_k = [\bm{x}_k~\bm{P}_k~\bm{f}_k] = \textnormal{fun}_{\mathcal{P}}\left( \bm{r}_k, \bm{\rho}_{k-1} \right)
 		$$
+		
+		\item Das Modell liefert dann eine quasi statische Vorhersage der neuen Ruhelage zu gegebenen Eingangsgrößen:
+		
+		\includegraphics[scale=1]{pics/CtrLoops/GeckoBotModel.pdf}
 	\end{itemize}
 	
 
@@ -148,40 +152,77 @@
 \end{itemize}
 
 
-\subsection{Search Tree with weights}
+\subsubsection{Search Tree with weights}
+Complete SearchTree contains:
+
+\begin{itemize}
+	\item all vertices (i.e. poses) including fix and defix poses
+	\item weights of egdes: $w = ((\delta x, \delta y), \delta \varepsilon)$
+\end{itemize}
+
 \includegraphics[width=.95\textwidth]{pics/trajectory_planner/tree_detail.pdf}
 
-\subsection{Simulation Results Curve}
+
+\subsection{Simulation Results}
+
+Block Diagram of Simulation:
+
+\includegraphics[scale=1]{pics/CtrLoops/pathplanner_searchtree.pdf}
+
+
+\subsubsection{Simulation Results Curve}
+
+\begin{itemize}
+	\item Src: \texttt{path\_planner.py}
+	
+	\item Startwerte: $p_{1,0} = (0,0)$, $\bar{x} = (2,3)$, $\varepsilon_0 = 0$, $\alpha_0 = [90,0,-90,90,0]$
+	
+	\item Zu sehen sind:
+	\begin{itemize}
+		\item Der gesamte Gang
+		\item Und alle Schritte, in denen eine Entscheidung getroffen werden musste.
+		\item Die Position des Roboters und die Zielposition sind als rote Punkte markiert
+		\item Das möglichen Folgeposen sind als orange Punkte dargestellt.
+		\item Alle Orientierungen sind als blaue Linien dargestellt
+	\end{itemize}
+
+\end{itemize}
+
 
 \begin{tabular}{ccc}
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/gait.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/gait.pdf}
 &
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec_0.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/dec_0.pdf}
 &
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec_2.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/dec_2.pdf}
 \\
 (a) & (b) & (c)
 \\
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec_3.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/dec_3.pdf}
 &
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec_9.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/dec_9.pdf}
 &
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec_10.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/dec_10.pdf}
 \\
 (d) & (e) & (f) 
 \\
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec_12.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/dec_12.pdf}
 &
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec_16.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/dec_16.pdf}
 &
-\includegraphics[width=.3\textwidth]{pics/pathplanner_without_noise/example_curve/dec_18.pdf}
+\includegraphics[scale=.8]{pics/pathplanner_without_noise/example_curve/dec_18.pdf}
 \\
 (g) & (h) & (i)\\
 \end{tabular}
 
-\subsection{Simulation Results Straight}
+\subsubsection{Simulation Results Straight}
 
+\begin{itemize}
+	\item Src: \texttt{path\_planner.py}
+	
+	\item Startwerte: $p_{1,0} = (0,0)$, $\bar{x} = (2,13)$, $\varepsilon_0 = 0$, $\alpha_0 = [90,0,-90,90,0]$
 
+\end{itemize}
 
 \begin{tabular}{ccccc}
 \includegraphics[scale=.8]{pics/pathplanner_without_noise/example_straight/gait.pdf}
@@ -202,9 +243,100 @@
 
 \subsection{What happens if Process Noise occurs?}
 
+\begin{itemize}
+
+	\item Es kann nicht davon ausgegangen werden, dass der Roboter stets exakt die ReferenzWinkel einnimmt.
+	
+	\item Diese Abweichung soll nun modelliert werden
+
+	\item Add process noise to Simulation input (0 mean, 5 standard deviation)
+	
+	\item Implementierung: \texttt{alp = alp + np.random.normal(0, 5, 5)}
+
+\end{itemize}
+
+Block Diagram of Simulation with noise:
+
+\includegraphics[scale=1]{pics/CtrLoops/pathplanner_searchtree_noise.pdf}
+
+\subsubsection{Curve Noise}
+
+
+\begin{itemize}
+	\item Src: \texttt{path\_planner.py}
+	
+	\item Startwerte: $p_{1,0} = (0,0)$, $\bar{x} = (2,3)$, $\varepsilon_0 = 0$, $\alpha_0 = [90,0,-90,90,0]$
+	
+	\item Die Simulation wurde 5 mal wiederholt.
+	
+	\item Gezeigt ist jeweils nur der gesamte Gang.
+
+\end{itemize}
+
+\begin{tabular}{ccccc}
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_curve_01/gait.pdf}
+&
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_curve_02/gait.pdf}
+&
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_curve_03/gait.pdf}
+&
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_curve_04/gait.pdf}
+&
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_curve_05/gait.pdf}
+\\
+(a) & (b) & (c) & (d) & (e) 
+\\
+\end{tabular}
+
+\subsubsection{Straight Noise}
+
+\begin{itemize}
+	\item Src: \texttt{path\_planner.py}
+	
+	\item Startwerte: $p_{1,0} = (0,0)$, $\bar{x} = (2,13)$, $\varepsilon_0 = 0$, $\alpha_0 = [90,0,-90,90,0]$
+	
+	\item Die Simulation wurde 5 mal wiederholt.
+	
+	\item Gezeigt ist jeweils nur der gesamte Gang.
+
+\end{itemize}
+
+\begin{tabular}{ccccc}
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_straight_01/gait.pdf}
+&
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_straight_02/gait.pdf}
+&
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_straight_03/gait.pdf}
+&
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_straight_04/gait.pdf}
+&
+\includegraphics[scale=.5]{pics/pathplanner_with_noise/example_straight_05/gait.pdf}
+\\
+(a) & (b) & (c) & (d) & (e) 
+\\
+\end{tabular}
+
 
 
 \subsection{Conclusion}
+
+\begin{itemize}
+	\item SearchTree Pathplanner funktioniert. Der Roboter kommt ans Ziel! Sowohl in der Simulation als auch im Experiment.
+	\item Durch die finite Anzahl an möglichen Folgeposen, läuft der Roboter allerdings im ZickZack auf das Ziel zu.
+	\item Wird Prozess Rauschen in die Simulation eingebaut, wird der Prozess instabil.
+	\item Teilweise läuft der Roboter knapp am Ziel vorbei und ist in einem Kurven-Loop gefangen.
+	\begin{itemize}
+		\item Diese Phänomen konnte auch schon im Experiment gesichtet werden.
+	\end{itemize}
+	\item Fazit:
+	\begin{itemize}
+		\item PathPlanner SearchTree ist nicht wirklich flexibel. Kann zwar erweitert werden, aber umständlich.
+		\item instabil bei ProzessRauschen.
+	\end{itemize}	 
+	
+	
+
+\end{itemize}
 
 
 
@@ -218,7 +350,7 @@
 \item Angenommen die Konfiguration / Pose des Roboters $\bm{\rho} = [\bm{\alpha}, \bm{p}_1, \varepsilon]$ ist vollständig bekannt, wobei $\bm{\alpha}$ die Gelenkkoordinaten / Biegewinkel der einzelnen Glieder sind, $\bm{p}_1$ die Position des vorderen Torsoendes und $\varepsilon$ die Orientierung des Roboters.
 Siehe Bild:
 
-\includegraphics[width=8cm]{model.pdf}
+\includegraphics[width=8cm]{pics/general_model/model_vareps.pdf}
 
 
 \item Für die Pfadplanung, wäre eine Funktion hilfreich, die zu einer gegebenen Wunschdrehung $\Delta \varepsilon$, eine entsprechende Abfolge von Roboter-Konfigurationen / Posen ausgibt, sodass sich der Roboter entsprechend dreht.
@@ -273,7 +405,7 @@ Simulate for different $x_1$ and $x_2$ (in der Abbildung unten ist $x_1$ = \text
 
 \item Results für 2 Zyklen:
 
-\includegraphics[width=12cm]{../pics/model_1/GeckoBotGait_2cyc.png}
+\includegraphics[width=12cm]{pics/model_1/GeckoBotGait_2cyc.png}
 
 
 \item Observations:
@@ -382,13 +514,13 @@ f_i = \left[
 
 \item Results
 \end{itemize}
-\includegraphics[width=.95\textwidth]{../pics/model_2/GeckoBotGait_2cyc.png}
+\includegraphics[width=.95\textwidth]{pics/model_2/GeckoBotGait_2cyc.png}
 
-\includegraphics[width=.95\textwidth]{../pics/model_2/GeckoBotGait_2cyc_zoom.png}
+\includegraphics[width=.95\textwidth]{pics/model_2/GeckoBotGait_2cyc_zoom.png}
 
 Delta Epsilon: $\frac{\Delta \varepsilon}{cycle} (x_1, x_2) = f$
 
-\includegraphics[width=.95\textwidth]{../pics/model_2/Delta_Epsilon_2cyc.png}
+\includegraphics[width=.95\textwidth]{pics/model_2/Delta_Epsilon_2cyc.png}
 
 
 
@@ -443,13 +575,13 @@ cost(\bm{x}) = \sum gait(\bm{x}).stress
 \item Results:
 \end{itemize}
 
-\includegraphics[width=.45\textwidth]{../pics/model_3/X3-x0_0.png}
-\includegraphics[width=.45\textwidth]{../pics/model_3/X3-x0_1.png}
+\includegraphics[width=.45\textwidth]{pics/model_3/X3-x0_0.png}
+\includegraphics[width=.45\textwidth]{pics/model_3/X3-x0_1.png}
 
-\includegraphics[width=.45\textwidth]{../pics/model_3/X4-x0_0.png}
-\includegraphics[width=.45\textwidth]{../pics/model_3/X4-x0_1.png}
+\includegraphics[width=.45\textwidth]{pics/model_3/X4-x0_0.png}
+\includegraphics[width=.45\textwidth]{pics/model_3/X4-x0_1.png}
 
-\includegraphics[width=.45\textwidth]{../pics/model_3/X3-X4_-_x0_0_-_2D.png}
-\includegraphics[width=.45\textwidth]{../pics/model_3/X3-X4_-_x0_1_-_2D.png}
+\includegraphics[width=.45\textwidth]{pics/model_3/X3-X4_-_x0_0_-_2D.png}
+\includegraphics[width=.45\textwidth]{pics/model_3/X3-X4_-_x0_1_-_2D.png}
 
 \end{document}

@@ -23,7 +23,7 @@ if __name__ == "__main__":
     gait.append_pose(initial_pose)
 
     ref = st.ReferenceGenerator('010')
-    xref = (2, 13)
+    xref = (2, 3)
 
     def calc_dist(pose, xref):
         mx, my = pose.markers
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
 
     gait_str = gait.get_tikz_repr()
-    save.save_plt_as_tikz('pics/pathplanner/gait.tex', gait_str)
+    save.save_plt_as_tikz('Out/pathplanner/gait.tex', gait_str)
     
 # %%
 

@@ -253,7 +253,7 @@ class ReferenceGenerator(object):
                     print(key, 'sum is not equal 2')
 
     def get_next_reference(self, act_position, act_eps, xref, act_pose=None,
-                           vis_dec=False, gait=False):
+                           save_as_tikz=False, gait=False, save_png=False):
         xref = np.r_[xref]
         act_pos = np.r_[act_position]
         dpos = xref - act_pos
@@ -278,7 +278,7 @@ class ReferenceGenerator(object):
                     draw_point_dir(xref, [0, 0], size=20,
                                    label='GOAL')
                     act_pose.plot('gray')
-                    if vis_dec:
+                    if save_as_tikz:
                         plt.figure('tikz_'+figname)
                         draw_point_dir(act_pos, act_dir*.5, size=8)
                         draw_point_dir(act_pos, [.1, 0], size=1,
@@ -301,7 +301,7 @@ class ReferenceGenerator(object):
                         plt.figure(figname)
                         draw_point_dir(pos_, dir_, label=v)
                         draw_line(act_pos+translation, xref)
-                        if vis_dec:
+                        if save_as_tikz:
                             plt.figure('tikz_'+figname)
                             draw_point_dir(pos_, dir_, label=v, size=5,
                                            colp='orange')
@@ -334,7 +334,7 @@ class ReferenceGenerator(object):
                     plt.figure(figname)
                     draw_point_dir(act_pos-act_dir*2, [0, 0], size=1,
                                    label='choose (%s)' % pose_id)
-                    if vis_dec:
+                    if save_as_tikz:
                         plt.figure('tikz_'+figname)
                         draw_point_dir(act_pos-act_dir*2, [0, 0], size=1,
                                        label='choose (%s)' % pose_id)
@@ -342,14 +342,14 @@ class ReferenceGenerator(object):
                             gait.plot_markers(1, figname='tikz_'+figname)
                         plt.axis('off')
                         geckostr = act_pose.get_tikz_repr('gray')
-                        save.save_plt_as_tikz('pics/pathplanner/'+figname+'.tex',
+                        save.save_plt_as_tikz('Out/pathplanner/'+figname+'.tex',
                                               geckostr)
                         plt.close('tikz_'+figname)
-                    else:
-                        plt.savefig('pics/pathplanner/'+figname+'.png',
+                    elif save_png:
+                        plt.savefig('Out/pathplanner/'+figname+'.png',
                                     transparent=True, dpi=300)
-                    
-#            plt.show()
+
+                    plt.show()
             else:  # only 1 child
                 pose_id, _ = self.graph.get_children(self.pose)[0]
 
