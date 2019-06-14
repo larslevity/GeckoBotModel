@@ -19,7 +19,7 @@ if __name__ == "__main__":
     f_l, f_o, f_a = 10, 1, 10
     weight = [f_l, f_o, f_a]
 
-    X1 = np.arange(0.01, 90.2, 9.9)
+    X1 = np.arange(70.01, 90.2, 9.9)
     X2 = np.arange(-.51, .52, .1)
 
     RESULT_DX = np.zeros((len(X2), len(X1)))
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         for x2_idx, x2 in enumerate(X2):
             if x1_idx == 0:
                 plt.figure('GeckoBotGait')
-                plt.text(x2_idx*dx, 1+n_cyc, 'x1={}'.format(round(x2, 2)))
+                plt.text(x2_idx*dx, 1+n_cyc, 'x2={}'.format(round(x2, 2)))
             f1 = [0, 1, 1, 0]
             f2 = [1, 0, 0, 1]
             if x1 < 0:
@@ -93,7 +93,7 @@ if __name__ == "__main__":
             plt.title('Alpha')
 
         plt.figure('GeckoBotGait')
-        plt.text(-4.5, -x1_idx*dy, 'x2={}'.format(round(x1, 0)))
+        plt.text(-4.5, -x1_idx*dy, 'x1={}'.format(round(x1, 0)))
 
     # %%
 

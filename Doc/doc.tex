@@ -134,7 +134,7 @@
 	\item Außerdem wird die Richtungsabweichung $\Delta \varepsilon_j$ aller potentiell neuen Pose $j$ berechnet:
 	
 	\begin{equation}
-	\Delta \varepsilon (\bm{\rho}_k, w_j, \bar{\bm{x}}) = \measuredangle\left( \bar{\bm{x}} - \left(\bm{p}_{1,k} + \bm{R}(\varepsilon_0)\begin{bmatrix}
+	\Delta \varepsilon (\bm{\rho}_k, w_j, \bar{\bm{x}}) = \measuredangle\left( \bar{\bm{x}} - \left(\bm{p}_{1,k} + \bm{R}(\varepsilon_k)\begin{bmatrix}
 	\delta x \\ \delta y
 \end{bmatrix} \right), \bm{R}(\varepsilon_k + \delta \varepsilon) \begin{bmatrix}
 1 \\ 0
@@ -341,7 +341,7 @@ Block Diagram of Simulation with noise:
 
 
 
-\section{Path Planning with Analytic Model}
+\section{Finding a Analytic Model for describing the General Gait}
 
 \subsection{Problem Statement}
 
@@ -403,12 +403,18 @@ x_1 + x_2 \\
 
 Simulate for different $x_1$ and $x_2$ (in der Abbildung unten ist $x_1$ = \texttt{gam} und $x_2$ = \texttt{x})
 
-\item Results für 2 Zyklen:
+
+\end{itemize}
+
+
+\subsubsection{Simulation Results}
+
+Results für 2 Zyklen:
 
 \includegraphics[width=12cm]{pics/model_1/GeckoBotGait_2cyc.png}
 
 
-\item Observations:
+\subsubsection{Observations}
 
 \begin{itemize}
 	\item Es funktioniert. Der Roboter läuft eine Kurve.
@@ -419,14 +425,17 @@ Simulate for different $x_1$ and $x_2$ (in der Abbildung unten ist $x_1$ = \text
 
 
 
-\end{itemize}
-
 
 \subsection{Approach: Find a reasonable structure}
 
 \begin{itemize}
 
-\item Src can be found: \texttt{analytic\_model\_2.py}
+\item Src can be found:
+
+	\begin{tabular}{ll}
+		 \texttt{analytic\_model\_2.py} & First Tries \\
+		 \texttt{analytic\_model\_2\_adv.py} & Final Results \\
+	\end{tabular}
 
 \item Orientierung der Füße soll konstant bleiben:
 
@@ -511,16 +520,55 @@ f_i = \left[
 1 & else& \\
 \end{matrix} \right.
 \end{equation}
-
-\item Results
 \end{itemize}
-\includegraphics[width=.95\textwidth]{pics/model_2/GeckoBotGait_2cyc.png}
 
-\includegraphics[width=.95\textwidth]{pics/model_2/GeckoBotGait_2cyc_zoom.png}
+\subsubsection{Simulation Results}
 
-Delta Epsilon: $\frac{\Delta \varepsilon}{cycle} (x_1, x_2) = f$
+\begin{itemize}
+	\item In der abgebildeten Matrix sind in den Reihen konstante Schrittweite $x_1$ 
+	\item Spalten: konstantes Kurvenmaß $x_2$
+	\item Jedes Einzelbild zeigt die Simulation von zwei Zyklen mit dem zu $(x_1, x_2)$ entsprechenden Laufmuster.
+	\item Unter jedem Einzelbild ist die Drehung in Grad $\Delta \varepsilon$ und die Summe der inneren Spannung aller Posen innerhalb des Laufes $\sum_i \sigma(\bm{\rho}_i)$.
+	
+\end{itemize}
 
-\includegraphics[width=.95\textwidth]{pics/model_2/Delta_Epsilon_2cyc.png}
+
+\includegraphics[width=.95\textwidth]{pics/model_2/gait.jpg}
+
+
+\begin{itemize}
+	\item Folgende Abbildung zeigt den Stressverlauf $\sigma(\bm{\rho}_i)$
+	
+	\item Bis auf ein paar Ausreißer ist die innere Spannung über den Lauf moderat.
+\end{itemize}
+
+\includegraphics[width=.95\textwidth]{pics/model_2/GeckoBotGaitStress.jpg}
+
+
+\begin{itemize}
+	\item Delta Epsilon kann jetzt gefittet werden:
+	
+	\begin{equation}
+	\frac{\Delta \varepsilon}{2 cycle} (x_1, x_2) = -21.7 x_2 -.51 x_2^2 - 1.67x_1x_2
+	\end{equation}
+	
+	\item SurfacePlot ist Simulations Data und WirframPlot ist der Fit
+\end{itemize}
+
+\includegraphics[width=.95\textwidth]{pics/model_2/Fit.jpg}
+
+\begin{itemize}
+	\item Ebenso kann die Translation in Bewegungsrichtung gefittet werden:
+	\begin{equation}
+		\frac{\begin{bmatrix}	\delta x \\ \delta y \end{bmatrix} (x_1, x_2)}{1 cycle} = \begin{bmatrix}
+		.07x_2 - .29 x_2^2 + .02 x_1x_2 \\
+		.02x_1 + .13x_2 - .47x_2^2 \\
+		\end{bmatrix}
+	\end{equation}
+	\item Schwarze Pfeile sind Fit. Bunte Pfeile Simulations Ergebnisse.
+\end{itemize}
+
+\includegraphics[width=.95\textwidth]{pics/model_2/FitDXDY_1cyc.jpg}
 
 
 
@@ -528,10 +576,15 @@ Delta Epsilon: $\frac{\Delta \varepsilon}{cycle} (x_1, x_2) = f$
 
 \begin{itemize}
 
-\item Src can be found: \texttt{analytic\_model\_3.py}
+\item Src can be found: 
 
+	\begin{tabular}{ll}
+	\texttt{analytic\_model\_3.py} & Optimizing $x_3$ und $x_4$ \\
+	\texttt{eval\_analytic\_model\_3.py} & Evaluate Simulation and Function Fitting  \\
+	\texttt{eval2\_analytic\_model\_3.py} & Simulate Gait with obtained gait law \\
+	\end{tabular}
 
-\item Nun soll untersucht werden, welche Extra Leg Bending Angle die ineere Spannung des Roboters minimiert.
+\item Nun soll untersucht werden, welche Extra Leg Bending Angle die innere Spannung des Roboters minimiert.
 
 \item Model:
 
@@ -556,10 +609,10 @@ Die Extrabiegung für ein \textbf{nicht fixiertes Vorderbein} entspricht der Ext
 
 \item Methode:
 
-Für gegebenes Extra Torso Bending $x_2$ und gegebenene Torso Biegung $x1$ minimiere die Innere Spannung über den Gang mit $n$ Zyklen aufsummiert:
+Für gegebenes Extra Torso Bending $x_2$ und gegebenene Schrittweite $x1$ minimiere die Innere Spannung über den Gang mit $n$ Zyklen aufsummiert:
 
 \begin{tabular}{c c l}
-Gegeben: 	& $x_1$ & Torsobiegung \\
+Gegeben: 	& $x_1$ & Schrittweite \\
 			& $x_2$	& Extra Torsobiegung \\
 Gesucht:	& $x_3$	& Extra Beinbiegung fixiert vorn \\
 			& $x_4$	& Extra Beinbiegung fixiert hinten \\
@@ -567,13 +620,14 @@ Gesucht:	& $x_3$	& Extra Beinbiegung fixiert vorn \\
 
 
 \begin{equation}
-cost(\bm{x}) = \sum gait(\bm{x}).stress
+ (x_{3,\textnormal{opt}}, x_{4,\textnormal{opt}}) = \min_{x_3, x_4} \sum_k^{2n} \sigma\Big(\bm{\rho}_k\big(\bm{\alpha}(x_1, x_2, x_3, x_4)\big)\Big)
 \end{equation}
 
-
-
-\item Results:
 \end{itemize}
+
+
+\subsubsection{Optimization Results}
+Results (links mit Startwert (10, 20) rechts mit Startwert (20, 10)):
 
 \includegraphics[width=.45\textwidth]{pics/model_3/X3-x0_0.png}
 \includegraphics[width=.45\textwidth]{pics/model_3/X3-x0_1.png}
@@ -583,5 +637,137 @@ cost(\bm{x}) = \sum gait(\bm{x}).stress
 
 \includegraphics[width=.45\textwidth]{pics/model_3/X3-X4_-_x0_0_-_2D.png}
 \includegraphics[width=.45\textwidth]{pics/model_3/X3-X4_-_x0_1_-_2D.png}
+
+
+\subsubsection{Function Fitting}
+
+
+\begin{itemize}
+	\item Es werden Ergebnisse des ersten Startwert genommen.
+
+	\item Es ergibt sich:
+		\begin{equation}
+		x_3 (x_1, x_2) = 30 - 2|x_1x_2| + 110|x_2|
+		\end{equation}
+		\begin{equation}
+		x_4 (x_1, x_2) =  2|x_1x_2| - 80|x_2|
+		\end{equation}
+		
+		\includegraphics[width=.8\textwidth]{pics/model_3/X3X4.jpg}
+
+		Und somit als Gait Law:
+	
+		\begin{equation}
+		\bm{\alpha} = \begin{bmatrix}
+		45 - \frac{x_1}{2} + \bar{f}_0(30 - 2|x_1x_2| + 110|x_2|) + f_0(2|x_1x_2| - 80|x_2|) \\
+		45 + \frac{x_1}{2} + \bar{f}_1(30 - 2|x_1x_2| + 110|x_2|) + f_1(2|x_1x_2| - 80|x_2|) \\
+		x_1|x_2| \\
+		45 - \frac{x_1}{2} + \bar{f}_2(2|x_1x_2| - 80|x_2|) + f_3(30 - 2|x_1x_2| + 110|x_2|) \\
+		45 + \frac{x_1}{2} + \bar{f}_3(2|x_1x_2| - 80|x_2|) + f_4(30 - 2|x_1x_2| + 110|x_2|) \\
+		\end{bmatrix}
+		\end{equation}
+
+
+\end{itemize}
+
+\subsubsection{Simulation Results}
+
+\begin{itemize}
+	\item Gleiche Struktur wie in model 2
+	\item Stress ist deutlich kleiner. Drehung allerdings auch. 
+\end{itemize}
+
+\includegraphics[width=.95\textwidth]{pics/model_3/gait.jpg}
+
+\includegraphics[width=.95\textwidth]{pics/model_3/GeckoBotGaitStress.jpg}
+
+
+
+
+
+\subsection{Compare model 2 and model 3}
+
+\begin{itemize}
+	\item Betrachtet man die beiden unteren Bilder, stellt man fest, dass der dritte Ansatz nicht wirklich erfolgreich war.
+	\item Model 2 führt zu besseren Drehungen und kleinerer ineere Spannung. (Zumindest für die betrachtete Zeile ($x_1 = 70$))
+\end{itemize}
+
+\begin{tabular}{c}
+\includegraphics[width=.95\textwidth]{pics/model_2/gait_zoom.jpg} \\
+model 2 \\
+\includegraphics[width=.95\textwidth]{pics/model_3/gait_zoom.jpg} \\
+model 3 \\
+\end{tabular}
+
+\subsubsection{Conclusion}
+
+\begin{itemize}
+	\item Es wird das Gait Law aus Model 2 für den Optimalen Pathplanner gewählt.
+\end{itemize}
+
+
+
+
+\section{Optimal PathPlanner based on General Gait Model}
+
+\subsection{Idea}
+
+\begin{itemize}
+	\item Wie schon beim SearchTreePathplanner soll die optimale Folgepose berechnet werden.
+	\item Optimal in dem Sinne, dass sie den Roboter näher an das Ziel bringt und seine Orientierung so verändert, dass er in die Richtung des Ziels zeigt.
+	\item Dieses Mal soll aber nicht aus einer endlichen Anzahl aus vorher definierten möglichen Folgeposen gewählt werden, sondern aus der unendlichen Anzahl aller möglichen Posen.
+	\item Das Minimierungsproblem ist ähnlich:
+	
+	\begin{equation}
+	\bm{\rho}_{k+1} = \min_{j} \left( a \frac{d(\bm{\rho_j})}{d_k} + (1-a)\frac{\Delta \varepsilon (\bm{\rho}_j)}{\Delta \varepsilon_k} \right)	
+	\end{equation}
+	
+	\item Mithilfe des analytischen Modells lässt sich die Distanz zum Ziel $d$ und die Orientierungsabweichung $\Delta \varepsilon$ in Abhängigkeit der Schrittweite $x_1$ und des Drehungsmaßes $x_2$ beschreiben.
+	
+	\item Zur Erinnerung:
+	
+		\begin{equation}
+		\begin{bmatrix}	\delta x \\ \delta y \end{bmatrix} (x_1, x_2) / 1~cycle = \begin{bmatrix}
+		.07x_2 - .29 x_2^2 + .02 x_1x_2 \\
+		.02x_1 + .13x_2 - .47x_2^2 \\
+		\end{bmatrix}
+		\end{equation}
+		
+		\begin{equation}
+		\delta \varepsilon (x_1, x_2) / {2~cycle} = -.01x_1 - 21.7 x_2 -.51 x_2^2 - 1.67x_1x_2
+		\end{equation}
+	
+	\item Der Abstand $d$ ergibt sich zu:
+	
+	\begin{equation}
+	d(\bm{\rho}_k, \bar{\bm{x}}, x_1, x_2) = \bigg| \bar{\bm{x}} - \left(\bm{x}_{k} + \bm{R}(\varepsilon_k)\begin{bmatrix}
+	\delta x(x_1, x_2) \\ \delta y (x_1, x_2)
+\end{bmatrix}	 \right)\bigg|_2
+	\end{equation}	
+	
+	\item Die Richtungsabweichung $\Delta \varepsilon$ ergibt sich zu:
+	
+	\begin{equation}
+	\Delta \varepsilon (\bm{\rho}_k, \bar{\bm{x}}, x_1, x_2) = \measuredangle\left( \bar{\bm{x}} - \left(\bm{x}_{k} + \bm{R}(\varepsilon_k)\begin{bmatrix}
+	\delta x (x_1, x_2) \\ \delta y (x_1, x_2)
+\end{bmatrix} \right), \bm{R}(\varepsilon_k + \delta \varepsilon (x_1, x_2)) \begin{bmatrix}
+1 \\ 0
+\end{bmatrix} \right)
+	\end{equation}	
+	
+	
+	\item Das Minimierungsproblem lässt sich nun konkretisieren:
+	\begin{equation}
+	x_{1, \textnormal{opt}}, x_{2, \textnormal{opt}} = \min_{x_1, x_2} \left( a \frac{d(x_1, x_2)}{d_k} + (1-a)\frac{\Delta \varepsilon (x_1, x_2)}{\Delta \varepsilon_k} \right)	
+	\end{equation}
+	\begin{equation}
+	\bm{\rho}_{k+1} = [\bm{\alpha}(x_1, x_2),~ \bar{\bm{f}}_k]~,
+	\end{equation}
+	wobei $\bar{\bm{f}}$ die genau entgegen gesetzte Fixierung von $\bm{f}$ ist.
+	
+	
+\end{itemize}
+
+
 
 \end{document}

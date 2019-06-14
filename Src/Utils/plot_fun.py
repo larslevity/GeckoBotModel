@@ -222,6 +222,7 @@ class GeckoBotGait(object):
         plt.figure('GeckoBotGaitStress'+fignum)
         stress = [pose.cost for pose in self.poses]
         plt.plot(stress)
+        return sum(stress)
 
     def save_as_tikz(self, filename):
         direc = path.dirname(path.dirname(path.dirname(
