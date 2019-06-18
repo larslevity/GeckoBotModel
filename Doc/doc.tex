@@ -11,6 +11,8 @@
 \usepackage{tikz}
 \usepackage[margin=1.2in]{geometry}
 
+\DeclareMathOperator{\atan}{atan}
+
 \author{Lars Schiller}
 \begin{document}
 
@@ -727,7 +729,7 @@ model 3 \\
 	\item Zur Erinnerung:
 	
 		\begin{equation}
-		\begin{bmatrix}	\delta x \\ \delta y \end{bmatrix} (x_1, x_2) / 1~cycle = \begin{bmatrix}
+		\begin{bmatrix}	\delta x \\ \delta y \end{bmatrix} (x_1, x_2) / 1~cycle =\delta \bm{x} (x_1, x_2)= \begin{bmatrix}
 		.07x_2 - .29 x_2^2 + .02 x_1x_2 \\
 		.02x_1 + .13x_2 - .47x_2^2 \\
 		\end{bmatrix}
@@ -740,33 +742,133 @@ model 3 \\
 	\item Der Abstand $d$ ergibt sich zu:
 	
 	\begin{equation}
-	d(\bm{\rho}_k, \bar{\bm{x}}, x_1, x_2) = \bigg| \bar{\bm{x}} - \left(\bm{x}_{k} + \bm{R}(\varepsilon_k)\begin{bmatrix}
-	\delta x(x_1, x_2) \\ \delta y (x_1, x_2)
-\end{bmatrix}	 \right)\bigg|_2
+	d(\bm{\rho}_k, \bar{\bm{x}}, x_1, x_2) = \bigg| \bar{\bm{x}} - \left(\bm{x}_{k} + \bm{R}(\varepsilon_k) \delta \bm{x}(x_1, x_2) \right)\bigg|_2
 	\end{equation}	
 	
-	\item Die Richtungsabweichung $\Delta \varepsilon$ ergibt sich zu:
+	\item Die Richtungsabweichung $\Delta \varepsilon'$ der Folgepose ergibt sich zu:
 	
 	\begin{equation}
-	\Delta \varepsilon (\bm{\rho}_k, \bar{\bm{x}}, x_1, x_2) = \measuredangle\left( \bar{\bm{x}} - \left(\bm{x}_{k} + \bm{R}(\varepsilon_k)\begin{bmatrix}
-	\delta x (x_1, x_2) \\ \delta y (x_1, x_2)
-\end{bmatrix} \right), \bm{R}(\varepsilon_k + \delta \varepsilon (x_1, x_2)) \begin{bmatrix}
-1 \\ 0
-\end{bmatrix} \right)
+	\Delta \varepsilon' (\bm{\rho}_k, \bar{\bm{x}}, x_1, x_2) = \measuredangle\left( \bar{\bm{x}} - \left(\bm{x}_{k} + \bm{R}(\varepsilon_k) \delta \bm{x}(x_1,x_2) \right), \bm{R}(\varepsilon_k + \delta \varepsilon (x_1, x_2)) \bm{e}_x \right)
 	\end{equation}	
-	
+	wobei $\bm{e}_x$ der Einheitsvektor in $x$-Richtung ist.
 	
 	\item Das Minimierungsproblem lässt sich nun konkretisieren:
 	\begin{equation}
 	x_{1, \textnormal{opt}}, x_{2, \textnormal{opt}} = \min_{x_1, x_2} \left( a \frac{d(x_1, x_2)}{d_k} + (1-a)\frac{\Delta \varepsilon (x_1, x_2)}{\Delta \varepsilon_k} \right)	
 	\end{equation}
+	Der nächste Zyklus (i.e. die nächsten zwei Posen) ist damit definiert: 
 	\begin{equation}
 	\bm{\rho}_{k+1} = [\bm{\alpha}(x_1, x_2),~ \bar{\bm{f}}_k]~,
+	\end{equation}
+	\begin{equation}
+	\bm{\rho}_{k+2} = [\bm{\alpha}(-x_1, x_2),~ {\bm{f}}_k]~,
 	\end{equation}
 	wobei $\bar{\bm{f}}$ die genau entgegen gesetzte Fixierung von $\bm{f}$ ist.
 	
 	
 \end{itemize}
+
+
+\subsection{Coordinate Transformation in order to reduce complexity}
+
+\begin{itemize}
+	\item Idee: Formulierung des Optimierungsproblems in Koordinaten System des Roboters, Um Komplexität zu verringern.
+	\item Messung wird im globalen Kamera system erfolgen, d.h. folgende Größen werden zu verFügung stehen:
+	
+	\begin{tabular}{ll}
+	$^0\bm{x}$ & Position des Roboters im globalen (Kamera-) COS \\
+	$^0\bar{\bm{x}}$ & Soll Position im Globalen COS \\
+	$^0\varepsilon$ & Orientierung des Roboters im Globalen COS \\
+	
+	\end{tabular}
+	
+\end{itemize}
+
+\includegraphics[scale=1]{pics/general_model/model_cost.pdf}
+
+\begin{itemize}
+	\item Da das Problem nun im roboterfesten Koordinaten system beschrieben wird, ist der Ortsvektor des Roboters $^R\bm{x} = \bm{0}$.
+	\item Den Ortsvector vom Roboter zum Ziel erhält man durch folgende Koordinatentransformation:
+	\begin{equation}
+	^R\bar{\bm{x}} = \bm{R}(-{^0}\varepsilon)({^0}\bm{\bar{\bm{x}}}-{^0}\bm{x})
+	\end{equation}
+	\item Die Position der Folgepose $^R\bm{x}'$beschrieben im Roboterfesten COS:
+	\begin{equation}
+	^R\bm{x}' = \delta \bm{x}(x_1, x_2)
+	\end{equation}
+	
+	\item Der Vektor der von der Folge Pose zum Ziel zeigt, ergibt sich:
+	\begin{equation}
+		{^R}\bar{\bm{x}}' =  {^R}\bar{\bm{x}} - {^R}\bm{x}'
+	\end{equation}	
+	
+	\item Der Abstand der Folgepose des Roboters beschrieben im Koordinatensystem des Roboters $\{R\}$ zum Ziel $d$ vereinfacht sich nun zu:
+	\begin{eqnarray}
+		d({^R}\bar{\bm{x}}, x_1, x_2) &=& \big| {^R}\bar{\bm{x}'}\big|_2 \\
+		&=& \big| {^R}\bar{\bm{x}} - \delta \bm{x}(x_1, x_2) \big|_2 \\
+		&=& \sqrt{ \left({^R}\bar{\bm{x}}_x - \delta \bm{x}_x(x_1, x_2) \right)^2 + \left({^R}\bar{\bm{x}}_y - \delta \bm{x}_y(x_1, x_2) \right)^2 }
+	\end{eqnarray}
+
+	\item Und die Richtungsabweichung $\Delta \varepsilon'$ der Folgepose vereinfacht sich nun zu:
+	\begin{eqnarray}
+	\Delta \varepsilon' ({^R}\bar{\bm{x}}, x_1, x_2) 
+	&=& \measuredangle \left( {^R}\bar{\bm{x}} - \delta \bm{x}(x_1,x_2) , {^R}\bm{e}_x \right) - \delta\varepsilon(x_1,x_2) \\
+	&=& \atan\left( \frac{{^R}\bar{\bm{x}}_y - \delta\bm{x}_y(x_1,x_2)}{{^R}\bar{\bm{x}}_x - \delta\bm{x}_x(x_1,x_2)}\right) - \delta\varepsilon(x_1,x_2)
+	\end{eqnarray}
+
+\end{itemize}
+
+
+\subsubsection{Iterative Formulierung}
+
+\includegraphics[scale=1]{pics/general_model/model_cost_2.pdf}
+
+\begin{itemize}
+	\item Mit jedem Zyklus dreht sich der Roboter um $\delta \varepsilon$ und verschiebt sich um $\delta \bm{x}$.
+
+	\item Die Position der $(n+1)$-ten Folgepose beschrieben im COS der $(n)$ten Folgepose kann dann rekursiv beschrieben werden:
+	\begin{equation}
+	{^{R^{(n)}}}\bm{x}^{(n+1)} = \delta \bm{x}(x_1,x_2)
+	\end{equation}
+	
+	\item Den Ortsvector der $(n)$-ten Pose des Roboters zum Ziel (beschrieben im COS der $(n)-$ten Folgepose) erhält man durch folgende Koordinatentransformation der vorhergegangen Pose:
+	\begin{equation}
+	{^{R^{(n)}}}\bar{\bm{x}}^{(n)} = \bm{R}(-\delta\varepsilon)\left({^{R^{(n-1)}}}\bar{\bm{x}}^{(n-1)}-{^{R^{(n-1)}}}\bm{x}^{(n)}\right)
+	\end{equation}
+	\item Explizit lässt sich das Formulieren zu:
+
+	\begin{eqnarray}
+	{^{R^{(n)}}}\bar{\bm{x}}^{(n)} &=& 
+	\bm{R}(-\delta\varepsilon)\left(
+	\bm{R}(-\delta\varepsilon) \left( {^{R^{(n-2)}}}\bar{\bm{x}}^{(n-2)} - \delta\bm{x}\right)
+	-\delta\bm{x}\right) \\
+	&=& 
+	\bm{R}^n(-\delta\varepsilon){^R}\bar{\bm{x}}^{(0)} - \sum_{i=0}^n \bm{R}^i(-\delta\varepsilon) \delta \bm{x} \\
+	&=& 
+	\bm{R}(-n \delta\varepsilon){^R}\bar{\bm{x}}^{(0)} - \sum_{i=0}^n \bm{R}(- i \delta\varepsilon) \delta \bm{x}
+	\end{eqnarray}
+	
+	da mehrfache Rotation um die gleiche Achse und somit $\bm{R}^n(x) = \bm{R}(nx)$
+
+	\item Der Vektor von der $(n+1)$-ten Pose zum Ziel, beschrieben im COS der $(n)$-ten Pose:
+	\begin{equation}
+	{^{R^{(n)}}}\bar{\bm{x}}^{(n+1)} = {^{R^{(n)}}}\bar{\bm{x}}^{(n)} - {^{R^{(n)}}}\bm{x}^{(n+1)}
+	\end{equation}
+
+	\item Und die Richtungsabweichung $\Delta \varepsilon^{(n)}$ der $(n)$-ten Pose zu:
+	\begin{eqnarray}
+	\Delta \varepsilon^{(n)} 
+	&=& \measuredangle \left( {^{R^{(n)}}}\bar{\bm{x}}^{(n)} , {^{R^{n}}}\bm{e}_x \right) \\
+	&=& \atan \left(
+	\frac{	{^{R^{(n)}}}\bar{\bm{x}}^{(n)}_x }{
+	{^{R^{(n)}}}\bar{\bm{x}}^{(n)}_y}
+	\right)
+	\end{eqnarray}	
+	
+\end{itemize}
+
+
+
 
 
 

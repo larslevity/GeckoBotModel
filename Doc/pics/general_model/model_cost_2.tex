@@ -1,0 +1,241 @@
+
+\documentclass[10pt]{standalone}
+\usepackage{tikz}
+\usepackage{bm}
+\usepackage{tikz-3dplot}
+
+\begin{document}
+\tdplotsetmaincoords{0}{0}
+\begin{tikzpicture}[
+	tdplot_main_coords,
+	part/.style={thick},
+	anglearrow_phi/.style={latex-latex, blue!80},
+	lettering_phi/.style={blue!80},
+	helpline_phi/.style={gray, dashed},
+	helpline/.style={gray},
+	foot/.style={fill=gray},
+	nextPose/.style={fill=orange},
+	vec/.style={-latex, green!70!black},
+	vechead/.style={green!70!black}
+]
+\def\pi{3.14159}
+
+\def\rfoot{.1}
+\def\rradi{.05}
+
+\def\angledist{.6}
+\def\fontdist{.4}
+\def\distdist{.2}
+\def\fontdistdist{.5}
+
+\def\lleg{1}
+\def\ltor{1.1}
+
+\newcommand{\drawGecko}[2]{
+
+\pgfmathsetmacro{\gamh}{\gam*.5}
+\pgfmathsetmacro{\ci}{\eps-\alpi-\gamh}
+\pgfmathsetmacro{\cii}{\ci+\alpi+\beti}
+\pgfmathsetmacro{\ciii}{180 + \gam + \ci + \alpi + \alpii}
+\pgfmathsetmacro{\civ}{180 + \gam + \ci + \alpi - \betii}
+
+
+
+\pgfmathsetmacro{\ri}{\lleg/\alpi*180/\pi}
+\pgfmathsetmacro{\rii}{\lleg/\beti*180/\pi}
+\pgfmathsetmacro{\rg}{(\ltor/sqrt(\gam*\gam)*180/\pi)*\gam/sqrt(\gam*\gam)}
+\pgfmathsetmacro{\riii}{\lleg/\alpii*180/\pi}
+\pgfmathsetmacro{\riv}{\lleg/\betii*180/\pi}
+
+
+
+
+
+\path (#1,#2) coordinate(1);
+%% F0
+\draw[part] (1)arc(180+\ci+\alpi:180+\ci:\ri)coordinate(0);
+
+%% F1
+\draw[part] (1)arc(180+\ci+\alpi:180+\ci+\alpi+\beti:\rii)coordinate(2);
+
+%% T1
+\draw[part] (1)arc(90+\ci+\alpi:90+\ci+\alpi+\gam:\rg)coordinate(4);
+
+%% F2
+\draw[part] (4)arc(\gam+\ci+\alpi:\gam+\ci+\alpi+\alpii:\riii)coordinate(3);
+
+%% F3
+\draw[part] (4)arc(\gam+\ci+\alpi:\gam+\ci+\alpi-\betii:\riv)coordinate(5);
+
+
+%% Eps
+
+\path[fill=red] (1)circle(.1);
+\draw[helpline_phi] (1)--++(0:\angledist+.2);
+\draw[anglearrow_phi, -latex] (1)--++(\eps:\angledist+.5);
+\draw[anglearrow_phi] (1)++(0:\angledist)arc(0:\eps:\angledist);
+\pgfmathsetmacro{\epsh}{\eps*.5}
+\path (1)++(\epsh:\fontdist) node[lettering_phi]{$^0\varepsilon$};
+
+\path[helpline] (1) node[below]{\{$R$\}};
+\draw[helpline, -latex] (1)--++(\eps:.5);
+\path[helpline] (1)++(\eps:.5)++(\eps+90:.3)node{$x_R$};
+\draw[helpline, -latex] (1)--++(\eps+90:.5);
+\path[helpline] (1)++(\eps+90:.7)node{$y_R$};
+
+%% Lettering Nodes
+
+\draw[foot] (0)circle(\rfoot);% ++(\ci+90:\fontdistdist)node{$0$};
+\draw[foot] (2)circle(\rfoot);%++(\cii-90:\fontdistdist)node{$2$};
+\draw[foot] (3)circle(\rfoot);%++(\ciii-90:\fontdistdist)node{$3$};
+\draw[foot] (5)circle(\rfoot);%++(\civ+90:\fontdistdist)node{$5$};
+%\draw[foot] (1)circle(\rfoot);%++(\ci+\alpi:\fontdistdist)node{$1$};
+%\draw[foot] (4)circle(\rfoot);%++(\ciii-\alpii:\fontdistdist)node{$4$};
+
+}
+
+
+%\path[clip] (-3,-8)rectangle(8, 6.5);
+
+
+
+
+%% COS
+\path (0,0) coordinate(O)node[below]{\{0\}};
+\draw[-latex] (O)--++(1,0)node[below]{$x$};
+\draw[-latex] (O)--++(0,1)node[left]{$y$};
+
+
+
+
+
+%% Craw Gecko
+\def\eps{80}
+\def\alpi{15}
+\def\alpii{15}
+\def\gam{80}
+\def\beti{85}
+\def\betii{85}
+%% Coords of Gecko
+\def\xi{-3}
+\def\yi{2}
+\drawGecko{\xi}{\yi}
+
+%% Draw Ortsvec
+\draw[vec](O)--(1)node[vechead, midway, sloped, above]{$^0\bm{x}$};
+
+
+
+%% Draw Goal
+\def\xg{7.5}
+\def\yg{0}
+\draw[fill=red] (\xg, \yg)circle(.2)coordinate(G)node[right=.2cm]{Goal};
+\draw[vec](O)--(G)node[vechead, midway, sloped, above]{$^0\bar{\bm{x}}$};
+
+
+
+
+%% Draw DEPS
+\pgfmathsetmacro{\dx}{cos(-\eps)*(\xg-\xi) -sin(-\eps)*(\yg-\yi}
+\pgfmathsetmacro{\dy}{sin(-\eps)*(\xg-\xi) + cos(-\eps)*(\yg-\yi)}
+\pgfmathsetmacro{\Deps}{atan(\dy/\dx)}
+
+\draw[vec](1)--(G)node[vechead, midway, sloped, above]{$^R\bar{\bm{x}}$};
+\draw[anglearrow_phi] (1)++(\eps:\angledist+.2)arc(\eps:\eps+\Deps:\angledist+.2);
+\pgfmathsetmacro{\Depsh}{.5*\Deps}
+\path (1)++(\eps+\Depsh:\angledist+.5) node[blue]{$\Delta \varepsilon$};
+
+
+%% Next Pose
+	\def\delx{3}
+	\def\dely{-1.2}
+	\def\deleps{-35}
+	\pgfmathsetmacro{\delepsh}{.5*\deleps}
+\tdplotsetrotatedcoords{\eps}{0}{0}
+\begin{scope}[tdplot_rotated_coords]
+	\draw[helpline, dashed, red] (1)--++(\delx,0)node[midway, sloped, above, red, scale=.8]{$\delta x$} --++(0,\dely)node[midway, sloped, below, red, scale=.8]{$\delta y$};
+	\draw[nextPose] (1)++(\delx,\dely)circle(.1)coordinate(R1);
+	
+	\draw[helpline, dashed] (R1)--++(\angledist+.5,0);
+	\draw[anglearrow_phi, red] (R1)++(\angledist+.2,0)arc(0:\deleps:\angledist+.2);
+	
+	\path (R1)++(\delepsh:\angledist+.5) node[red]{$\delta \varepsilon$};
+	\draw[vec, red](1)--(R1)node[vechead, midway, sloped, above, red]{$\delta\bm{x}$};
+
+\end{scope}
+
+
+\foreach \i in {1, 2, 3, 4}{
+\pgfmathsetmacro{\turn}{\eps + \i*\deleps}
+\pgfmathtruncatemacro{\j}{\i+1}
+\tdplotsetrotatedcoords{\turn}{0}{0}
+
+% Deps
+\pgfmathsetmacro{\RXxxx}{0}
+\pgfmathsetmacro{\RxXxx}{0}
+\pgfmathsetmacro{\RxxXx}{0}
+\pgfmathsetmacro{\RxxxX}{0}
+\foreach \ii in {1,...,\i}{
+	\pgfmathparse{\RXxxx + cos(-\ii*\deleps}
+	\xdef\RXxxx{\pgfmathresult}
+	
+	\pgfmathparse{\RxXxx - sin(-\ii*\deleps)}
+	\xdef\RxXxx{\pgfmathresult}
+	
+	\pgfmathparse{\RxxXx + sin(-\ii*\deleps)}
+	\xdef\RxxXx{\pgfmathresult}
+	
+	\pgfmathparse{\RxxxX + cos(-\ii*\deleps)}
+	\xdef\RxxxX{\pgfmathresult}
+}
+\pgfmathsetmacro{\RNXxxx}{0}
+\pgfmathsetmacro{\RNxXxx}{0}
+\pgfmathsetmacro{\RNxxXx}{0}
+\pgfmathsetmacro{\RNxxxX}{0}
+\pgfmathparse{\RNXxxx + cos(-\i*\deleps}
+\xdef\RNXxxx{\pgfmathresult}
+
+\pgfmathparse{\RNxXxx - sin(-\i*\deleps)}
+\xdef\RNxXxx{\pgfmathresult}
+
+\pgfmathparse{\RNxxXx + sin(-\i*\deleps)}
+\xdef\RNxxXx{\pgfmathresult}
+
+\pgfmathparse{\RNxxxX + cos(-\i*\deleps)}
+\xdef\RNxxxX{\pgfmathresult}
+
+\pgfmathsetmacro{\xbarNx}{\RNXxxx*\dx + \RNxXxx*\dy - (\RXxxx*\delx + \RxXxx*\dely)}
+\pgfmathsetmacro{\xbarNy}{\RNxxXx*\dx + \RNxxxX*\dy - (\RxxXx*\delx + \RxxxX*\dely)}
+
+\pgfmathsetmacro{\Depsb}{atan((\xbarNy)/(\xbarNx))}
+
+%\path (R\i)++(0,1)node{\Depsb};
+
+
+\begin{scope}[tdplot_rotated_coords]
+	\draw[nextPose] (R\i) coordinate(R)circle(.1);
+	
+	%\draw (R) --++(\xbarNx, \xbarNy);
+		
+	\path[helpline] (R) ++(0,-.5)node{\{$R^\i$\}};
+	\draw[helpline, -latex] (R)--++(0.5,0);
+	%\path[helpline] (R)++(.7,0)node{$x_{R^\i}$};
+	\draw[helpline, -latex] (R)--++(0,.5);
+	%\path[helpline] (R)++(0,.7)node{$y_{R^\i}$};
+	
+	\draw[anglearrow_phi, -latex] (R)--++(1,0);
+
+	\draw[vec](R)--(G)node[vechead, midway, sloped, above]{$^{R^\i}\bar{\bm{x}}$};
+	
+	\draw[anglearrow_phi] (R)++(0:\angledist+.2)arc(0:\Depsb:\angledist+.2);
+	\pgfmathsetmacro{\Depsbh}{.5*\Depsb}
+	\path (R)++(\Depsbh:\angledist+.5) node[blue]{$\Delta \varepsilon^{(\i)}$};		
+	\path(R)++(\delx,\dely)coordinate(R\j);
+\end{scope}
+}
+
+
+
+
+\end{tikzpicture}
+\end{document}
