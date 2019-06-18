@@ -729,14 +729,18 @@ model 3 \\
 	\item Zur Erinnerung:
 	
 		\begin{equation}
-		\begin{bmatrix}	\delta x \\ \delta y \end{bmatrix} (x_1, x_2) / 1~cycle =\delta \bm{x} (x_1, x_2)= \begin{bmatrix}
+		\begin{bmatrix}	\delta x \\ \delta y \end{bmatrix} (x_1, x_2) /cycle =\delta \bm{x} (x_1, x_2)= \begin{bmatrix}
 		.07x_2 - .29 x_2^2 + .02 x_1x_2 \\
 		.02x_1 + .13x_2 - .47x_2^2 \\
 		\end{bmatrix}
 		\end{equation}
 		
+%		\begin{equation}
+%		\delta \varepsilon (x_1, x_2) / {2~cycle} = -.01x_1 - 21.7 x_2 -.51 x_2^2 - 1.67x_1x_2
+%		\end{equation}
+
 		\begin{equation}
-		\delta \varepsilon (x_1, x_2) / {2~cycle} = -.01x_1 - 21.7 x_2 -.51 x_2^2 - 1.67x_1x_2
+		\delta \varepsilon (x_1, x_2) / {cycle} = -.005x_1 - 10.85 x_2 -.255 x_2^2 - .835x_1x_2
 		\end{equation}
 	
 	\item Der Abstand $d$ ergibt sich zu:
@@ -819,7 +823,7 @@ model 3 \\
 \end{itemize}
 
 
-\subsubsection{Iterative Formulierung}
+\subsubsection{Explizite Formulierung für mehrer Zyklen}
 
 \includegraphics[scale=1]{pics/general_model/model_cost_2.pdf}
 
@@ -850,26 +854,104 @@ model 3 \\
 	
 	da mehrfache Rotation um die gleiche Achse und somit $\bm{R}^n(x) = \bm{R}(nx)$
 
-	\item Der Vektor von der $(n+1)$-ten Pose zum Ziel, beschrieben im COS der $(n)$-ten Pose:
-	\begin{equation}
-	{^{R^{(n)}}}\bar{\bm{x}}^{(n+1)} = {^{R^{(n)}}}\bar{\bm{x}}^{(n)} - {^{R^{(n)}}}\bm{x}^{(n+1)}
-	\end{equation}
+%	\item Der Vektor von der $(n+1)$-ten Pose zum Ziel, beschrieben im COS der $(n)$-ten Pose:
+%	\begin{equation}
+%	{^{R^{(n)}}}\bar{\bm{x}}^{(n+1)} = {^{R^{(n)}}}\bar{\bm{x}}^{(n)} - {^{R^{(n)}}}\bm{x}^{(n+1)}
+%	\end{equation}
 
 	\item Und die Richtungsabweichung $\Delta \varepsilon^{(n)}$ der $(n)$-ten Pose zu:
 	\begin{eqnarray}
 	\Delta \varepsilon^{(n)} 
 	&=& \measuredangle \left( {^{R^{(n)}}}\bar{\bm{x}}^{(n)} , {^{R^{n}}}\bm{e}_x \right) \\
 	&=& \atan \left(
-	\frac{	{^{R^{(n)}}}\bar{\bm{x}}^{(n)}_x }{
-	{^{R^{(n)}}}\bar{\bm{x}}^{(n)}_y}
+	\frac{	{^{R^{(n)}}}\bar{\bm{x}}^{(n)}_y }{
+	{^{R^{(n)}}}\bar{\bm{x}}^{(n)}_x}
 	\right)
 	\end{eqnarray}	
 	
+	
+	\item Nun kann der der Abstand zum Ziel $d_n$ nach $n$ Zyklen mit dem zu $\delta\bm{x} = [\delta x, \delta y, \delta \varepsilon]^\top$ korrespondierenden Laufmuster formuliert werden:
+	\begin{equation}
+	d_n({^R}\bar{\bm{x}}, \delta\bm{x}) = \bigg| \bm{R}(-n \delta\varepsilon){^R}\bar{\bm{x}} - \sum_{i=0}^n \bm{R}(- i \delta\varepsilon) \delta \bm{x} \bigg|_2
+	\end{equation}
+	
 \end{itemize}
 
+\subsection{Simplified Optimization Problem}
+
+\begin{itemize}
+
+	\item Da die Richtungsabweichung $\Delta \varepsilon$ im der Abstandsformel für mehrere Zyklen schon implizit enthalten ist, kann das Minimierungsproblem nun drastisch vereinfacht werden (die Funktion wird quadriert, um die Wurzel zu beseitigen und die Ableitung zu vereinfachen):
+	
+	\begin{equation}
+	x_{1, \textnormal{opt}}, x_{2, \textnormal{opt}} = \min_{x_1, x_2} d^2_n({^R}\bar{\bm{x}}, \delta\bm{x})
+	\end{equation}
+	
+	\item Zur Lösung des Optimierungsproblems ist die Jacobi-Matrix sehr hilfreich:
+	\begin{equation}
+	\bm{{J}} = \begin{bmatrix}
+		\frac{\delta f}{\delta x_1} &
+		\frac{\delta f}{\delta x_2}
+	\end{bmatrix}
+	\end{equation}
+
+	\item Möge die Suche nach der Jacobi Matrix beginnen
+\end{itemize}
+
+\subsubsection{Calculation of Jacobian}
 
 
 
+\paragraph{Ableitung der Trigonometrischen Summe in einer Dimension}
+
+Als Euler'sche Formulierung
+
+\begin{equation}
+\sum_{k=0}^n \sin(k\delta_{\varepsilon}) = 
+\frac{i \left(- e^{i \delta_{\varepsilon} n} + 1\right) \left(- e^{i \delta_{\varepsilon} \left(n + 1\right)} + 1\right) e^{- i \delta_{\varepsilon} n}}{2 \left(- e^{i \delta_{\varepsilon}} + 1\right)}
+\end{equation}
+
+Ableitung:
+
+\begin{equation}
+\frac{\left(- n e^{i \delta_{\varepsilon}} + n e^{2 i \delta_{\varepsilon} \left(n + 1\right)} - n e^{i \delta_{\varepsilon} \left(2 n + 1\right)} + n - e^{i \delta_{\varepsilon}} + 2 e^{i \delta_{\varepsilon} \left(n + 1\right)} - e^{i \delta_{\varepsilon} \left(2 n + 1\right)}\right) e^{- i \delta_{\varepsilon} n}}{2 \left(e^{2 i \delta_{\varepsilon}} - 2 e^{i \delta_{\varepsilon}} + 1\right)}
+\end{equation}
+
+Laut Formelsammlung (BFS39):
+
+\begin{equation}
+\sum_{k=0}^n \sin(k\delta_{\varepsilon}) = 
+\frac{\sin{\left (\frac{\delta_{\varepsilon} n}{2} \right )} \sin{\left (\frac{\delta_{\varepsilon} \left(n + 1\right)}{2} \right )}}{\sin{\left (\frac{\delta_{\varepsilon}}{2} \right )}}
+\end{equation}
+
+Ableitung
+
+\begin{equation}
+\frac{n \cos{\left (\delta_{\varepsilon} n \right )} - n \cos{\left (\delta_{\varepsilon} \left(n + 1\right) \right )} + \cos{\left (\delta_{\varepsilon} n \right )} - 1}{2 \left(- \cos{\left (\delta_{\varepsilon} \right )} + 1\right)}
+\end{equation}
+
+
+\paragraph{Partielle Ableitung der Trigonometrischen Summe}
+
+Euler:
+\begin{equation}
+\frac{i \left(- e^{i n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) \left(- e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) e^{- i n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}}{2 \left(- e^{i \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right)}
+\end{equation}
+Ableitung:
+\begin{equation}
+\frac{\delta}{\delta x_1} =
+- \frac{\left(c_{0} + c_{3} x_{2}\right) \left(\left(n \left(e^{i n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) \left(- e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) + \left(n + 1\right) \left(- e^{i n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) \left(e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right)\right) \left(e^{i \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} - 1\right) e^{\frac{i \left(2 n + 2\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}{2}} + \left(e^{i \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) \left(e^{i n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} - 1\right) \left(e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} - 1\right) e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}\right) e^{- i \left(2 n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}}{4 \left(e^{i \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} - 1\right)^{2}}
+\end{equation}
+
+\begin{equation}
+\frac{\delta}{\delta x_2} =
+- \frac{\left(\left(n \left(e^{i n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) \left(- e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) + \left(n + 1\right) \left(- e^{i n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) \left(e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right)\right) \left(e^{i \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} - 1\right) e^{\frac{i \left(2 n + 2\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}{2}} + \left(e^{i \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} + 1\right) \left(e^{i n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} - 1\right) \left(e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} - 1\right) e^{i \left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}\right) \left(c_{1} + 2 c_{2} x_{2} + c_{3} x_{1}\right) e^{- i \left(2 n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}}{4 \left(e^{i \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)} - 1\right)^{2}}
+\end{equation}
+
+Normal:
+\begin{equation}
+\frac{\sin{\left (\frac{n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}{2} \right )} \sin{\left (\frac{\left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}{2} \right )}}{\sin{\left (\frac{c_{0} x_{1}}{2} + \frac{c_{1} x_{2}}{2} + \frac{c_{2} x_{2}^{2}}{2} + \frac{c_{3} x_{1} x_{2}}{2} \right )}}
+\end{equation}
 
 
 \end{document}
