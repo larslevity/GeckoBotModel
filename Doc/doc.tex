@@ -10,6 +10,7 @@
 \usepackage{bm}
 \usepackage{tikz}
 \usepackage[margin=1.2in]{geometry}
+\usepackage{breqn}
 
 \DeclareMathOperator{\atan}{atan}
 
@@ -952,6 +953,55 @@ Normal:
 \begin{equation}
 \frac{\sin{\left (\frac{n \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}{2} \right )} \sin{\left (\frac{\left(n + 1\right) \left(c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2}\right)}{2} \right )}}{\sin{\left (\frac{c_{0} x_{1}}{2} + \frac{c_{1} x_{2}}{2} + \frac{c_{2} x_{2}^{2}}{2} + \frac{c_{3} x_{1} x_{2}}{2} \right )}}
 \end{equation}
+
+
+\subsubsection{sum sin for n = 2}
+
+
+\begin{equation}
+\frac{\sin{\left (c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2} \right )} \sin{\left (\frac{3 c_{0} x_{1}}{2} + \frac{3 c_{1} x_{2}}{2} + \frac{3 c_{2} x_{2}^{2}}{2} + \frac{3 c_{3} x_{1} x_{2}}{2} \right )}}{\sin{\left (\frac{c_{0} x_{1}}{2} + \frac{c_{1} x_{2}}{2} + \frac{c_{2} x_{2}^{2}}{2} + \frac{c_{3} x_{1} x_{2}}{2} \right )}}
+\end{equation}
+
+
+diff sumsin2 dx1
+\begin{equation}
+\frac{\left(c_{0} + c_{3} x_{2}\right) \left(- \frac{3 \cos{\left (2 c_{0} x_{1} + 2 c_{1} x_{2} + 2 c_{2} x_{2}^{2} + 2 c_{3} x_{1} x_{2} \right )}}{2} + \cos{\left (3 c_{0} x_{1} + 3 c_{1} x_{2} + 3 c_{2} x_{2}^{2} + 3 c_{3} x_{1} x_{2} \right )} + \frac{1}{2}\right)}{\cos{\left (c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2} \right )} - 1}
+\end{equation}
+
+diff sumsin2 dx1
+
+\begin{equation}
+\frac{\left(c_{1} + 2 c_{2} x_{2} + c_{3} x_{1}\right) \left(- \frac{3 \cos{\left (2 c_{0} x_{1} + 2 c_{1} x_{2} + 2 c_{2} x_{2}^{2} + 2 c_{3} x_{1} x_{2} \right )}}{2} + \cos{\left (3 c_{0} x_{1} + 3 c_{1} x_{2} + 3 c_{2} x_{2}^{2} + 3 c_{3} x_{1} x_{2} \right )} + \frac{1}{2}\right)}{\cos{\left (c_{0} x_{1} + c_{1} x_{2} + c_{2} x_{2}^{2} + c_{3} x_{1} x_{2} \right )} - 1}
+\end{equation}
+
+
+
+\subsubsection{Distance d sympy}
+
+\begin{dmath}
+d = 
+\left(xb_{x} \sin{\left (- n \left(- 0.835 x_{1} x_{2} - 0.005 x_{1} - 2.55 x_{2}^{2} - 10.85 x_{2}\right) \right )} + xb_{y} \cos{\left (- n \left(- 0.835 x_{1} x_{2} - 0.005 x_{1} - 2.55 x_{2}^{2} - 10.85 x_{2}\right) \right )} - \frac{\left(0.02 x_{1} - 0.47 x_{2}^{2} + 0.13 x_{2}\right) \sin{\left (\frac{n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2} \right )} \sin{\left (\frac{\left(n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2} \right )}}{\sin{\left (0.4175 x_{1} x_{2} + 0.0025 x_{1} + 1.275 x_{2}^{2} + 5.425 x_{2} \right )}} - \frac{\left(- 0.02 x_{1} x_{2} + 0.29 x_{2}^{2} - 0.07 x_{2}\right) \sin{\left (\frac{\left(n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2} \right )} \cos{\left (\frac{n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2} \right )}}{\sin{\left (0.4175 x_{1} x_{2} + 0.0025 x_{1} + 1.275 x_{2}^{2} + 5.425 x_{2} \right )}}\right)^{2} + \left(xb_{x} \cos{\left (- n \left(- 0.835 x_{1} x_{2} - 0.005 x_{1} - 2.55 x_{2}^{2} - 10.85 x_{2}\right) \right )} - xb_{y} \sin{\left (- n \left(- 0.835 x_{1} x_{2} - 0.005 x_{1} - 2.55 x_{2}^{2} - 10.85 x_{2}\right) \right )} - \frac{\left(0.02 x_{1} - 0.47 x_{2}^{2} + 0.13 x_{2}\right) \sin{\left (\frac{\left(n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2} \right )} \cos{\left (\frac{n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2} \right )}}{\sin{\left (0.4175 x_{1} x_{2} + 0.0025 x_{1} + 1.275 x_{2}^{2} + 5.425 x_{2} \right )}} + \frac{\left(- 0.02 x_{1} x_{2} + 0.29 x_{2}^{2} - 0.07 x_{2}\right) \sin{\left (\frac{n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2} \right )} \sin{\left (\frac{\left(n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2} \right )}}{\sin{\left (0.4175 x_{1} x_{2} + 0.0025 x_{1} + 1.275 x_{2}^{2} + 5.425 x_{2} \right )}}\right)^{2}
+\end{dmath}
+
+Mit $\delta_\varepsilon$:
+\begin{dmath}
+d = 
+\left(- xb_{x} \sin{\left (\delta_{\varepsilon} n \right )} + xb_{y} \cos{\left (\delta_{\varepsilon} n \right )} + \frac{\left(0.02 x_{1} - 0.47 x_{2}^{2} + 0.13 x_{2}\right) \sin{\left (\frac{\delta_{\varepsilon} n}{2} \right )} \sin{\left (\frac{\delta_{\varepsilon} \left(n + 1\right)}{2} \right )}}{\sin{\left (\frac{\delta_{\varepsilon}}{2} \right )}} - \frac{\left(- 0.02 x_{1} x_{2} + 0.29 x_{2}^{2} - 0.07 x_{2}\right) \sin{\left (\frac{\delta_{\varepsilon} \left(n + 1\right)}{2} \right )} \cos{\left (\frac{\delta_{\varepsilon} n}{2} \right )}}{\sin{\left (\frac{\delta_{\varepsilon}}{2} \right )}}\right)^{2} + \left(xb_{x} \cos{\left (\delta_{\varepsilon} n \right )} + xb_{y} \sin{\left (\delta_{\varepsilon} n \right )} - \frac{\left(0.02 x_{1} - 0.47 x_{2}^{2} + 0.13 x_{2}\right) \sin{\left (\frac{\delta_{\varepsilon} \left(n + 1\right)}{2} \right )} \cos{\left (\frac{\delta_{\varepsilon} n}{2} \right )}}{\sin{\left (\frac{\delta_{\varepsilon}}{2} \right )}} - \frac{\left(- 0.02 x_{1} x_{2} + 0.29 x_{2}^{2} - 0.07 x_{2}\right) \sin{\left (\frac{\delta_{\varepsilon} n}{2} \right )} \sin{\left (\frac{\delta_{\varepsilon} \left(n + 1\right)}{2} \right )}}{\sin{\left (\frac{\delta_{\varepsilon}}{2} \right )}}\right)^{2}
+\end{dmath}
+
+
+\subsubsection{Euler}
+\begin{dmath}
+d(x_1,x_2) = 
+\frac{\left(\left(- \left(xb_{x} \left(e^{2 i n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) - i xb_{y} \left(- e^{2 i n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right)\right) \left(- e^{i \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) e^{\frac{i \left(2 n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2}} - \left(- i x_{2} \left(- e^{i n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) \left(0.02 x_{1} - 0.29 x_{2} + 0.07\right) - \left(e^{i n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) \left(0.02 x_{1} - 0.47 x_{2}^{2} + 0.13 x_{2}\right)\right) \left(- e^{i \left(n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) e^{i \left(n + \frac{1}{2}\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}\right)^{2} + \left(- \left(i xb_{x} \left(- e^{2 i n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) + xb_{y} \left(e^{2 i n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right)\right) \left(- e^{i \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) e^{\frac{i \left(2 n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}{2}} - \left(x_{2} \left(e^{i n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) \left(0.02 x_{1} - 0.29 x_{2} + 0.07\right) - i \left(- e^{i n \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) \left(0.02 x_{1} - 0.47 x_{2}^{2} + 0.13 x_{2}\right)\right) \left(- e^{i \left(n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right) e^{i \left(n + \frac{1}{2}\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}\right)^{2}\right) e^{- i \left(4 n + 1\right) \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)}}{4 \left(- e^{i \left(0.835 x_{1} x_{2} + 0.005 x_{1} + 2.55 x_{2}^{2} + 10.85 x_{2}\right)} + 1\right)^{2}}
+\end{dmath}
+
+
+Mit DepsDummy:
+\begin{dmath}
+\frac{\left(\left(- \left(- xb_{x} \left(e^{2 i \delta_{\varepsilon} n} + 1\right) - i xb_{y} \left(- e^{2 i \delta_{\varepsilon} n} + 1\right)\right) \left(- e^{i \delta_{\varepsilon}} + 1\right) e^{\frac{i \delta_{\varepsilon} \left(2 n + 1\right)}{2}} - \left(- i x_{2} \left(- e^{i \delta_{\varepsilon} n} + 1\right) \left(0.02 x_{1} - 0.29 x_{2} + 0.07\right) + \left(e^{i \delta_{\varepsilon} n} + 1\right) \left(0.02 x_{1} - 0.47 x_{2}^{2} + 0.13 x_{2}\right)\right) \left(- e^{i \delta_{\varepsilon} \left(n + 1\right)} + 1\right) e^{i \delta_{\varepsilon} \left(n + \frac{1}{2}\right)}\right)^{2} + \left(- \left(- i xb_{x} \left(- e^{2 i \delta_{\varepsilon} n} + 1\right) + xb_{y} \left(e^{2 i \delta_{\varepsilon} n} + 1\right)\right) \left(- e^{i \delta_{\varepsilon}} + 1\right) e^{\frac{i \delta_{\varepsilon} \left(2 n + 1\right)}{2}} - \left(x_{2} \left(e^{i \delta_{\varepsilon} n} + 1\right) \left(0.02 x_{1} - 0.29 x_{2} + 0.07\right) + i \left(- e^{i \delta_{\varepsilon} n} + 1\right) \left(0.02 x_{1} - 0.47 x_{2}^{2} + 0.13 x_{2}\right)\right) \left(- e^{i \delta_{\varepsilon} \left(n + 1\right)} + 1\right) e^{i \delta_{\varepsilon} \left(n + \frac{1}{2}\right)}\right)^{2}\right) e^{- i \delta_{\varepsilon} \left(4 n + 1\right)}}{4 \left(- e^{i \delta_{\varepsilon}} + 1\right)^{2}}
+\end{dmath}
+
 
 
 \end{document}
