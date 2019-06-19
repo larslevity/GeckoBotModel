@@ -77,17 +77,33 @@ fig.set_size_inches(18.5, 10.5)
 
 
 # %% Plot D(x1, x2)
-def plot_contour(X1, X2, D):
+class nf(float):
+    def __repr__(self):
+        s = '{:.1f}'.format(self)  # round to 1 digit
+        return '{:.0f}'.format(self) if s[-1] == '0' else s
+
+
+def plot_contour(X1, X2, D, lines=5):
     X1, X2 = np.meshgrid(X1, X2)
     fig, ax = plt.subplots()
-    cs = ax.contourf(X1, X2, D)
-    cs = ax.contour(X1, X2, D, 5, colors='k')
-    ax.clabel(cs, inline=1, fontsize=10)
+    cs = ax.contourf(X1, X2, D, lines)
+    cs = ax.contour(X1, X2, D, lines, colors='k')
+    cs.levels = [nf(val) for val in cs.levels]
+
+    if plt.rcParams["text.usetex"]:
+        fmt = r'%r'
+    else:
+        fmt = '%r'
+    ax.clabel(cs, cs.levels, inline=1, fontsize=10, fmt=fmt)
+
+    cs.collections[0].set_label('test')
+    plt.xlabel('x1')
+    plt.ylabel('x2')
 
 
 
 
-xbar = np.array([[3], [0]])
+xbar = np.array([[2], [2]])
 X1 = np.arange(0, 90, 2)
 X2 = np.arange(-.5, .5, .01)
 D = np.zeros((len(X2), len(X1)))

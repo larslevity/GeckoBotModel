@@ -109,7 +109,7 @@ x1 = symbols('x1', real=True)
 x2 = symbols('x2', real=True)
 n = symbols('n', real=True)
 #n = 2
-
+deps_dummy = symbols('delta_varepsilon', real=True)
 
 
 
@@ -126,6 +126,12 @@ x = deps(x1, x2)
 #print('diff sumsin1 dx2')
 #sympy.print_latex(sympy.simplify(sympy.diff(sumsin, x2)))
 
+# %% Euler SumCos
+#x = Esumcos(deps_dummy, n)
+#print('SumCos Euler:')
+#sympy.print_latex(sympy.simplify(x))
+#print('diff SumCos Euler:')
+#sympy.print_latex(sympy.simplify(sympy.diff(x, deps_dummy)))
 
 # %% Normal SumSin Diff
 #sumsin2 = 1/sin(x/2)*sin((n+1)*x/2)*sin(n*x/2)
@@ -138,6 +144,15 @@ x = deps(x1, x2)
 #sympy.print_latex(sympy.simplify(sympy.diff(sumsin2, x1)))
 #print('diff sumsin2 dx2')
 #sympy.print_latex(sympy.simplify(sympy.diff(sumsin2, x2)))
+
+# %% Normal SumCos Diff
+x = sumcos(deps_dummy, n)
+print('SumCos:')
+sympy.print_latex(sympy.simplify(x))
+print('diff SumCos:')
+sympy.print_latex(sympy.simplify(sympy.diff(x, deps_dummy)))
+
+
 
 # %% Sym Diff d
 xbarx = symbols('xb_x', real=True)
@@ -153,13 +168,14 @@ sympy.print_latex(sympy.simplify(d))
 
 
 # %% Distance
+n = 2
 
-deps_dummy = symbols('delta_varepsilon', real=True)
-d = calc_d(xbar, dx(x1, x2), deps_dummy, n)
+d = calc_d(xbar, dx(x1, x2), deps(x1, x2), n)
 
 print('Distance to goal')
 sympy.print_latex(d)
 
+
 # %% Simplify
-#print('Distance to goal - symplified')
-#sympy.print_latex(sympy.simplify(d))
+print('Distance to goal - symplified')
+sympy.print_latex(sympy.simplify(d))
