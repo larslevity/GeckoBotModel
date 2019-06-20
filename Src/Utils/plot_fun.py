@@ -34,6 +34,9 @@ class GeckoBotPose(object):
         self.cost = cost
         self.len_leg = len_leg
         self.len_tor = len_tor
+        self.alp = self.x[0:n_limbs]
+        self.ell = self.x[n_limbs:2*n_limbs]
+        self.eps = self.x[-1]
 
     def get_eps(self):
         return self.x[-1]
