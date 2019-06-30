@@ -10,6 +10,11 @@ import fileinput
 from PIL import Image, ImageChops
 import os
 
+import sys
+
+
+
+
 
 def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
     print('Saving as TikZ-Picture...')
@@ -22,16 +27,22 @@ def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
 
     # remove blank lines:
     with open(aux_fn, 'r') as file:
-        try:
-            with open(filename, 'x') as ofile:
+        if sys.version_info[0] < 3:
+            with open(filename, 'wb') as ofile:
                 for line in file:
                     if not line == '\n':
                         ofile.write(line)
-        except FileExistsError:
-            with open(filename, 'w') as ofile:
-                for line in file:
-                    if not line == '\n':
-                        ofile.write(line)
+        else:
+            try:
+                with open(filename, 'x') as ofile:
+                    for line in file:
+                        if not line == '\n':
+                            ofile.write(line)
+            except FileExistsError:
+                with open(filename, 'w') as ofile:
+                    for line in file:
+                        if not line == '\n':
+                            ofile.write(line)
     os.remove(aux_fn)
     print('Done!')
 
