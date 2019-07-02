@@ -7,6 +7,7 @@ Created on Tue May 28 14:36:34 2019
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    import time
 
     from Src.Utils import plot_fun as pf
     from Src.Math import kinematic_model as model
@@ -27,13 +28,17 @@ if __name__ == "__main__":
     ref1 = [[20, 90, 90, 0, 120], [0, 1, 1, 0]]
     ref2 = [[100, 10, -70, 80, 2], [1, 0, 0, 1]]
 
+    tic = time.time()
     x, marks, f, constraint, cost = model.predict_next_pose(
         ref1, x, marks, len_leg=1, len_tor=1.2)
+    print('ellapsed time:', time.time()-tic, 's')
     gait.append_pose(
         pf.GeckoBotPose(x, marks, f, constraint=constraint, cost=cost))
 
+    tic = time.time()
     x, marks, f, constraint, cost = model.predict_next_pose(
         ref2, x, marks, len_leg=1, len_tor=1.2)
+    print('ellapsed time:', time.time()-tic, 's')
     gait.append_pose(
         pf.GeckoBotPose(x, marks, f, constraint=constraint, cost=cost))
 

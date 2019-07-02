@@ -129,19 +129,18 @@ def _calc_coords2(x, marks, f):
         p0 = (mx[0], my[0])
         T_Ori_0 = T0(eps-alp[2]/2-alp[0]-90, p0)
         T_01 = T(alp[0], ell[0])
+        T_12 = T(alp[1], ell[1])
         p1 = vec2lis(T_Ori_0*T_01*np.c_[[0, 0, 1]])
-        T_Ori_1 = T0(eps-alp[2]/2, p1)
-        T_12 = T(-90, 0)*T(alp[1], ell[1])
-        p2 = vec2lis(T_Ori_1*T_12*np.c_[[0, 0, 1]])
+        p2 = vec2lis(T_Ori_0*T_01*T_12*np.c_[[0, 0, 1]])
     elif f[1]:
         p2 = (mx[2], my[2])
         T_Ori_2 = T0(eps-alp[2]/2+alp[1]+90, p2)
         T_21 = T(-alp[1], ell[1])
+        T_10 = T(-alp[0], ell[0])
         p1 = vec2lis(T_Ori_2*T_21*np.c_[[0, 0, 1]])
-        T_Ori_1 = T0(eps-alp[2]/2, p1)
-        T_10 = T(90, 0)*T(-alp[0], ell[0])
-        p0 = vec2lis(T_Ori_1*T_10*np.c_[[0, 0, 1]])
+        p0 = vec2lis(T_Ori_2*T_21*T_10*np.c_[[0, 0, 1]])
 
+    T_Ori_1 = T0(eps-alp[2]/2, p1)
     T_14 = T(180, 0)*T(alp[2], ell[2])
     T_45 = T(90, 0)*T(-alp[4], ell[4])
     T_43 = T(-90, 0)*T(alp[3], ell[3])
@@ -257,7 +256,7 @@ def _calc_rad(length, angle):
     return 360.*length/(2*np.pi*angle)
 
 
-def _calc_phi(alpha, eps):
+def _calc_phi_obs(alpha, eps):
 #    c1 = np.mod(eps - alpha[0] - alpha[2]*.5 + 360, 360)
 #    c2 = np.mod(c1 + alpha[0] + alpha[1] + 360, 360)
 #    c3 = np.mod(180 + alpha[2] - alpha[1] + alpha[3] + c2 + 360, 360)
@@ -268,6 +267,16 @@ def _calc_phi(alpha, eps):
     c4 = 180 + alpha[2] + alpha[0] - alpha[4] + c1
     phi = [c1, c2, c3, c4]
     return phi
+
+
+def _calc_phi(alpha, eps):
+    c1 = eps - alpha[2]*.5 - alpha[0]
+    c2 = eps - alpha[2]*.5 + alpha[1]
+    c3 = eps + alpha[2]*.5 + alpha[3] + 180
+    c4 = eps + alpha[2]*.5 - alpha[4] + 180
+    phi = [c1, c2, c3, c4]
+    return phi
+
 
 
 def calc_difference(phi0, phi1):
