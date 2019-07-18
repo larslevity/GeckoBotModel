@@ -17,15 +17,17 @@ if __name__ == "__main__":
     for replay in range(1):
 
         alpha = [90, 0, -90, 90, 0]
+        feet = [1, 0, 0, 1]
+#        alpha = [0, 90, 90, 0, 90]
+#        feet = [0, 1, 1, 0]
         eps = 90
         p1 = (0, 0)
-        feet = [1, 0, 0, 1]
         x, (mx, my), f = model.set_initial_pose(alpha, eps, p1)
         initial_pose = pf.GeckoBotPose(x, (mx, my), f)
         gait = pf.GeckoBotGait()
         gait.append_pose(initial_pose)
     
-        xref = (2, 13)
+        xref = (2, 3)
     
         n = 1
     
@@ -62,15 +64,15 @@ if __name__ == "__main__":
 
 
     # %%
-    #    gait.plot_gait()
+        gait.plot_gait()
         gait.plot_markers(1)
     #    gait.plot_com()
         plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
         plt.axis('off')
 
-        gait_str = gait.get_tikz_repr()
-        save.save_plt_as_tikz('Out/opt_pathplanner/gait_{}.tex'.format(replay),
-                              gait_str)
+#        gait_str = gait.get_tikz_repr()
+#        save.save_plt_as_tikz('Out/opt_pathplanner/gait_{}.tex'.format(replay),
+#                              gait_str)
 
     # %%
 

@@ -21,14 +21,27 @@ def xbar(xref, xbot, epsbot):
     return rotate(xref - xbot, np.deg2rad(-epsbot))
 
 
-def dx(x1, x2):
+def dx_(x1, x2):  # Simulation Result
     return np.array([
             [.02*x1 + .13*x2 - .47*x2**2],
             [-(.07*x2 - .29*x2**2 + .02*x1*x2)]])
 
+    
+def dx(x1, x2):  # Symmetric Fit
+    return np.array([
+            [.02*x1 + .13*abs(x2) - .47*x2**2],
+            [-(.07*x2 - .29*x2**2*np.sign(x2) + .02*x1*(x2))]
+        ])
 
-def deps(x1, x2):
+    
+
+def deps_(x1, x2):  # Simulation Results
     return np.deg2rad(-.005*x1 - 10.85*x2 - 2.55*x2**2 - .835*x1*x2)
+
+
+def deps(x1, x2):  # Symmetric Fit
+    return np.deg2rad(.00001 - 10.85*x2 - 2.55*x2**2*np.sign(x2) - .835*x1*x2)
+
 
 
 def sumsin(x, n):
@@ -114,7 +127,7 @@ def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1):
 
 
 if __name__ == "__main__":
-    xref = [2, 13]  # global cos
+    xref = [2, 3]  # global cos
     eps = 90
     p1 = (0, 0)
     n = 4
@@ -123,5 +136,68 @@ if __name__ == "__main__":
     alpha0 = [90, 0, -90, 90, 0]
 
     ref = optimal_planner(xb, alpha0, feet0, n=n)
+    print(ref)
+
+
+    # %% Analyze
+
+    import matplotlib.pyplot as plt
+    
+    X1 = np.arange(0.01, 90.2, 10.)
+    X2 = np.arange(-.51, .52, .1)
+
+    RESULT_DX = np.zeros((len(X2), len(X1)))
+    RESULT_DY = np.zeros((len(X2), len(X1)))
+    RESULT_DEPS = np.zeros((len(X2), len(X1)))
 
     
+    for x1_idx, x1 in enumerate(X1):
+        for x2_idx, x2 in enumerate(X2):
+            
+            (dxx, dyy), ddeps = dx_(x1, x2), deps_(x1, x2)
+            RESULT_DX[x2_idx][x1_idx] = dxx
+            RESULT_DY[x2_idx][x1_idx] = dyy
+            RESULT_DEPS[x2_idx][x1_idx] = ddeps
+    
+    
+    
+    # %% Plot DXDYDE
+    X1__, X2__ = np.meshgrid(X1, X2)
+    X1_ = X1__.flatten()
+    X2_ = X2__.flatten()
+
+
+     
+    fig, ax = plt.subplots(num='DXDYDE')
+    plt.title('DXDY, DE')
+    
+    levels = 15
+    cset = ax.contourf(X1, X2, RESULT_DEPS, levels=levels, inline=1)
+    cset = ax.contour(X1, X2, RESULT_DEPS, levels=levels, inline=1, colors='k')
+    ax.clabel(cset, colors='k')
+
+    M = np.hypot(RESULT_DX, RESULT_DY)
+    q = ax.quiver(X1__, X2__, RESULT_DX, RESULT_DY, units='x', scale=.2)
+    ax.scatter(X1__, X2__, color='0.5', s=10)
+
+
+    ax.grid()
+
+
+    # %% PLOT DX
+    fig, ax = plt.subplots(num='DX')
+    plt.title('DX')
+    
+    levels = 15
+    cset = ax.contourf(X1, X2, RESULT_DX, levels=levels, inline=1)
+    cset = ax.contour(X1, X2, RESULT_DX, levels=levels, inline=1, colors='k')
+    ax.clabel(cset, colors='k')
+
+    # %% PLOT DY
+    fig, ax = plt.subplots(num='DY')
+    plt.title('DY')
+    
+    levels = 15
+    cset = ax.contourf(X1, X2, RESULT_DY, levels=levels, inline=1)
+    cset = ax.contour(X1, X2, RESULT_DY, levels=levels, inline=1, colors='k')
+    ax.clabel(cset, colors='k')
