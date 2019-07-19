@@ -1,0 +1,125 @@
+\documentclass[tikz,convert={outfile=\jobname.png}]{standalone}
+
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\usepgfplotslibrary{groupplots}
+\begin{document}
+\begin{tikzpicture}[scale=1]
+\def\col{black!20}
+\def\lw{1mm}
+\def\alpi{2.000000}
+\def\beti{58.200000}
+\def\gam{57.200000}
+\def\alpii{2.000000}
+\def\betii{73.600000}
+\def\gamh{28.600000}
+\def\eps{90.000000}
+\def\ci{61.399000}
+\def\cii{119.600000}
+\def\ciii{298.601000}
+\def\civ{225.000000}
+\def\ri{28.647890}
+\def\rii{0.984464}
+\def\rg{1.202009}
+\def\riii{28.647890}
+\def\riv{0.778475}
+\path (-0.877979, 0.478700)coordinate(F1);
+\draw[\col, line width=\lw] (F1)arc(180+\ci:180+\ci+\alpi:\ri)coordinate(OM);
+\draw[\col, line width=\lw] (OM)arc(180+\ci+\alpi:180+\ci+\alpi+\beti:\rii)coordinate(F2);
+\draw[\col, line width=\lw] (OM)arc(90+\ci+\alpi:90+\ci+\alpi+\gam:\rg)coordinate(UM);
+\draw[\col, line width=\lw] (UM)arc(\gam+\ci+\alpi:\gam+\ci+\alpi+\alpii:\riii)coordinate(F3);
+\draw[\col, line width=\lw] (UM)arc(\gam+\ci+\alpi:\gam+\ci+\alpi-\betii:\riv)coordinate(F4);
+\draw[\col, line width=\lw, fill] (F1)++(151.399000 :.15) circle(.15);
+\draw[\col, line width=\lw] (F2)++(29.600000 :.15) circle(.15);
+\draw[\col, line width=\lw] (F3)++(208.601000 :.15) circle(.15);
+\draw[\col, line width=\lw] (F4)++(315.000000 :.15) circle(.15);
+\def\col{black!46}
+\def\lw{1mm}
+\def\alpi{84.468532}
+\def\beti{31.799428}
+\def\gam{-100.512088}
+\def\alpii{119.802169}
+\def\betii{-2.000000}
+\def\gamh{-50.256044}
+\def\eps{93.133829}
+\def\ci{58.921341}
+\def\cii{175.189301}
+\def\ciii{342.679954}
+\def\civ{223.627254}
+\def\ri{0.746140}
+\def\rii{1.801390}
+\def\rg{-0.752451}
+\def\riii{0.478169}
+\def\riv{-31.512678}
+\path (-0.877979, 0.478700)coordinate(F1);
+\draw[\col, line width=\lw] (F1)arc(180+\ci:180+\ci+\alpi:\ri)coordinate(OM);
+\draw[\col, line width=\lw] (OM)arc(180+\ci+\alpi:180+\ci+\alpi+\beti:\rii)coordinate(F2);
+\draw[\col, line width=\lw] (OM)arc(90+\ci+\alpi:90+\ci+\alpi+\gam:\rg)coordinate(UM);
+\draw[\col, line width=\lw] (UM)arc(\gam+\ci+\alpi:\gam+\ci+\alpi+\alpii:\riii)coordinate(F3);
+\draw[\col, line width=\lw] (UM)arc(\gam+\ci+\alpi:\gam+\ci+\alpi-\betii:\riv)coordinate(F4);
+\draw[\col, line width=\lw, fill] (F1)++(148.921341 :.15) circle(.15);
+\draw[\col, line width=\lw] (F2)++(85.189301 :.15) circle(.15);
+\draw[\col, line width=\lw] (F3)++(252.679954 :.15) circle(.15);
+\draw[\col, line width=\lw, fill] (F4)++(313.627254 :.15) circle(.15);
+\def\col{black!73}
+\def\lw{1mm}
+\def\alpi{2.000000}
+\def\beti{73.600000}
+\def\gam{57.200000}
+\def\alpii{2.000000}
+\def\betii{58.200000}
+\def\gamh{28.600000}
+\def\eps{109.816324}
+\def\ci{81.215324}
+\def\cii{154.816324}
+\def\ciii{318.417324}
+\def\civ{260.216324}
+\def\ri{28.647901}
+\def\rii{0.776066}
+\def\rg{1.199004}
+\def\riii{28.531934}
+\def\riv{0.984464}
+\path (-1.353908, 1.311964)coordinate(F1);
+\draw[\col, line width=\lw] (F1)arc(180+\ci:180+\ci+\alpi:\ri)coordinate(OM);
+\draw[\col, line width=\lw] (OM)arc(180+\ci+\alpi:180+\ci+\alpi+\beti:\rii)coordinate(F2);
+\draw[\col, line width=\lw] (OM)arc(90+\ci+\alpi:90+\ci+\alpi+\gam:\rg)coordinate(UM);
+\draw[\col, line width=\lw] (UM)arc(\gam+\ci+\alpi:\gam+\ci+\alpi+\alpii:\riii)coordinate(F3);
+\draw[\col, line width=\lw] (UM)arc(\gam+\ci+\alpi:\gam+\ci+\alpi-\betii:\riv)coordinate(F4);
+\draw[\col, line width=\lw] (F1)++(171.215324 :.15) circle(.15);
+\draw[\col, line width=\lw, fill] (F2)++(64.816324 :.15) circle(.15);
+\draw[\col, line width=\lw, fill] (F3)++(228.417324 :.15) circle(.15);
+\draw[\col, line width=\lw] (F4)++(350.216324 :.15) circle(.15);
+% This file was created by matplotlib2tikz v0.7.4.
+\definecolor{color0}{rgb}{1,0.647058823529412,0}
+\begin{axis}[
+anchor=origin,
+disabledatascaling,
+hide x axis,
+hide y axis,
+tick align=outside,
+tick pos=left,
+x grid style={white!69.01960784313725!black},
+x=1cm,
+xmin=-2.10530625416358, xmax=0.21143133743517,
+xtick style={color=black},
+y grid style={white!69.01960784313725!black},
+y=1cm,
+ymin=-0.14999999999236, ymax=3.14999999999964,
+ytick style={color=black}
+]
+\addplot [semithick, color0]
+table {%
+0 7.27595761418343e-12
+0.106125083271591 0.672765077704696
+-0.365636892122333 1.15925102127714
+};
+\addplot [semithick, red, mark=*, mark size=6, mark options={solid}]
+table {%
+-2 3
+};
+\end{axis}
+\end{tikzpicture}
+%% End matplotlib2tikz content %% 
+\end{document}
