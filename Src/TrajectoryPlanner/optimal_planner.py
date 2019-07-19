@@ -21,26 +21,34 @@ def xbar(xref, xbot, epsbot):
     return rotate(xref - xbot, np.deg2rad(-epsbot))
 
 
-def dx_(x1, x2):  # Simulation Result
+def dx(x1, x2):  # Simulation Result
     return np.array([
             [.02*x1 + .13*x2 - .47*x2**2],
             [-(.07*x2 - .29*x2**2 + .02*x1*x2)]])
 
-    
-def dx(x1, x2):  # Symmetric Fit
-    return np.array([
-            [.02*x1 + .13*abs(x2) - .47*x2**2],
-            [-(.07*x2 - .29*x2**2*np.sign(x2) + .02*x1*(x2))]
-        ])
 
-    
-
-def deps_(x1, x2):  # Simulation Results
+def deps(x1, x2):  # Simulation Results
     return np.deg2rad(-.005*x1 - 10.85*x2 - 2.55*x2**2 - .835*x1*x2)
 
 
-def deps(x1, x2):  # Symmetric Fit
-    return np.deg2rad(.00001 - 10.85*x2 - 2.55*x2**2*np.sign(x2) - .835*x1*x2)
+
+
+
+
+#def dx(x1, x2):  # Symmetric Fit
+#    return np.array([
+#            [.02*x1 + .13*abs(x2) - .47*x2**2],
+#            [-(.07*x2 - .29*x2**2*np.sign(x2) + .02*x1*(x2))]
+#        ])
+##
+##
+#def deps(x1, x2):  # Symmetric Fit
+#    return np.deg2rad(-.005*x1*np.sign(x2) - 10.85*x2 - 2.55*x2**2*np.sign(x2) - .835*x1*x2)
+
+
+
+
+
 
 
 
@@ -65,9 +73,31 @@ def sumR(alp, n):
              ])
 
 
-def calc_d(xbar, dx, deps, n):
-    return np.linalg.norm(
-            R(-n*deps)*xbar - sumR(-deps, n)*dx)
+#def calc_d(xbar, dx, deps, n):  # Src
+#    return np.linalg.norm(
+#            R(-n*deps)*xbar - sumR(-deps, n)*dx)
+
+
+def calc_d(xbar, dx, deps, n):  # Hack
+    xbar = np.c_[xbar]
+    
+    sign = -1 if xbar[1] < 0 else 1
+#    xbar[1] = abs(xbar[1])
+#    d = np.linalg.norm(R(-n*deps*sign)*xbar - sumR(-deps, n)*dx)
+    xbar_n = np.matmul(R(-n*deps), xbar) - np.matmul(sumR(-deps, n), dx)
+    
+#    print('xbar:', xbar)
+#    print('R(-n*deps):', R(-n*deps))
+#    print('sumR(-deps, n):', sumR(-deps, n))
+#    print('dx', dx)
+#    print('xbar_n', xbar_n)
+    
+    
+    d = np.linalg.norm(xbar_n)
+#    print(sumR(-deps, n).dot(dx))
+    
+    return d
+
 
 
 def cut(x):
@@ -99,14 +129,14 @@ def find_opt_x(xbar, n):
 #        print(round(d, 3))
         return d, Jac
 
-    x0 = [70, 0]
+    x0 = [90, 0]
     bnds = [(0, 90), (-.5, .5)]
     solution = minimize(objective, x0, method='L-BFGS-B', bounds=bnds,
                         jac=True, tol=1e-7)
     return solution.x
 
 
-def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1):
+def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1, show_stats=0):
     """
     opt planner
     """
@@ -122,6 +152,10 @@ def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1):
     if alp_act[2] > 0:
         x1opt *= -1
     alpha_ref = alpha(x1opt, x2opt, feet_ref)
+
+    if show_stats:
+        print('x1: \t\t{}\nx2: \t\t{}'.format(round(x1opt, 2), round(x2opt, 2)))
+#        print('R:', R(-n*deps)*xbar)
 
     return [alpha_ref, feet_ref]
 
@@ -154,7 +188,7 @@ if __name__ == "__main__":
     for x1_idx, x1 in enumerate(X1):
         for x2_idx, x2 in enumerate(X2):
             
-            (dxx, dyy), ddeps = dx_(x1, x2), deps_(x1, x2)
+            (dxx, dyy), ddeps = dx(x1, x2), deps(x1, x2)
             RESULT_DX[x2_idx][x1_idx] = dxx
             RESULT_DY[x2_idx][x1_idx] = dyy
             RESULT_DEPS[x2_idx][x1_idx] = ddeps
@@ -182,6 +216,16 @@ if __name__ == "__main__":
 
 
     ax.grid()
+
+
+    # %% PLOT DE
+    fig, ax = plt.subplots(num='DEPS')
+    plt.title('DEPS')
+    
+    levels = 15
+    cset = ax.contourf(X1, X2, RESULT_DEPS, levels=levels, inline=1)
+    cset = ax.contour(X1, X2, RESULT_DEPS, levels=levels, inline=1, colors='k')
+    ax.clabel(cset, colors='k')
 
 
     # %% PLOT DX

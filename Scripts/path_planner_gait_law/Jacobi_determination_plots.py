@@ -10,6 +10,12 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 
+import sys
+from os import path
+sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+        path.abspath(__file__)))))
+
+
 from Src.TrajectoryPlanner import optimal_planner as optplanner
 from Src.Utils import save
 from Src.Utils import plot_fun as pf
@@ -83,10 +89,10 @@ def plot_contour(X1, X2, D, lines=5):
 
 # %% Create Case Study:
 
-xref = [2, 13]  # global cos
+xref = [-2, 3]  # global cos
 eps = 90
 p1 = (0, 0)
-n = 4
+n = 1
 
 
 xbar = optplanner.xbar(xref, p1, eps)
@@ -156,9 +162,9 @@ plt.close('GeckoBotGait')
 
 # %% Tikz Pic
 
-gait.plot_markers(1)
-plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
-plt.axis('off')
-gait_str = gait.get_tikz_repr()
-save.save_plt_as_tikz('Out/opt_pathplanner/gait{}.tex'.format(n),
-                      gait_str)
+#gait.plot_markers(1)
+#plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
+#plt.axis('off')
+#gait_str = gait.get_tikz_repr()
+#save.save_plt_as_tikz('Out/opt_pathplanner/gait{}.tex'.format(n),
+#                      gait_str)

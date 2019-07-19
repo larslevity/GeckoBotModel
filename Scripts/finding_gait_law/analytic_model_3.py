@@ -14,6 +14,12 @@ from matplotlib import cm
 from scipy.optimize import minimize
 from scipy.optimize import basinhopping
 
+import sys
+from os import path
+sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+        path.abspath(__file__)))))
+
+
 from Src.Utils import plot_fun as pf
 from Src.Utils import save_csv
 from Src.Math import kinematic_model as model
