@@ -98,7 +98,7 @@ n = 1
 xbar = optplanner.xbar(xref, p1, eps)
 print('xbar:', xbar)
 X1 = np.arange(0, 90, 2)
-X2 = np.arange(-.5, .5, .01)
+X2 = np.arange(-.5, .501, .01)
 D = np.zeros((len(X2), len(X1)))
 dmin = {'val': 1e16, 'x1': None, 'x2': None}
 for idx1, x1 in enumerate(X1):

@@ -21,35 +21,26 @@ def xbar(xref, xbot, epsbot):
     return rotate(xref - xbot, np.deg2rad(-epsbot))
 
 
-def dx(x1, x2):  # Simulation Result
-    return np.array([
-            [.02*x1 + .13*x2 - .47*x2**2],
-            [-(.07*x2 - .29*x2**2 + .02*x1*x2)]])
-
-
-def deps(x1, x2):  # Simulation Results
-    return np.deg2rad(-.005*x1 - 10.85*x2 - 2.55*x2**2 - .835*x1*x2)
-
-
-
-
-
-
-#def dx(x1, x2):  # Symmetric Fit
+#def dx(x1, x2):  # Simulation Result
 #    return np.array([
-#            [.02*x1 + .13*abs(x2) - .47*x2**2],
-#            [-(.07*x2 - .29*x2**2*np.sign(x2) + .02*x1*(x2))]
-#        ])
-##
-##
-#def deps(x1, x2):  # Symmetric Fit
-#    return np.deg2rad(-.005*x1*np.sign(x2) - 10.85*x2 - 2.55*x2**2*np.sign(x2) - .835*x1*x2)
+#            [.02*x1 + .13*x2 - .47*x2**2],
+#            [-(.07*x2 - .29*x2**2 + .02*x1*x2)]])
+#
+#
+#def deps(x1, x2):  # Simulation Results
+#    return np.deg2rad(-.005*x1 - 10.85*x2 - 2.55*x2**2 - .835*x1*x2)
 
 
+def dx(x1, x2):  # Symmetric Fit
+    return np.array([
+            [.02*x1 + .13*abs(x2) - .47*x2**2],
+            [-(.07*x2 - .29*x2**2*np.sign(x2) + .02*x1*(x2))]
+        ])
 
 
-
-
+def deps(x1, x2):  # Symmetric Fit
+    return np.deg2rad(-.005*x1 - 10.85*x2 - 2.55*x2**2*np.sign(x2)
+                      - .835*x1*x2)
 
 
 def sumsin(x, n):
@@ -80,22 +71,14 @@ def sumR(alp, n):
 
 def calc_d(xbar, dx, deps, n):  # Hack
     xbar = np.c_[xbar]
-    
-    sign = -1 if xbar[1] < 0 else 1
-#    xbar[1] = abs(xbar[1])
-#    d = np.linalg.norm(R(-n*deps*sign)*xbar - sumR(-deps, n)*dx)
     xbar_n = np.matmul(R(-n*deps), xbar) - np.matmul(sumR(-deps, n), dx)
-    
+
 #    print('xbar:', xbar)
 #    print('R(-n*deps):', R(-n*deps))
 #    print('sumR(-deps, n):', sumR(-deps, n))
 #    print('dx', dx)
 #    print('xbar_n', xbar_n)
-    
-    
     d = np.linalg.norm(xbar_n)
-#    print(sumR(-deps, n).dot(dx))
-    
     return d
 
 
@@ -178,7 +161,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     
     X1 = np.arange(0.01, 90.2, 10.)
-    X2 = np.arange(-.51, .52, .1)
+    X2 = np.arange(-.511, .515, .1)
 
     RESULT_DX = np.zeros((len(X2), len(X1)))
     RESULT_DY = np.zeros((len(X2), len(X1)))
