@@ -67,14 +67,21 @@ class GeckoBotPose(object):
         print('phi: \t\t\t', [round(xx, 2) for xx in phi])
         print('eps: \t\t\t', round(eps, 2), '\n')
 
-    def get_tikz_repr(self, col='black'):
+    def get_tikz_repr(self, col='black', shift=None):
         alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
                          self.x[-1])
         mx, my = self.markers
-        geckostring = tikz_draw_gecko(
+        if shift:
+            geckostring = '\\begin{scope}[xshift=%scm]' % str(shift)
+        else:
+            geckostring = ''
+        geckostring += tikz_draw_gecko(
                 alp, ell, eps, (mx[0], my[0]), fix=self.f, col=col,
                 linewidth='1mm')
-        geckostring += '\n'
+        if shift:
+            geckostring += '\\end{scope}\n \n \n'
+        else:
+            geckostring += '\n\n'
         return geckostring
 
     def save_as_tikz(self, filename):
@@ -113,14 +120,14 @@ class GeckoBotGait(object):
             col = (c, c, c)
             pose.plot(col)
 
-    def get_tikz_repr(self):
+    def get_tikz_repr(self, shift=None):
         gait_str = ''
         for idx, pose in enumerate(self.poses):
             c = int(20 + (float(idx)/len(self.poses))*80.)
             col = 'black!{}'.format(c)
-            gait_str += pose.get_tikz_repr(col)
+            shift_ = idx*shift if shift else None
+            gait_str += pose.get_tikz_repr(col, shift_)
         return gait_str
-        
 
     def plot_markers(self, markernum=range(6), figname='GeckoBotGait'):
         """plots the history of markers in *markernum*"""

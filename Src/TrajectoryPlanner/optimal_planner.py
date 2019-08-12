@@ -129,6 +129,9 @@ def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1, show_stats=0):
         feet_ref = feet_act
         return [alp_ref, feet_ref]
 
+    print('xbar:\t', xbar)
+    if xbar[0] < 0:
+        print('Goal lies behind robot')
     # Not the case -> lets optimize
     feet_ref = [not(foot) for foot in feet_act]
     x1opt, x2opt = find_opt_x(xbar, n)
@@ -201,6 +204,7 @@ if __name__ == "__main__":
     ax.grid()
 
 
+
     # %% PLOT DE
     fig, ax = plt.subplots(num='DEPS')
     plt.title('DEPS')
@@ -210,6 +214,7 @@ if __name__ == "__main__":
     cset = ax.contour(X1, X2, RESULT_DEPS, levels=levels, inline=1, colors='k')
     ax.clabel(cset, colors='k')
 
+    plt.savefig('DEPS.png')
 
     # %% PLOT DX
     fig, ax = plt.subplots(num='DX')
@@ -219,6 +224,8 @@ if __name__ == "__main__":
     cset = ax.contourf(X1, X2, RESULT_DX, levels=levels, inline=1)
     cset = ax.contour(X1, X2, RESULT_DX, levels=levels, inline=1, colors='k')
     ax.clabel(cset, colors='k')
+    
+    plt.savefig('DX.png')
 
     # %% PLOT DY
     fig, ax = plt.subplots(num='DY')
@@ -228,3 +235,5 @@ if __name__ == "__main__":
     cset = ax.contourf(X1, X2, RESULT_DY, levels=levels, inline=1)
     cset = ax.contour(X1, X2, RESULT_DY, levels=levels, inline=1, colors='k')
     ax.clabel(cset, colors='k')
+
+    plt.savefig('DY.png')
