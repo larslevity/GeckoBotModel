@@ -11,6 +11,10 @@ if __name__ == "__main__":
     from mpl_toolkits.mplot3d import Axes3D
     from matplotlib import cm
 
+    import sys
+    from os import path
+    sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+            path.abspath(__file__)))))
 
     from Src.Utils import plot_fun as pf
     from Src.Math import kinematic_model as model

@@ -13,17 +13,21 @@ import os
 import sys
 
 
+def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, **kwargs):
 
+    wdir = sys.path[0].replace('\\', '/')
+#    mdir = os.path.dirname(os.path.abspath(__name__)).replace('\\', '/')
+#    print('main dir:' , mdir)
+#    print('wdir dir:' , wdir)
+    filename = wdir + '/' + filename
 
-
-def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
-    print('Saving as TikZ-Picture...')
+    print('Saving as TikZ-Picture...', filename)
     aux_fn = filename + '_aux'
-    if gecko_str:
+    if additional_tex_code:
         kwargs = {'extra_axis_parameters':
                   {'anchor=origin', 'disabledatascaling', 'x=1cm', 'y=1cm'}}
     tikz_save(aux_fn, **kwargs)
-    insert_tex_header(aux_fn, gecko_str, scale)
+    insert_tex_header(aux_fn, additional_tex_code, scale)
 
     # remove blank lines:
     with open(aux_fn, 'r') as file:
@@ -47,7 +51,7 @@ def save_plt_as_tikz(filename, gecko_str=None, scale=1, **kwargs):
     print('Done!')
 
 
-def save_geckostr_as_tikz(filename, geckostr):
+def save_geckostr_as_tikz(filename, additional_tex_code):
     header = """
 \\documentclass[crop,tikz]{standalone}
 \\usepackage[utf8]{inputenc}
@@ -61,10 +65,10 @@ def save_geckostr_as_tikz(filename, geckostr):
 \\end{document}
 """
     with open(filename, 'w') as fout:
-            fout.writelines(header + geckostr + ending)
+        fout.writelines(header + additional_tex_code + ending)
 
 
-def insert_tex_header(filename, gecko_str=None, scale=1):
+def insert_tex_header(filename, additional_tex_code=None, scale=1):
     header = """
 \\documentclass[crop,tikz]{standalone}
 \\usepackage[utf8]{inputenc}
@@ -74,14 +78,15 @@ def insert_tex_header(filename, gecko_str=None, scale=1):
 \\usepgfplotslibrary{groupplots}
 \\begin{document}
 """
-    if gecko_str:
+    if additional_tex_code:
         # remove \begin{tikzpicture}
         with open(filename, 'r') as fin:
             data = fin.read().splitlines(True)
         with open(filename, 'w') as fout:
             fout.writelines([data[0]] + data[2:])
         # add geckostr between header and matplotlib2tikz data
-        header = header + '\n\\begin{tikzpicture}[scale=%s]' % (scale) + gecko_str
+        header = (header + '\n\\begin{tikzpicture}[scale=%s]' % (scale)
+                  + additional_tex_code)
     line_pre_adder(filename, header)
     # Append Ending
     ending = "\n%% End matplotlib2tikz content %% \n\\end{document}"
@@ -106,6 +111,7 @@ def trim(filename, border=1):
     if bbox:
         im2 = im.crop(bbox)
         im2.save(filename)
+
 
 def crop_img(filename):
     im = Image.open(filename)

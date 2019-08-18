@@ -22,14 +22,18 @@ initial_pose = pf.GeckoBotPose(x, marks, feet)
 gait = pf.GeckoBotGait()
 gait.append_pose(initial_pose)
 
-p_ref = (10, 0)
+x_ref = (10, 10)
 
-alp_ref, feet_ref = op.optimal_planner(p_ref, alp, feet, (marks, eps),
-                                       f=[100, 10, 10])
+xbar = op.xbar(x_ref, p1, eps)
 
-x, marks, f, stats = model.predict_next_pose(
+alp_ref, feet_ref = op.optimal_planner(xbar, alp, feet,
+                                       n=2, dist_min=.1, show_stats=0)
+
+
+
+x, marks, f, constraint, cost = model.predict_next_pose(
     [alp_ref, feet_ref], x, marks, len_leg=1, len_tor=1.2)
 gait.append_pose(
-    pf.GeckoBotPose(x, marks, f, constraint=stats[0], cost=stats[1]))
+    pf.GeckoBotPose(x, marks, f, constraint=constraint, cost=cost))
 
 gait.plot_gait()

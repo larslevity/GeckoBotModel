@@ -8,6 +8,11 @@ Created on Wed Jul  3 12:46:30 2019
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 
+import sys
+from os import path
+sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+        path.abspath(__file__)))))
+
 from Src.Utils import plot_fun as pf
 from Src.Math import kinematic_model as model
 from Src.Utils import save

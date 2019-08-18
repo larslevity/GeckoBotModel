@@ -9,6 +9,12 @@ Created on Thu Jun 13 10:20:14 2019
 if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
+
+    import sys
+    from os import path
+    sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+            path.abspath(__file__)))))
+
     from Src.TrajectoryPlanner import search_tree as st
     from Src.Utils import plot_fun as pf
     from Src.Utils import save
@@ -39,7 +45,7 @@ if __name__ == "__main__":
         eps = act_pose.x[-1]
 
         alpha, feet, _,  pose_id = ref.get_next_reference(
-                act_pos, eps, xref, act_pose, vis_dec=True, gait=gait)
+                act_pos, eps, xref, act_pose, save_as_tikz=True, gait=gait)
         print(alpha)
         print(calc_dist(gait.poses[-1], xref))
 

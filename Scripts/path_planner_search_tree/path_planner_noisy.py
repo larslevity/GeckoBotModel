@@ -9,6 +9,12 @@ Created on Thu Jun 06 16:43:14 2019
 if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
+
+    import sys
+    from os import path
+    sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+            path.abspath(__file__)))))
+
     from Src.TrajectoryPlanner import search_tree as st
     from Src.Utils import plot_fun as pf
     from Src.Utils import save
@@ -65,8 +71,8 @@ if __name__ == "__main__":
     st.draw_point_dir(xref, [0, 0], size=20, label='GOAL1')
     plt.axis('off')
 
-    plt.savefig('Out/pathplanner/gait.png', transparent=False,
-                dpi=300)
+#    plt.savefig('Out/pathplanner/gait.png', transparent=False,
+#                dpi=300)
     plt.show()
     plt.close('GeckoBotGait')
 
@@ -76,7 +82,7 @@ if __name__ == "__main__":
     st.draw_point_dir(xref, [0, 0], size=20, label='GOAL1')
     plt.axis('off')
     gait_str = gait.get_tikz_repr()
-    save.save_plt_as_tikz('Out/pathplanner/gait.tex', gait_str)
+#    save.save_plt_as_tikz('Out/pathplanner/gait.tex', gait_str)
 
 # %%
     gait.animate()

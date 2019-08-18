@@ -10,6 +10,12 @@ from matplotlib import cm
 
 import numpy as np
 
+
+import sys
+from os import path
+sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+        path.abspath(__file__)))))
+
 from Src.Utils import save_csv
 
 
