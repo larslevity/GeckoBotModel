@@ -36,14 +36,13 @@ if __name__ == "__main__":
         return x if x > 0.001 else 0.001
 
     def alpha_original(x1, x2, f):
-        alpha = [cut(45 - x1/2. + (f[0] ^ 1)*x1*x2 + f[0]*abs(x1)*x2/2.),
-                 cut(45 + x1/2. + (f[1] ^ 1)*x1*x2 + f[1]*abs(x1)*x2/2.),
+        alpha = [cut(45 - x1/2. + (f[0])*x1*x2 + (f[0] ^ 1)*abs(x1)*x2/2.),
+                 cut(45 + x1/2. + (f[1])*x1*x2 + (f[1] ^ 1)*abs(x1)*x2/2.),
                  x1 + x2*abs(x1),
-                 cut(45 - x1/2. + (f[2] ^ 1)*x1*x2 + f[2]*abs(x1)*x2/2.),
-                 cut(45 + x1/2. + (f[3] ^ 1)*x1*x2 + f[3]*abs(x1)*x2/2.)
+                 cut(45 - x1/2. + (f[2])*x1*x2 + (f[2] ^ 1)*abs(x1)*x2/2.),
+                 cut(45 + x1/2. + (f[3])*x1*x2 + (f[3] ^ 1)*abs(x1)*x2/2.)
                  ]
         return alpha
-
 
     def alpha1(x1, x2, f):
         alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + (f[0])*x1*x2),
@@ -51,6 +50,15 @@ if __name__ == "__main__":
                  x1 + x2*abs(x1),
                  cut(45 - x1/2. - abs(x1)*x2/2. + (f[2])*x1*x2),
                  cut(45 + x1/2. + abs(x1)*x2/2. + (f[3])*x1*x2)
+                 ]
+        return alpha
+
+    def alpha1_(x1, x2, f):
+        alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + (f[0])*x1*x2/2 - (f[0] ^ 1)*x1*x2/2),
+                 cut(45 + x1/2. + abs(x1)*x2/2. + (f[1])*x1*x2/2 - (f[1] ^ 1)*x1*x2/2),
+                 x1 + x2*abs(x1),
+                 cut(45 - x1/2. - abs(x1)*x2/2. + (f[2])*x1*x2/2 - (f[2] ^ 1)*x1*x2/2),
+                 cut(45 + x1/2. + abs(x1)*x2/2. + (f[3])*x1*x2/2 - (f[3] ^ 1)*x1*x2/2)
                  ]
         return alpha
 
@@ -81,8 +89,19 @@ if __name__ == "__main__":
                  ]
         return alpha
 
-#    for aidx, alpha in enumerate([alpha1, alpha2, alpha3, alpha4, alpha_original]):
-    for aidx, alpha in enumerate([alpha_original]):
+
+# %%
+    LAWS = {
+#        'law_original': alpha_original,
+#        'law0': alpha1,
+#        'law0a': alpha1_,
+        'law1': alpha2,
+#        'law2': alpha3,
+#        'law3': alpha4,
+            }
+
+    for key in LAWS:
+        alpha = LAWS[key]
 
         RESULT_DX = np.zeros((len(X2), len(X1)))
         RESULT_DY = np.zeros((len(X2), len(X1)))
@@ -99,18 +118,15 @@ if __name__ == "__main__":
     #                plt.text(x2_idx*dx, 1+n_cyc, 'x2={}'.format(round(x2, 1)))
                 f1 = [0, 1, 1, 0]
                 f2 = [1, 0, 0, 1]
-                if x2 < 0:
+#                if x2 < 0:
+                if 1:
                     ref2 = [[alpha(-x1, x2, f2), f2],
-    #                        [alpha(x1, -x2, f2), f1],
-                            [alpha(x1, x2, f1), f1],
-    #                        [alpha(x1, x2, f1), f2]
+                            [alpha(x1, x2, f1), f1]
                             ]
-                else:
-                    ref2 = [[alpha(x1, x2, f1), f1],
-    #                        [alpha(x1, x2, f1), f2],
-                            [alpha(-x1, x2, f2), f2],
-    #                        [alpha(x1, -x2, f2), f1]
-                            ]
+#                else:
+#                    ref2 = [[alpha(x1, x2, f1), f1],
+#                            [alpha(-x1, x2, f2), f2]
+#                            ]
                 ref2 = ref2*n_cyc + [ref2[0]]
     
                 init_pose = pf.GeckoBotPose(
@@ -184,8 +200,9 @@ if __name__ == "__main__":
     #    plt.axis('off')    
     #    fig.set_size_inches(18.5, 10.5)
         fig.set_size_inches(10.5, 8)
-        fig.savefig('Out/analytic_model4/gait_{}.png'.format(aidx), transparent=False,
+        fig.savefig('Out/analytic_model4/gait_{}.png'.format(key), transparent=False,
                     dpi=300, bbox_inches='tight',)
+# %%
         fig.clear()  # clean figure
     # %%
     

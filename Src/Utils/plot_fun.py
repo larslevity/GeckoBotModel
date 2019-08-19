@@ -202,6 +202,15 @@ class GeckoBotGait(object):
             plt.plot([start[0], start[0]+np.cos(np.deg2rad(eps))*length],
                      [start[1], start[1]+np.sin(np.deg2rad(eps))*length], 'r')
 
+    def plot_epsilon(self):
+        plt.figure('GeckoBotGaitEpsHistory')
+        Eps = []
+        for pose in self.poses:
+            eps = pose.get_eps()
+            Eps.append(eps)
+        plt.plot(Eps, 'purple')
+        return Eps
+
     def plot_phi(self):
         Phi = [[], [], [], []]
         for pose in self.poses:
