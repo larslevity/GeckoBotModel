@@ -20,20 +20,28 @@ if __name__ == "__main__":
     from Src.Math import kinematic_model as model
     from Src.TrajectoryPlanner import rotate_on_spot as rotspot
 
-    for replay in range(10):
+    # MODEL PARAMS
+    l_leg = 8.5  # cm
+    l_tor = 11.7  # cm
+    f_l = 100.      # factor on length objective
+    f_o = 0.1     # .0003     # factor on orientation objective
+    f_a = 10        # factor on angle objective
 
-#        alpha = [90, 0, -90, 90, 0]
-#        feet = [1, 0, 0, 1]
-        alpha = [0, 90, 90, 0, 90]
-        feet = [0, 1, 1, 0]
-        eps = 90
+    for replay in range(1):
+
+        alpha = [30, 0, -30, 30, 0]
+        feet = [1, 0, 0, 1]
+#        alpha = [0, 90, 90, 0, 90]
+#        feet = [0, 1, 1, 0]
+        eps = 180
         p1 = (0, 0)
-        x, (mx, my), f = model.set_initial_pose(alpha, eps, p1)
+        x, (mx, my), f = model.set_initial_pose(alpha, eps, p1,
+                                                len_leg=l_leg, len_tor=l_tor)
         initial_pose = pf.GeckoBotPose(x, (mx, my), f)
         gait = pf.GeckoBotGait()
         gait.append_pose(initial_pose)
 
-        xref = (10, -3)
+        xref = (145, -.01)
 
         n = 1
 
@@ -47,7 +55,7 @@ if __name__ == "__main__":
             return list(np.r_[alpha]+np.random.normal(0, 5, 5))
 
         i = 0
-        while calc_dist(gait.poses[-1], xref) > .7:
+        while calc_dist(gait.poses[-1], xref) > 3:
             act_pose = gait.poses[-1]
             x, y = act_pose.markers
             act_pos = (x[1], y[1])
@@ -59,20 +67,24 @@ if __name__ == "__main__":
                 pattern = rotspot.rotate_on_spot(xbar, alp_act, feet)
                 for pose in pattern:
                     alpha, feet, ptime = pose
-                    alpha = add_noise(alpha)
+#                    alpha = add_noise(alpha)
                     act_pose = gait.poses[-1]
                     x, y = act_pose.markers
                     act_pos = (x[1], y[1])
                     predicted_pose = model.predict_next_pose(
-                                [alpha, feet], act_pose.x, (x, y))
+                                [alpha, feet], act_pose.x, (x, y),
+                                f=[f_l, f_o, f_a],
+                                len_leg=l_leg, len_tor=l_tor)
                     predicted_pose = pf.GeckoBotPose(*predicted_pose)
                     gait.append_pose(predicted_pose)
             else:
                 alpha, feet = opt.optimal_planner(xbar, alp_act, feet, n,
                                                   show_stats=1)
-                alpha = add_noise(alpha)
+#                alpha = add_noise(alpha)
                 predicted_pose = model.predict_next_pose(
-                        [alpha, feet], act_pose.x, (x, y))
+                        [alpha, feet], act_pose.x, (x, y),
+                        f=[f_l, f_o, f_a],
+                        len_leg=l_leg, len_tor=l_tor)
 
                 predicted_pose = pf.GeckoBotPose(*predicted_pose)
                 gait.append_pose(predicted_pose)
@@ -90,8 +102,9 @@ if __name__ == "__main__":
     plt.axis('off')
 
     gait_str = gait.get_tikz_repr()
-    save.save_plt_as_tikz('Scripts/gait_{}x.tex'.format(replay),
-                          gait_str)
+    save.save_plt_as_tikz('Scripts/gait_{}.tex'.format(str(xref)),
+                          additional_tex_code=gait_str, 
+                          scope='scale=.1, opacity=.3')
 
     # %% Animation
 

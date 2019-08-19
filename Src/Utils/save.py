@@ -13,7 +13,8 @@ import os
 import sys
 
 
-def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, **kwargs):
+def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, scope=None,
+                     **kwargs):
 
     wdir = sys.path[0].replace('\\', '/')
 #    mdir = os.path.dirname(os.path.abspath(__name__)).replace('\\', '/')
@@ -27,7 +28,7 @@ def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, **kwargs):
         kwargs = {'extra_axis_parameters':
                   {'anchor=origin', 'disabledatascaling', 'x=1cm', 'y=1cm'}}
     tikz_save(aux_fn, **kwargs)
-    insert_tex_header(aux_fn, additional_tex_code, scale)
+    insert_tex_header(aux_fn, additional_tex_code, scale, scope)
 
     # remove blank lines:
     with open(aux_fn, 'r') as file:
@@ -68,7 +69,7 @@ def save_geckostr_as_tikz(filename, additional_tex_code):
         fout.writelines(header + additional_tex_code + ending)
 
 
-def insert_tex_header(filename, additional_tex_code=None, scale=1):
+def insert_tex_header(filename, additional_tex_code=None, scale=1, scope=None):
     header = """
 \\documentclass[crop,tikz]{standalone}
 \\usepackage[utf8]{inputenc}
@@ -86,7 +87,9 @@ def insert_tex_header(filename, additional_tex_code=None, scale=1):
             fout.writelines([data[0]] + data[2:])
         # add geckostr between header and matplotlib2tikz data
         header = (header + '\n\\begin{tikzpicture}[scale=%s]' % (scale)
-                  + additional_tex_code)
+                  + ('\n\\begin{scope}[%s]' % (scope) if scope else '')
+                  + additional_tex_code
+                  + ('\n\\end{scope}' if scope else ''))
     line_pre_adder(filename, header)
     # Append Ending
     ending = "\n%% End matplotlib2tikz content %% \n\\end{document}"
