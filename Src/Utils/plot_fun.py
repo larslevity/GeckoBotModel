@@ -84,16 +84,17 @@ class GeckoBotPose(object):
             geckostring += '\n\n'
         return geckostring
 
-    def save_as_tikz(self, filename):
+    def save_as_tikz(self, filename, compileit=True):
         direc = path.dirname(path.dirname(path.dirname(
-                    path.abspath(__file__)))) + '/tikz/'
+                    path.abspath(__file__)))) + '/Out/'
         gstr = self.get_tikz_repr()
         name = direc+filename+'.tex'
         mysave.save_geckostr_as_tikz(name, gstr)
-        out_dir = os.path.dirname(name)
-        print(name)
-        os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
-        print('Done')
+        if compileit:
+            out_dir = os.path.dirname(name)
+            print(name)
+            os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
+            print('Done')
 
     def get_phi(self):
         alp, eps = (self.x[0:n_limbs], self.x[-1])
