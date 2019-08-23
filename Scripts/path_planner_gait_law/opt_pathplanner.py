@@ -20,66 +20,73 @@ if __name__ == "__main__":
     from Src.Utils import save
     from Src.Math import kinematic_model as model
 
-    for replay in range(1):
+    XREF = {}
+#    XREF['left'] = (-2, 3)
+#    XREF['right'] = (2, 3)
+    XREF['backwards'] = (2, -3)
+    n = 1
+    for key in XREF:
+        xref = XREF[key]
+        for replay in range(5):
+    
+            alpha = [90, 0, -90, 90, 0]
+            feet = [1, 0, 0, 1]
+    #        alpha = [0, 90, 90, 0, 90]
+    #        feet = [0, 1, 1, 0]
+            eps = 90
+            p1 = (0, 0)
+            x, (mx, my), f = model.set_initial_pose(alpha, eps, p1)
+            initial_pose = pf.GeckoBotPose(x, (mx, my), f)
+            gait = pf.GeckoBotGait()
+            gait.append_pose(initial_pose)
 
-        alpha = [90, 0, -90, 90, 0]
-        feet = [1, 0, 0, 1]
-#        alpha = [0, 90, 90, 0, 90]
-#        feet = [0, 1, 1, 0]
-        eps = 90
-        p1 = (0, 0)
-        x, (mx, my), f = model.set_initial_pose(alpha, eps, p1)
-        initial_pose = pf.GeckoBotPose(x, (mx, my), f)
-        gait = pf.GeckoBotGait()
-        gait.append_pose(initial_pose)
-
-        xref = (10, -3)
-
-        n = 1
-
-        def calc_dist(pose, xref):
-            mx, my = pose.markers
-            act_pos = np.r_[mx[1], my[1]]
-            dpos = xref - act_pos
-            return np.linalg.norm(dpos)
-
-        def add_noise(alpha):
-            return list(np.r_[alpha]+np.random.normal(0, 5, 5))
-
-        i = 0
-        while calc_dist(gait.poses[-1], xref) > .7:
-            act_pose = gait.poses[-1]
-            x, y = act_pose.markers
-            act_pos = (x[1], y[1])
-            eps = act_pose.x[-1]
-            alp_act = act_pose.alp
-            xbar = opt.xbar(xref, act_pos, eps)
-
-            alpha, feet = opt.optimal_planner(xbar, alp_act, feet, n,
-                                              show_stats=1)
-            alpha = add_noise(alpha)
-
-            predicted_pose = model.predict_next_pose(
-                    [alpha, feet], act_pose.x, (x, y))
-
-            predicted_pose = pf.GeckoBotPose(*predicted_pose)
-            gait.append_pose(predicted_pose)
-            i += 1
-            print('pose', i, 'dist: \t', round(calc_dist(gait.poses[-1],
-                                                         xref), 2), '\n')
-            if i > 50:
-                break
-
-    # %% Plots
-        gait.plot_gait()
-        gait.plot_markers(1)
+            def calc_dist(pose, xref):
+                mx, my = pose.markers
+                act_pos = np.r_[mx[1], my[1]]
+                dpos = xref - act_pos
+                return np.linalg.norm(dpos)
+    
+            def add_noise(alpha):
+                return list(np.r_[alpha]+np.random.normal(0, 5, 5))
+    
+            i = 0
+            while calc_dist(gait.poses[-1], xref) > .7:
+                act_pose = gait.poses[-1]
+                x, y = act_pose.markers
+                act_pos = (x[1], y[1])
+                eps = act_pose.x[-1]
+                alp_act = act_pose.alp
+                xbar = opt.xbar(xref, act_pos, eps)
+    
+                alpha, feet = opt.optimal_planner(xbar, alp_act, feet, n,
+                                                  show_stats=1)
+                alpha = add_noise(alpha)
+    
+                predicted_pose = model.predict_next_pose(
+                        [alpha, feet], act_pose.x, (x, y))
+    
+                predicted_pose = pf.GeckoBotPose(*predicted_pose)
+                gait.append_pose(predicted_pose)
+                i += 1
+                print('pose', i, 'dist: \t', round(calc_dist(gait.poses[-1],
+                                                             xref), 2), '\n')
+                if i > 10:
+                    break
+    
+#            gait.plot_gait()
+            gait.plot_markers(1)
 #        gait.plot_com()
+
+# %% Plots
         plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
         plt.axis('off')
 
         gait_str = gait.get_tikz_repr()
-        save.save_plt_as_tikz('Out/opt_pathplanner/gait_{}.tex'.format(replay),
+        save.save_plt_as_tikz('Out/opt_pathplanner/{}/gait_sim_{}.tex'.format(key, replay),
                               gait_str)
+        
+        fig = plt.gcf()
+        fig.clear()
 
     # %% Animation
 

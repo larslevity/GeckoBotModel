@@ -89,7 +89,7 @@ def plot_contour(X1, X2, D, lines=5):
 
 # %% Create Case Study:
 
-xref = [-2, 3]  # global cos
+xref = [2, 3]  # global cos
 eps = 90
 p1 = (0, 0)
 n = 1
@@ -113,7 +113,7 @@ x1_opt, x2_opt = dmin['x1'], dmin['x2']
 plot_contour(X1, X2, D, lines=12)
 plt.plot(x1_opt, x2_opt, marker='o', color='yellow', markersize=12)
 kwargs = {'extra_axis_parameters': {'font=\\small'}}
-save.save_plt_as_tikz('Out/opt_pathplanner/dist_{}.tex'.format(n),
+save.save_plt_as_tikz('Out/opt_pathplanner/dist_n_{}.tex'.format(n),
                       **kwargs)
 
 
@@ -162,9 +162,9 @@ plt.close('GeckoBotGait')
 
 # %% Tikz Pic
 
-#gait.plot_markers(1)
-#plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
-#plt.axis('off')
-#gait_str = gait.get_tikz_repr()
-#save.save_plt_as_tikz('Out/opt_pathplanner/gait{}.tex'.format(n),
-#                      gait_str)
+gait.plot_markers(1)
+plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
+plt.axis('off')
+gait_str = gait.get_tikz_repr()
+save.save_plt_as_tikz('Out/opt_pathplanner/gait_n_{}.tex'.format(n),
+                      gait_str)

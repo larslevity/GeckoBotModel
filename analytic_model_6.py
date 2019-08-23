@@ -224,7 +224,7 @@ if __name__ == "__main__":
         FIT = np.reshape(FIT, np.shape(X1__), order='C')
         surf = plt.contour(X2__.T, X1__.T, FIT.T, '--', levels=levels, colors='k')
         ax1 = plt.gca()
-        ax1.clabel(surf, levels, inline=True, fmt='%2.0f')
+#        ax1.clabel(surf, levels, inline=True, fmt='%2.0f')
 
         print(coeff_)
         fig = plt.gcf()
