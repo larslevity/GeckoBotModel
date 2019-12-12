@@ -1,9 +1,8 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Sun Aug 18 01:25:51 2019
+Created on Thu Dec 12 16:38:53 2019
 
-@author: ls
+@author: AmP
 """
 
 if __name__ == "__main__":
@@ -21,18 +20,12 @@ if __name__ == "__main__":
 
     from matplotlib import rc
     rc('text', usetex=True)
-    # for Palatino and other serif fonts use:
-#    rc('font', **{'family': 'serif', 'serif': ['Palatino']})
-#    rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 
     eps = 90
     f_l, f_o, f_a = .1, 1, 10
     weight = [f_l, f_o, f_a]
 
-#    X1 = np.arange(70.01, 90.2, 10.)   # doc:0,90.10 #IROS:70,90, 10
-#    X2 = np.arange(-.5, .52, .2)  # doc:-.5, .5, .1  #IROS: -.5,.5,.2
-
-    X1 = np.arange(60.01, 90.2, 10.)   # GaitLawExp
+    X1 = np.arange(50.01, 90.2, 10.)   # GaitLawExp
     X2 = np.arange(-.5, .52, .25)  # GaitLawExp
 
     n_cyc = 2     # doc: 1  # poster IROS: 2
