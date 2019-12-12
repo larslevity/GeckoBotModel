@@ -7,6 +7,11 @@ Created on Sun Aug 18 01:25:51 2019
 """
 
 if __name__ == "__main__":
+    import sys
+    from os import path
+    sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+            path.abspath(__file__)))))
+
     import numpy as np
     import matplotlib.pyplot as plt
     from matplotlib import cm
@@ -24,11 +29,11 @@ if __name__ == "__main__":
     f_l, f_o, f_a = .1, 1, 10
     weight = [f_l, f_o, f_a]
 
-    X1 = np.arange(0.001, 90.2, 10.)
-    X2 = np.arange(-.5, .52, .1)
+    X1 = np.arange(70.01, 90.2, 10.)   # doc:0,90.10 #IROS:70,90, 10
+    X2 = np.arange(-.5, .52, .2)  # doc:-.5, .5, .1  #IROS: -.5,.5,.2
 
-    n_cyc = 1
-    and_half = True
+    n_cyc = 2     # doc: 1  # poster IROS: 2
+    and_half = False  # doc:True, #IROS:FALSE
 
     dx, dy = 3.5, 3+2.5*(n_cyc-1 if n_cyc > 1 else 1)
 
@@ -130,8 +135,8 @@ if __name__ == "__main__":
 
         plt.xticks(X_idx.T[0], [round(x, 1) for x in X2])
         plt.yticks(Y_idx[0], [round(x, 1) for x in X1])
-        plt.xlabel('steering $x_2$')
-        plt.ylabel('step length $x_1$')
+        plt.xlabel('steering $q_2$')
+        plt.ylabel('step length $q_1$')
         plt.axis('scaled')
 
         plt.grid()
@@ -144,7 +149,7 @@ if __name__ == "__main__":
     #    plt.axis('off')    
     #    fig.set_size_inches(18.5, 10.5)
         fig.set_size_inches(10.5, 8)
-        fig.savefig('Out/analytic_model6/gait_{}.png'.format(key),
+        fig.savefig('../../Out/analytic_model6/gait_{}.png'.format(key),
                     transparent=True,
                     dpi=300, bbox_inches='tight',)
 # %%
@@ -210,8 +215,8 @@ if __name__ == "__main__":
         
         
 #        fig.colorbar(surf, shrink=0.5, aspect=5)
-        plt.ylabel('step length $x_1$')
-        plt.xlabel('steering $x_2$')
+        plt.ylabel('step length $q_1$')
+        plt.xlabel('steering $q_2$')
 
         # FIT DEPS
 
@@ -232,7 +237,7 @@ if __name__ == "__main__":
         plt.title('$\\delta \\varepsilon='+deps+'$')
         plt.gca().invert_yaxis()
         fig.set_size_inches(10.5, 8.5)
-        fig.savefig('Out/analytic_model6/FitDeps_{}_order_{}_rounded_{}.png'.format(key, order, roundon),
+        fig.savefig('../../Out/analytic_model6/FitDeps_{}_order_{}_rounded_{}.png'.format(key, order, roundon),
                     dpi=300, trasperent=True, bbox_inches='tight')
 
         ######################################################################
@@ -290,13 +295,13 @@ if __name__ == "__main__":
 
         tit = '$\delta x(x_1, x_2)= \\begin{array}{c} %s \\\ %s \\end{array}$' % (dx, dy)
         plt.title(tit)
-        plt.xlabel('steering $x_2$')
-        plt.ylabel('step length $x_1$')
+        plt.xlabel('steering $q_2$')
+        plt.ylabel('step length $q_1$')
 
         plt.gca().invert_yaxis()
         fig = plt.gcf()
         fig.set_size_inches(10.5, 8.5)
-        fig.savefig('Out/analytic_model6/FitDXDY_{}_order_{}_round_{}.png'.format(key, order, roundon),
+        fig.savefig('../../Out/analytic_model6/FitDXDY_{}_order_{}_round_{}.png'.format(key, order, roundon),
                     dpi=300, trasperent=True, bbox_inches='tight')
 
         # %%
