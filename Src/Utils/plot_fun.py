@@ -274,9 +274,11 @@ class GeckoBotGait(object):
         return line_ani
 
 
-def predict_gait(references, initial_pose, weight=None):
-    len_leg = initial_pose.len_leg
-    len_tor = initial_pose.len_tor
+def predict_gait(references, initial_pose, weight=None, lens=[None]):
+    if not lens:
+        lens = [1, 1.2]
+    len_leg = lens[0]
+    len_tor = lens[1]
     if not weight:
         weight = [model.f_l, model.f_o, model.f_a]
 
