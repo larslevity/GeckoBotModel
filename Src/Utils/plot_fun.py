@@ -244,7 +244,7 @@ class GeckoBotGait(object):
         plt.plot(stress)
         return sum(stress)
 
-    def save_as_tikz(self, filename):
+    def save_as_tikz(self, filename, latexcompile=False):
         direc = path.dirname(path.dirname(path.dirname(
                     path.abspath(__file__)))) + '/tikz/'
         name = direc+filename+'.tex'
@@ -258,7 +258,8 @@ class GeckoBotGait(object):
                 col = 'black!{}'.format(c)
             gstr += pose.get_tikz_repr(col)
         mysave.save_geckostr_as_tikz(name, gstr)
-        os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
+        if latexcompile:
+            os.system('pdflatex -output-directory {} {}'.format(out_dir, name))
         print('Done')
 
     def animate(self):
@@ -457,10 +458,14 @@ def animate_gait(fig1, data_xy, data_markers, inv=500,
         maxy = max(y) if maxy < max(y) else maxy
     plt.xlim(minx-5, maxx+5)
     plt.ylim(miny-5, maxy+5)
+
     line_ani = animation.FuncAnimation(
         fig1, update_line, n, fargs=(data_xy, l_xy, data_markers,
                                      lm0, lm1, lm2, lm3, lm4, lm5, leps),
         interval=inv, blit=True)
+
+    plt.gca().set_aspect('equal', adjustable='box')
+    plt.grid()
     return line_ani
 
 

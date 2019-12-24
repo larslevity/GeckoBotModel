@@ -282,6 +282,17 @@ if __name__ == "__main__":
 #                fig.clear()
                 pf.save_animation(gait.animate(), '../../Out/analytic_model8/gait.mp4')
 
+            # %% POSES
+            gait_ = pf.GeckoBotGait()
+            gait_.append_pose(gait.poses[1])  # init pose
+            gait_.append_pose(gait.poses[int((res))])  # midpose
+            gait_.append_pose(gait.poses[int((res+1))])  # midpose
+            gait_.append_pose(gait.poses[-1])  # end pose
+            gait_.plot_gait()
+            gait_.plot_orientation(length=5)
+            gait_.save_as_tikz('gait')
+
+
 # %%
 
     plt.show()
