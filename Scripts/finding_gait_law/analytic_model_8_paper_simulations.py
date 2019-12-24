@@ -67,17 +67,27 @@ if __name__ == "__main__":
         def cut(x):
             return x if x > 0.001 else 0.001
     
-        def alpha1(x1, x2, f):
-            alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + (f[0])*x1*x2),
-                     cut(45 + x1/2. + abs(x1)*x2/2. + (f[1])*x1*x2),
+        def alpha1(x1, x2, f, c1=1):
+            alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + (f[0])*x1*x2*c1),
+                     cut(45 + x1/2. + abs(x1)*x2/2. + (f[1])*x1*x2*c1),
                      x1 + x2*abs(x1),
-                     cut(45 - x1/2. - abs(x1)*x2/2. + (f[2])*x1*x2),
-                     cut(45 + x1/2. + abs(x1)*x2/2. + (f[3])*x1*x2)
+                     cut(45 - x1/2. - abs(x1)*x2/2. + (f[2])*x1*x2*c1),
+                     cut(45 + x1/2. + abs(x1)*x2/2. + (f[3])*x1*x2*c1)
                      ]
             return alpha
+
+        def alpha2(x1, x2, f, c1=.4):
+            alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
+                     cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1),
+                     x1 + x2*abs(x1),
+                     cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
+                     cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1)
+                     ]
+            return alpha
+
     
     
-        alpha = alpha1
+        alpha = alpha2
     
         RESULT_DX = np.zeros((len(X2), len(X1)))
         RESULT_DY = np.zeros((len(X2), len(X1)))

@@ -6,6 +6,11 @@ Created on Thu Dec 19 12:06:41 2019
 @author: ls
 """
 
+import sys
+from os import path
+sys.path.insert(0, path.dirname(path.dirname(path.dirname(
+        path.abspath(__file__)))))
+
 
 if __name__ == "__main__":
     import numpy as np
@@ -21,12 +26,14 @@ if __name__ == "__main__":
 #    rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 
     eps = 90
-    f_l, f_o, f_a = [.1, 1, 10]
-    f_l, f_o, f_a = [.211, 12.51, 4.7]
+#    f_l, f_o, f_a = [.1, 1, 10]
+    f_l, f_o, f_a = .2, 12.1, 6.1
     weight = [f_l, f_o, f_a]
+
     len_leg, len_tor = [9.1, 10.3]
 
-    X1 = [50, 70, 80, 90]  # np.arange(70.01, 90.2, 10.)
+    X1 = [60, 70, 80, 90]  # np.arange(70.01, 90.2, 10.)
+#    X1 = [50, 80, 90]  # np.arange(70.01, 90.2, 10.)
     X2 = np.arange(-.5, .52, .2)
 
     n_cyc = 1
@@ -46,11 +53,23 @@ if __name__ == "__main__":
                  ]
         return alpha
 
+    def alpha3(x1, x2, f, c1=.5):
+        alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
+                 cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1),
+                 x1 + x2*abs(x1),
+                 cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
+                 cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1)
+                 ]
+        return alpha
+
+
+
+
 # %%
     for x1_idx, x1 in enumerate(X1):
         print('x1:', x1)
-        alpha = alpha1
-        C1 = np.linspace(0, 2, 21)
+        alpha = alpha3
+        C1 = np.linspace(0, 1, 21)
     
         RESULT_DX = np.zeros((len(X2), len(C1)))
         RESULT_DY = np.zeros((len(X2), len(C1)))
@@ -64,12 +83,12 @@ if __name__ == "__main__":
                 f1 = [0, 1, 1, 0]
                 f2 = [1, 0, 0, 1]
                 if x2 < 0:
-                    ref2 = [[alpha(-x1, x2, f2), f2],
-                            [alpha(x1, x2, f1), f1]
+                    ref2 = [[alpha(-x1, x2, f2, c1), f2],
+                            [alpha(x1, x2, f1, c1), f1]
                             ]
                 else:
-                    ref2 = [[alpha(x1, x2, f1), f1],
-                            [alpha(-x1, x2, f2), f2]
+                    ref2 = [[alpha(x1, x2, f1, c1), f1],
+                            [alpha(-x1, x2, f2, c1), f2]
                             ]
                 ref2 += [ref2[0]]
 
@@ -135,8 +154,8 @@ if __name__ == "__main__":
                      label="cumulative stress over gait")
        # plt.clim(0, 200)
 
-        plt.xticks(X_idx.T[0], [round(x, 1) for x in X2])
-        plt.yticks(Y_idx[0], [round(x, 1) for x in C1])
+        plt.xticks(X_idx.T[0], [round(x, 2) for x in X2])
+        plt.yticks(Y_idx[0], [round(x, 2) for x in C1])
         plt.xlabel('steering $x_2$')
         plt.ylabel('additional bending for fixed feet $c_1$')
         plt.axis('scaled')
