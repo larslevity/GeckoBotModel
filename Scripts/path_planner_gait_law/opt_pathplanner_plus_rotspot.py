@@ -23,9 +23,9 @@ if __name__ == "__main__":
     # MODEL PARAMS
     l_leg = 8.5  # cm
     l_tor = 11.7  # cm
-    f_l = 100.      # factor on length objective
-    f_o = 0.1     # .0003     # factor on orientation objective
-    f_a = 10        # factor on angle objective
+    f_l = .2      # factor on length objective
+    f_o = 12.1     # .0003     # factor on orientation objective
+    f_a = 6.1        # factor on angle objective
 
     for replay in range(1):
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
         feet = [1, 0, 0, 1]
 #        alpha = [0, 90, 90, 0, 90]
 #        feet = [0, 1, 1, 0]
-        eps = 180
+        eps = 10
         p1 = (0, 0)
         x, (mx, my), f = model.set_initial_pose(alpha, eps, p1,
                                                 len_leg=l_leg, len_tor=l_tor)
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         gait = pf.GeckoBotGait()
         gait.append_pose(initial_pose)
 
-        xref = (145, -.01)
+        xref = (40, -.01)
 
         n = 1
 
@@ -95,16 +95,16 @@ if __name__ == "__main__":
                 break
 
     # %% Plots
-#    gait.plot_gait()
+        gait.plot_gait()
         gait.plot_markers(1)
 #        gait.plot_com()
     plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
     plt.axis('off')
 
-    gait_str = gait.get_tikz_repr()
-    save.save_plt_as_tikz('Scripts/gait_{}.tex'.format(str(xref)),
-                          additional_tex_code=gait_str, 
-                          scope='scale=.1, opacity=.3')
+#    gait_str = gait.get_tikz_repr()
+#    save.save_plt_as_tikz('Scripts/gait_{}.tex'.format(str(xref)),
+#                          additional_tex_code=gait_str, 
+#                          scope='scale=.1, opacity=.3')
 
     # %% Animation
 

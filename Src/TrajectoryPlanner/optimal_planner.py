@@ -91,17 +91,26 @@ def calc_d(xbar, dx, deps, n):  # Hack
     return d
 
 
-
 def cut(x):
     return x if x > 0.001 else 0.001
 
 
-def alpha(x1, x2, f):
-    alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + (f[0])*x1*x2),
-             cut(45 + x1/2. + abs(x1)*x2/2. + (f[1])*x1*x2),
+#def alpha(x1, x2, f):
+#    alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + (f[0])*x1*x2),
+#             cut(45 + x1/2. + abs(x1)*x2/2. + (f[1])*x1*x2),
+#             x1 + x2*abs(x1),
+#             cut(45 - x1/2. - abs(x1)*x2/2. + (f[2])*x1*x2),
+#             cut(45 + x1/2. + abs(x1)*x2/2. + (f[3])*x1*x2)
+#             ]
+#    return alpha
+
+
+def alpha(x1, x2, f, c1=1.0):
+    alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
+             cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1),
              x1 + x2*abs(x1),
-             cut(45 - x1/2. - abs(x1)*x2/2. + (f[2])*x1*x2),
-             cut(45 + x1/2. + abs(x1)*x2/2. + (f[3])*x1*x2)
+             cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
+             cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1)
              ]
     return alpha
 
