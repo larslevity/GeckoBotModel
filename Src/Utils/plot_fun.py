@@ -246,7 +246,7 @@ class GeckoBotGait(object):
 
     def save_as_tikz(self, filename, latexcompile=False):
         direc = path.dirname(path.dirname(path.dirname(
-                    path.abspath(__file__)))) + '/tikz/'
+                    path.abspath(__file__))))
         name = direc+filename+'.tex'
         out_dir = os.path.dirname(name)
         gstr = ''

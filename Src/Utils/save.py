@@ -5,12 +5,28 @@ Created on Wed Jan 30 17:18:20 2019
 @author: AmP
 """
 
+try:
+    import deepdish
+except ImportError:
+    print('Can not import Deepdish')
+
 from matplotlib2tikz import save as tikz_save
 import fileinput
 from PIL import Image, ImageChops
 import os
 
 import sys
+
+
+def save_data(data, filename):
+    """ save the recorded data from GlobalData object to .h5 file  """
+    deepdish.io.save(filename, data)
+
+
+def load_data(filename):
+    """ Reading data back """
+    return_data = deepdish.io.load(filename)
+    return return_data
 
 
 def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, scope=None,
