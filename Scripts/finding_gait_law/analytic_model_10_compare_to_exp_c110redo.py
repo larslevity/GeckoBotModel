@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 from matplotlib import rc
-rc('text', usetex=True)
+#rc('text', usetex=True)
 
 from os import path
 sys.path.insert(0, path.dirname(path.dirname(path.dirname(
@@ -34,9 +34,9 @@ DEPS_EXP = np.array([[ 21.08      ,  24.92631579,  27.01428571,  25.88888889,
 eps = 90
 len_leg, len_tor = [9.1, 10.3]
 
-for f_l in np.arange(.1, 2, 0.1):
-    for f_o in np.arange(5, 20, 1):
-        for f_a in np.arange(1, 10, 1):
+for f_l in [.2]:
+    for f_o in np.linspace(1, 20, 20):
+        for f_a in np.linspace(1, 10, 10):
 
             weight = [f_l, f_o, f_a]
             modelstr = 'f_l, f_0, f_a = ' + str(f_l) + ', ' + str(f_o) + ', ' + str(f_a)
@@ -90,13 +90,27 @@ for f_l in np.arange(.1, 2, 0.1):
                                 ]
                     ref2 = ref2*n_cyc
                     if and_half:
-                        ref2 += [ref2[0]]
+                        ref2 = ref2[1:] + [ref2[0]]
 
+                    # get start positions
                     init_pose = pf.GeckoBotPose(
                             *model.set_initial_pose(ref2[0][0], eps,
                                                     (x2_idx*dx, x1_idx*dy),
                                                     len_leg=len_leg,
                                                     len_tor=len_tor))
+                    gait_ = pf.predict_gait(ref2, init_pose, weight,
+                                            (len_leg, len_tor))
+                    alp_ = gait_.poses[-1].alp
+                    ell_ = gait_.poses[-1].ell
+                    
+                    init_pose = pf.GeckoBotPose(
+                            *model.set_initial_pose(alp_, eps,
+                                                    (x2_idx*dx, x1_idx*dy),
+                                                    ell=ell_),
+                            len_leg=len_leg,
+                            len_tor=len_tor)
+                    
+                    # actually simulation
                     gait = pf.predict_gait(ref2, init_pose, weight,
                                            (len_leg, len_tor))
 
@@ -109,7 +123,10 @@ for f_l in np.arange(.1, 2, 0.1):
 
                     GAITS.append(gait)
 
-            Sim_err = np.linalg.norm(RESULT_DEPS-DEPS_EXP*n_cyc)
+#            Sim_err = np.linalg.norm(RESULT_DEPS-DEPS_EXP*n_cyc)
+            # error only for q1 = [50, 60, 70]  -- exclude 80, 90 since cutting
+            Sim_err = np.linalg.norm(RESULT_DEPS.T[:3].T[3:]-DEPS_EXP.T[:3].T[3:])
+            
             print('Sim Err: ', Sim_err)
 
         # %% Save all GAIT/DEPS as png
