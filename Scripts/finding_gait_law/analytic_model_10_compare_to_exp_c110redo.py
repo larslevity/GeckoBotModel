@@ -34,9 +34,14 @@ DEPS_EXP = np.array([[ 21.08      ,  24.92631579,  27.01428571,  25.88888889,
 eps = 90
 len_leg, len_tor = [9.1, 10.3]
 
-for f_l in [.2]:
-    for f_o in np.linspace(1, 20, 20):
-        for f_a in np.linspace(1, 10, 10):
+weight1 = [1, 54, 35]  # is good
+weight1 = [89, 10, 8]  # is better
+weight1 = [89, 10, 5.98367]  # is better
+
+
+for f_l in np.linspace(89, 2, 1):
+    for f_o in np.linspace(10, 100, 1):
+        for f_a in np.linspace(5.979, 6, 10):
 
             weight = [f_l, f_o, f_a]
             modelstr = 'f_l, f_0, f_a = ' + str(f_l) + ', ' + str(f_o) + ', ' + str(f_a)
@@ -127,7 +132,23 @@ for f_l in [.2]:
             # error only for q1 = [50, 60, 70]  -- exclude 80, 90 since cutting
             Sim_err = np.linalg.norm(RESULT_DEPS.T[:3].T[3:]-DEPS_EXP.T[:3].T[3:])
             
+            Sim_err = 0
+            Symmetry = 0
+            for x1_idx, x1 in enumerate(X1):
+                for x2_idx, x2 in enumerate(X2[3:]):
+                    sim_deps = RESULT_DEPS[x2_idx+3][x1_idx]
+                    sim_deps_ = RESULT_DEPS[2-x2_idx][x1_idx]
+                    Symmetry += abs(sim_deps_ + sim_deps)
+
+                    exp_deps = DEPS_EXP[x2_idx+3][x1_idx]
+                    Sim_err += abs((sim_deps - exp_deps)/exp_deps)
+
             print('Sim Err: ', Sim_err)
+            print('Symmetry: ', Symmetry)
+
+            if Symmetry > 50:
+                Sim_err += Symmetry
+            print('Err: ', Sim_err)
 
         # %% Save all GAIT/DEPS as png
 
@@ -167,7 +188,7 @@ for f_l in [.2]:
             ax.spines['bottom'].set_visible(False)
 
             fig.set_size_inches(10.5, 8)
-            fig.savefig('../../Out/analytic_model10/simerr='+str(round(Sim_err, 2))+'gait_deps_{}.png'.format(modelstr),
+            fig.savefig('../../Out/analytic_model10/simerr='+str(round(Sim_err, 3))+'gait_deps_{}.png'.format(modelstr),
                         transparent=True,
                         dpi=300, bbox_inches='tight',)
     # %%
