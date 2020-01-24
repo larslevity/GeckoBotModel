@@ -33,7 +33,7 @@ if __name__ == "__main__":
         feet = [1, 0, 0, 1]
 #        alpha = [0, 90, 90, 0, 90]
 #        feet = [0, 1, 1, 0]
-        eps = 10
+        eps = 60
         p1 = (0, 0)
         x, (mx, my), f = model.set_initial_pose(alpha, eps, p1,
                                                 len_leg=l_leg, len_tor=l_tor)
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         gait = pf.GeckoBotGait()
         gait.append_pose(initial_pose)
 
-        xref = (40, -.01)
+        xref = (70, -.01)
 
         n = 1
 

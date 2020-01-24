@@ -10,7 +10,7 @@ try:
 except ImportError:
     print('Can not import Deepdish')
 
-from matplotlib2tikz import save as tikz_save
+from tikzplotlib import save as tikz_save
 import fileinput
 from PIL import Image, ImageChops
 import os
