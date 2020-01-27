@@ -8,6 +8,16 @@ import numpy as np
 from scipy.optimize import minimize
 
 
+# Experimental values of vS11 expGaitLaw c110 redo (27.01.2020)
+ce = [5.4154, -0.0457, -44.1944, -0.0006, 0.778, -0.0832]
+cx = [0.1106, 0.2225, 11.4146, -0.0008, -17.5133, -0.1213]
+cy = [1.9498, -0.0682, -3.6997, 0.0004, -0.0333, -0.058]
+
+
+def evalpoly(q1, q2, c):
+    return c[0] + c[1]*q1 + c[2]*q2 + c[3]*q1**2 + c[4]*q2**2 + c[5]*q1*q2
+
+
 def rotate(vec, theta):
     c, s = np.cos(theta), np.sin(theta)
     return np.r_[c*vec[0]-s*vec[1], s*vec[0]+c*vec[1]]
@@ -21,35 +31,15 @@ def xbar(xref, xbot, epsbot):
     return rotate(xref - xbot, np.deg2rad(-epsbot))
 
 
-# def dx(x1, x2):  # Simulation Result
-#    return np.array([
-#            [.02*x1 + .13*x2 - .47*x2**2],
-#            [-(.07*x2 - .29*x2**2 + .02*x1*x2)]])
-#
-#
-# def deps(x1, x2):  # Simulation Results
-#    return np.deg2rad(-.005*x1 - 10.85*x2 - 2.55*x2**2 - .835*x1*x2)
-
-
-#def dx(x1, x2):  # Symmetric Fit
-#    return np.array([
-#            [.02*x1 + .13*abs(x2) - .47*x2**2],
-#            [-(.07*x2 - .29*x2**2*np.sign(x2) + .02*x1*(x2))]
-#        ])
-#def deps(x1, x2):  # Symmetric Fit
-#    return np.deg2rad(-.005*x1 - 10.85*x2 - 2.55*x2**2*np.sign(x2)
-#                      - .835*x1*x2)
-
-
 def dx(x1, x2):  # analytic_model6
     return np.array([
-            [.016*x1 - .113*x2**2],
-            [-(.044*x2 - .001*x2**2 + .022*x1*x2)]
+            [evalpoly(x1, x2, cx)],
+            [evalpoly(x1, x2, cy)]
         ])
 
 
-def deps(x1, x2):  # analytic_model6
-    return np.deg2rad(-.001*x1 + 10.188*x2 + .019*x2**2 - .936*x1*x2)
+def deps(x1, x2):
+    return np.deg2rad(evalpoly(x1, x2, ce))
 
 
 def sumsin(x, n):
@@ -95,16 +85,6 @@ def cut(x):
     return x if x > 0.001 else 0.001
 
 
-#def alpha(x1, x2, f):
-#    alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + (f[0])*x1*x2),
-#             cut(45 + x1/2. + abs(x1)*x2/2. + (f[1])*x1*x2),
-#             x1 + x2*abs(x1),
-#             cut(45 - x1/2. - abs(x1)*x2/2. + (f[2])*x1*x2),
-#             cut(45 + x1/2. + abs(x1)*x2/2. + (f[3])*x1*x2)
-#             ]
-#    return alpha
-
-
 def alpha(x1, x2, f, c1=1.0):
     alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
              cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1),
@@ -131,7 +111,7 @@ def find_opt_x(xbar, n):
         return d, Jac
 
     x0 = [90, 0]
-    bnds = [(0, 90), (-.5, .5)]
+    bnds = [(50, 90), (-.5, .5)]
     solution = minimize(objective, x0, method='L-BFGS-B', bounds=bnds,
                         jac=True, tol=1e-7)
     return solution.x
@@ -181,7 +161,7 @@ if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
     
-    X1 = np.arange(0.01, 90.2, 10.)
+    X1 = np.arange(50, 90.2, 10.)
     X2 = np.arange(-.511, .515, .1)
 
     RESULT_DX = np.zeros((len(X2), len(X1)))
@@ -195,7 +175,7 @@ if __name__ == "__main__":
             (dxx, dyy), ddeps = dx(x1, x2), deps(x1, x2)
             RESULT_DX[x2_idx][x1_idx] = dxx
             RESULT_DY[x2_idx][x1_idx] = dyy
-            RESULT_DEPS[x2_idx][x1_idx] = ddeps
+            RESULT_DEPS[x2_idx][x1_idx] = np.rad2deg(ddeps)
     
     
     
@@ -210,16 +190,19 @@ if __name__ == "__main__":
     plt.title('DXDY, DE')
     
     levels = 15
-    cset = ax.contourf(X1, X2, RESULT_DEPS, levels=levels, inline=1)
-    cset = ax.contour(X1, X2, RESULT_DEPS, levels=levels, inline=1, colors='k')
-    ax.clabel(cset, colors='k')
+    cset = ax.contourf(X2, X1, RESULT_DEPS.T, levels=levels, inline=1,
+                       cmap='coolwarm')
+    cset = ax.contour(X2, X1, RESULT_DEPS.T, levels=levels, inline=1, colors='k')
+    ax.clabel(cset, colors='k', fmt='%2.0f')
 
     M = np.hypot(RESULT_DX, RESULT_DY)
-    q = ax.quiver(X1__, X2__, RESULT_DX, RESULT_DY, units='x', scale=.2)
-    ax.scatter(X1__, X2__, color='0.5', s=10)
+    q = ax.quiver(X2__, X1__, -RESULT_DY, RESULT_DX, units='x', scale=120)
+    ax.scatter(X2__, X1__, color='0.5', s=10)
 
 
     ax.grid()
+    plt.ylim(min(X1)-5, max(X1)+10)
+    plt.savefig('DXDYDE.png')
 
 
 
@@ -228,30 +211,31 @@ if __name__ == "__main__":
     plt.title('DEPS')
     
     levels = 15
-    cset = ax.contourf(X1, X2, RESULT_DEPS, levels=levels, inline=1)
-    cset = ax.contour(X1, X2, RESULT_DEPS, levels=levels, inline=1, colors='k')
+    cset = ax.contourf(X2, X1, RESULT_DEPS.T, levels=levels, inline=1,
+                       cmap='coolwarm')
+    cset = ax.contour(X2, X1, RESULT_DEPS.T, levels=levels, inline=1, colors='k')
     ax.clabel(cset, colors='k')
 
-    plt.savefig('DEPS.png')
+#    plt.savefig('DEPS.png')
 
     # %% PLOT DX
     fig, ax = plt.subplots(num='DX')
     plt.title('DX')
     
     levels = 15
-    cset = ax.contourf(X1, X2, RESULT_DX, levels=levels, inline=1)
-    cset = ax.contour(X1, X2, RESULT_DX, levels=levels, inline=1, colors='k')
+    cset = ax.contourf(X2, X1, RESULT_DX.T, levels=levels, inline=1)
+    cset = ax.contour(X2, X1, RESULT_DX.T, levels=levels, inline=1, colors='k')
     ax.clabel(cset, colors='k')
     
-    plt.savefig('DX.png')
+#    plt.savefig('DX.png')
 
     # %% PLOT DY
     fig, ax = plt.subplots(num='DY')
     plt.title('DY')
     
     levels = 15
-    cset = ax.contourf(X1, X2, RESULT_DY, levels=levels, inline=1)
-    cset = ax.contour(X1, X2, RESULT_DY, levels=levels, inline=1, colors='k')
+    cset = ax.contourf(X2, X1, RESULT_DY.T, levels=levels, inline=1)
+    cset = ax.contour(X2, X1, RESULT_DY.T, levels=levels, inline=1, colors='k')
     ax.clabel(cset, colors='k')
 
-    plt.savefig('DY.png')
+#    plt.savefig('DY.png')

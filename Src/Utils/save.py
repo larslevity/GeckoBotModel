@@ -42,7 +42,7 @@ def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, scope=None,
     aux_fn = filename + '_aux'
     if additional_tex_code:
         kwargs = {'extra_axis_parameters':
-                  {'anchor=origin', 'disabledatascaling', 'x=1cm', 'y=1cm'}}
+                  {'anchor=origin', 'disabledatascaling', 'x=.1cm', 'y=.1cm'}}
     tikz_save(aux_fn, **kwargs)
     insert_tex_header(aux_fn, additional_tex_code, scale, scope)
 

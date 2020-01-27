@@ -9,9 +9,9 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-f_l = 100.      # factor on length objective
-f_o = 0.1     # .0003     # factor on orientation objective
-f_a = 10        # factor on angle objective
+f_l = 89.      # factor on length objective
+f_o = 10     # .0003     # factor on orientation objective
+f_a = 5.9        # factor on angle objective
 
 blow = .9       # lower stretching bound
 bup = 1.1       # upper stretching bound

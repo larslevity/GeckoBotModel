@@ -20,6 +20,7 @@ from Src.TrajectoryPlanner import optimal_planner as optplanner
 from Src.Utils import save
 from Src.Utils import plot_fun as pf
 from Src.Math import kinematic_model as model
+from Src import calibration
 
 
 # %% Plot SumSin
@@ -53,11 +54,11 @@ class nf(float):
         return '{:.0f}'.format(self) if s[-1] == '0' else s
 
 
-def plot_contour(X1, X2, D, lines=5):
+def plot_contour(X1, X2, D, lines=2):
     X1, X2 = np.meshgrid(X1, X2)
     fig, ax = plt.subplots()
-    cs = ax.contourf(X1, X2, D, lines)
-    cs = ax.contour(X1, X2, D, lines, colors='k')
+    cs = ax.contourf(X2, X1, D, lines, cmap='RdYlGn_r')
+    cs = ax.contour(X2, X1, D, lines, colors='k')
     cs.levels = [nf(val) for val in cs.levels]
 
     if plt.rcParams["text.usetex"]:
@@ -66,11 +67,14 @@ def plot_contour(X1, X2, D, lines=5):
         fmt = '%r'
     ax.clabel(cs, cs.levels, inline=1, fontsize=10, fmt=fmt)
 
-    cs.collections[0].set_label('test')
-    ax.set_xlabel('$x_1$', fontsize=10)
-    ax.set_ylabel('$x_2$', fontsize=10)
-    ax.xaxis.set_label_coords(1, -.025)
-    ax.yaxis.set_label_coords(-0.025, 1)
+#    cs.collections[0].set_label('test')
+    ax.set_xlabel('$q_2$ (1)', fontsize=10)
+    ax.set_ylabel('$q_1$ ($^\\circ$)', fontsize=10)
+
+    plt.xticks([-.5, 0, .5])
+    plt.yticks([50, 70, 90])
+#    ax.xaxis.set_label_coords(1, -.025)
+#    ax.yaxis.set_label_coords(-0.025, 1)
 
 
 #xbar = np.array([[2], [2]])
@@ -89,15 +93,15 @@ def plot_contour(X1, X2, D, lines=5):
 
 # %% Create Case Study:
 
-xref = [2, 3]  # global cos
+xref = [20, 35]  # global cos
 eps = 90
 p1 = (0, 0)
-n = 1
+n = 4
 
 
 xbar = optplanner.xbar(xref, p1, eps)
 print('xbar:', xbar)
-X1 = np.arange(0, 90, 2)
+X1 = np.arange(50, 90.01, 2)
 X2 = np.arange(-.5, .501, .01)
 D = np.zeros((len(X2), len(X1)))
 dmin = {'val': 1e16, 'x1': None, 'x2': None}
@@ -110,8 +114,9 @@ for idx1, x1 in enumerate(X1):
         D[idx2][idx1] = d
 
 x1_opt, x2_opt = dmin['x1'], dmin['x2']
-plot_contour(X1, X2, D, lines=12)
-plt.plot(x1_opt, x2_opt, marker='o', color='yellow', markersize=12)
+plot_contour(X1, X2, D, lines=8)
+plt.plot(x2_opt, x1_opt, marker='o', color='purple', markersize=12,
+         markeredgecolor='k')
 kwargs = {'extra_axis_parameters': {'font=\\small'}}
 save.save_plt_as_tikz('Out/opt_pathplanner/dist_n_{}.tex'.format(n),
                       **kwargs)
@@ -121,35 +126,40 @@ save.save_plt_as_tikz('Out/opt_pathplanner/dist_n_{}.tex'.format(n),
 
 x1, x2 = x1_opt, x2_opt  # optimal gait
 feet0 = [1, 0, 0, 1]  # feet states
-alpha0 = optplanner.alpha(x1, x2, feet0)
+alpha0 = [90, 0, -90, 90, 0]
+
+
+weight = [89, 10, 5.9]   # [f_l, f_o, f_a]
+len_leg, len_tor = calibration.get_len('vS11')
 
 # alpha = [90, 0, -90, 90, 0]
 
-x, (mx, my), f = model.set_initial_pose(alpha0, eps, p1)
+x, (mx, my), f = model.set_initial_pose(alpha0, eps, p1, len_leg=len_leg,
+                                        len_tor=len_tor)
 initial_pose = pf.GeckoBotPose(x, (mx, my), f)
 gait = pf.GeckoBotGait()
 gait.append_pose(initial_pose)
 
 
 for cyc in range(n):
-    for sign in [-1, 1]:
+    for sign in [1, -1]:
         act_pose = gait.poses[-1]
         x, y = act_pose.markers
         # generate ref
         x1_ = x1*sign
         feet = [not(f) for f in feet0] if sign == 1 else feet0
         alpha = optplanner.alpha(x1_, x2, feet)
-        print(x1_, alpha, feet)
+        print(x1_, x2, alpha, feet)
         # predict
         predicted_pose = model.predict_next_pose(
-                        [alpha, feet], act_pose.x, (x, y))
+                        [alpha, feet], act_pose.x, (x, y), weight,
+                        len_leg=len_leg, len_tor=len_tor)
         predicted_pose = pf.GeckoBotPose(*predicted_pose)
         gait.append_pose(predicted_pose)
         # switch feet
-        feet = [not(f) for f in feet]
 
 # Plot
-gait.plot_gait()
+gait.plot_gait(reverse_col=1)
 gait.plot_markers(1)
 #    gait.plot_com()
 plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
@@ -164,7 +174,8 @@ plt.close('GeckoBotGait')
 
 gait.plot_markers(1)
 plt.plot(xref[0], xref[1], marker='o', color='red', markersize=12)
+plt.plot(p1[0], p1[1], marker='o', color='red', markersize=12)
 plt.axis('off')
-gait_str = gait.get_tikz_repr()
+gait_str = gait.get_tikz_repr(reverse_col=1, linewidth='.7mm')
 save.save_plt_as_tikz('Out/opt_pathplanner/gait_n_{}.tex'.format(n),
-                      gait_str)
+                      gait_str, scope='scale=.1')

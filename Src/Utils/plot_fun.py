@@ -67,7 +67,7 @@ class GeckoBotPose(object):
         print('phi: \t\t\t', [round(xx, 2) for xx in phi])
         print('eps: \t\t\t', round(eps, 2), '\n')
 
-    def get_tikz_repr(self, col='black', shift=None):
+    def get_tikz_repr(self, col='black', shift=None, linewidth='.5mm'):
         alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
                          self.x[-1])
         mx, my = self.markers
@@ -77,7 +77,7 @@ class GeckoBotPose(object):
             geckostring = ''
         geckostring += tikz_draw_gecko(
                 alp, ell, eps, (mx[0], my[0]), fix=self.f, col=col,
-                linewidth='1mm')
+                linewidth=linewidth)
         if shift:
             geckostring += '\\end{scope}\n \n \n'
         else:
@@ -114,20 +114,24 @@ class GeckoBotGait(object):
     def append_pose(self, pose):
         self.poses.append(pose)
 
-    def plot_gait(self, fignum='', figname='GeckoBotGait'):
+    def plot_gait(self, fignum='', figname='GeckoBotGait', reverse_col=0):
         plt.figure(figname+fignum)
         for idx, pose in enumerate(self.poses):
             c = (1-float(idx)/len(self.poses))*.8
+            if reverse_col:
+                c = 1 - c
             col = (c, c, c)
             pose.plot(col)
 
-    def get_tikz_repr(self, shift=None):
+    def get_tikz_repr(self, shift=None, reverse_col=0, linewidth='.5mm'):
         gait_str = ''
         for idx, pose in enumerate(self.poses):
             c = int(20 + (float(idx)/len(self.poses))*80.)
+            if reverse_col:
+                c = 120 - c
             col = 'black!{}'.format(c)
             shift_ = idx*shift if shift else None
-            gait_str += pose.get_tikz_repr(col, shift_)
+            gait_str += pose.get_tikz_repr(col, shift_, linewidth)
         return gait_str
 
     def plot_markers(self, markernum=range(6), figname='GeckoBotGait'):
