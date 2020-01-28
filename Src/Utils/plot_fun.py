@@ -67,7 +67,7 @@ class GeckoBotPose(object):
         print('phi: \t\t\t', [round(xx, 2) for xx in phi])
         print('eps: \t\t\t', round(eps, 2), '\n')
 
-    def get_tikz_repr(self, col='black', shift=None, linewidth='.5mm'):
+    def get_tikz_repr(self, col='black', shift=None, linewidth='.7mm'):
         alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
                          self.x[-1])
         mx, my = self.markers
@@ -123,7 +123,7 @@ class GeckoBotGait(object):
             col = (c, c, c)
             pose.plot(col)
 
-    def get_tikz_repr(self, shift=None, reverse_col=0, linewidth='.5mm'):
+    def get_tikz_repr(self, shift=None, reverse_col=0, linewidth='.7mm'):
         gait_str = ''
         for idx, pose in enumerate(self.poses):
             c = int(20 + (float(idx)/len(self.poses))*80.)
@@ -534,7 +534,7 @@ def save_animation(line_ani, name='gait.mp4', conv='avconv'):
 
 
 def tikz_draw_gecko(alp, ell, eps, F1, col='black',
-                    linewidth='.5mm', fix=None):
+                    linewidth='.7mm', fix=None):
     c1, c2, c3, c4 = model._calc_phi(alp, eps)
     l1, l2, lg, l3, l4 = ell
     for idx, a in enumerate(alp):
@@ -579,11 +579,11 @@ def tikz_draw_gecko(alp, ell, eps, F1, col='black',
         for idx, fixation in enumerate(fix):
             c = [c1, c2, c3, c4]
             if fixation:
-                fixs = '\\draw[\\col, line width=\\lw, fill] (F%s)++(%f :.15) circle(.15);\n' % (str(idx+1), 
+                fixs = '\\draw[\\col, line width=\\lw, fill] (F%s)++(%f :.15) circle(.6);\n' % (str(idx+1), 
                               c[idx]+90 if idx in [0, 3] else c[idx]-90)
                 elem += fixs
             else:
-                fixs = '\\draw[\\col, line width=\\lw] (F%s)++(%f :.15) circle(.15);\n' % (str(idx+1),
+                fixs = '\\draw[\\col, line width=\\lw] (F%s)++(%f :.15) circle(.6);\n' % (str(idx+1),
                               c[idx]+90 if idx in [0, 3] else c[idx]-90)
                 elem += fixs
 

@@ -102,7 +102,7 @@ def Jd(x1, x2, xbar, n, h=.001):
     return np.array([(dx1 - d0)/h, (dx2 - d0)/h]), d0
 
 
-def find_opt_x(xbar, n):
+def find_opt_x(xbar, n, q1bnds):
     def objective(x):
         x1, x2 = x
 #        print([round(xx, 2) for xx in x])
@@ -111,13 +111,15 @@ def find_opt_x(xbar, n):
         return d, Jac
 
     x0 = [90, 0]
-    bnds = [(50, 90), (-.5, .5)]
+    bnds = [(q1bnds[0], q1bnds[1]), (-.5, .5)]
     solution = minimize(objective, x0, method='L-BFGS-B', bounds=bnds,
                         jac=True, tol=1e-7)
-    return solution.x
+    predicted_dist = objective(solution.x)[0]
+    return solution.x, predicted_dist
 
 
-def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1, show_stats=0):
+def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1, show_stats=0,
+                    q1bnds=[50, 90]):
     """
     opt planner
     """
@@ -127,21 +129,58 @@ def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1, show_stats=0):
         feet_ref = feet_act
         return [alp_ref, feet_ref]
 
-    print('xbar:\t', xbar)
     if xbar[0] < 0:
         print('Goal lies behind robot')
     # Not the case -> lets optimize
     feet_ref = [not(foot) for foot in feet_act]
-    x1opt, x2opt = find_opt_x(xbar, n)
+    (x1opt, x2opt), _ = find_opt_x(xbar, n, q1bnds)
     if alp_act[2] > 0:
         x1opt *= -1
     alpha_ref = alpha(x1opt, x2opt, feet_ref)
 
     if show_stats:
-        print('x1: \t\t{}\nx2: \t\t{}'.format(round(x1opt, 2), round(x2opt, 2)))
+        print('xbar:\t', xbar)
+        print('q1: \t\t{}\nq2: \t\t{}'.format(round(x1opt, 2), round(x2opt, 2)))
 #        print('R:', R(-n*deps)*xbar)
 
     return [alpha_ref, feet_ref]
+
+
+def optimal_planner_nhorizon(
+        xbar, alp_act, feet_act, lastq1, nmax=2, dist_min=.1, show_stats=0,
+        q1bnds=[40, 90]):
+
+    dist_act = np.linalg.norm(xbar)
+    if dist_act < dist_min:
+        alp_ref = alp_act
+        feet_ref = feet_act
+        return [alp_ref, feet_ref]
+
+    if xbar[0] < 0:
+        print('Goal lies behind robot')
+    # Not the case -> lets optimize
+    feet_ref = [not(foot) for foot in feet_act]
+    n = 1
+    (x1opt, x2opt), predicted_dist = find_opt_x(xbar, n, q1bnds)
+
+    print('xbar:\t\t', xbar)
+    print('actual dist:\t', dist_act)
+    while predicted_dist > dist_act:
+        n += 1
+        (x1opt, x2opt), predicted_dist = find_opt_x(xbar, n, q1bnds)
+        print('planning horizon: ', n, 'cycles. predicted dist: ', round(predicted_dist, 2))
+
+        if n > nmax - 1:
+            break
+#    if lastq1 > 0:  
+    x1opt = -np.sign(lastq1)*x1opt  # switch sign
+    alpha_ref = alpha(x1opt, x2opt, feet_ref)
+
+    if show_stats:
+        print('(q1, q2):\t ({},{})'.format(round(x1opt, 2), round(x2opt, 2)))
+
+    return [alpha_ref, feet_ref], [x1opt, x2opt]
+
 
 
 if __name__ == "__main__":
