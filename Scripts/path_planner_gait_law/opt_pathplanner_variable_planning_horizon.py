@@ -26,7 +26,6 @@ if __name__ == "__main__":
     l_leg, l_tor = calibration.get_len('vS11')
 
     f_l, f_o, f_a = [89, 10, 5.9]  # exp c110 redo fit
-    f_l, f_o, f_a = [.1, 10, 1]  # mighty
 
     for replay in range(1):
 
@@ -43,7 +42,7 @@ if __name__ == "__main__":
 
         xref = (70, 100)
 
-        XREF = [(70, 0), (70, 70), (0, 70), (0, 120)]
+        XREF = [(65, 0), (65, 65), (0, 65), (0, 110)]
 
         nmax = 4
         Q1, Q2, DIST = [], [], []
@@ -103,12 +102,36 @@ if __name__ == "__main__":
     for i, (x, y) in enumerate(XREF):
         plt.plot(x, y, marker='o', color='black', markersize=12, mfc='red')
         plt.text(x+2, y+2, 'Goal '+str(i), fontsize=30)
-    plt.axis('off')
+    
+    
+    plt.grid()
+    plt.yticks([0, 65, 110.002], ['0', '65', '110'])
+    plt.xticks([0, 65.002], ['0', '65'])
+    plt.ylim((-25, 120))
+    plt.xlim((-25, 110))
+    plt.axis('scaled')
+    plt.xlabel('x position (cm)')
+    plt.ylabel('y position (cm)')
+    
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+
 
     gait_str = gait.get_tikz_repr()
+
+    gait_str += '\\definecolor{color0}{rgb}{1,0.647058823529412,0}\n'
+    gait_str += '\\draw[color0, line width=1mm, -latex] (0,0)--(0,10);'
+
+    kwargs = {'extra_axis_parameters':
+              {'x=.1cm', 'y=.1cm', 'anchor=origin', 'xmin=-25',
+               'xmax=110','axis line style={draw opacity=0}',
+               'ymin=-25, ymax=120', 'tick pos=left',}}
     save.save_plt_as_tikz('Out/opt_pathplanner/gait.tex',
                           additional_tex_code=gait_str, 
-                          scope='scale=.1, opacity=1')
+                          scope='scale=.1, opacity=1', **kwargs)
 
     # %%
     plt.figure('Q1Q2')
