@@ -534,7 +534,7 @@ def save_animation(line_ani, name='gait.mp4', conv='avconv'):
 
 
 def tikz_draw_gecko(alp, ell, eps, F1, col='black',
-                    linewidth='.7mm', fix=None):
+                    linewidth='.5mm', fix=None, dashed=1):
     c1, c2, c3, c4 = model._calc_phi(alp, eps)
     l1, l2, lg, l3, l4 = ell
     for idx, a in enumerate(alp):
@@ -542,9 +542,15 @@ def tikz_draw_gecko(alp, ell, eps, F1, col='black',
             alp[idx] = 2 * a/abs(a)
     alp1, bet1, gam, alp2, bet2 = alp
     r1, r2, rg, r3, r4 = [model._calc_rad(ell[i], alp[i]) for i in range(5)]
+    if isinstance(col, str):
+        col = [col]*5
+    ls = ['', '', '', '']
+    if fix and dashed:
+        for idx in range(4):
+            if not fix[idx]:
+                ls[idx] = 'dashed, '
 
     elem = """
-\\def\\col{%s}
 \\def\\lw{%s}
 \\def\\alpi{%f}
 \\def\\beti{%f}
@@ -565,25 +571,29 @@ def tikz_draw_gecko(alp, ell, eps, F1, col='black',
 \\def\\riii{%f}
 \\def\\riv{%f}
 
+\\def\\R{.4}
+
 \\path (%f, %f)coordinate(F1);
 
-\\draw[\\col, line width=\\lw] (F1)arc(180+\\ci:180+\\ci+\\alpi:\\ri)coordinate(OM);
-\\draw[\\col, line width=\\lw] (OM)arc(180+\\ci+\\alpi:180+\\ci+\\alpi+\\beti:\\rii)coordinate(F2);
-\\draw[\\col, line width=\\lw] (OM)arc(90+\\ci+\\alpi:90+\\ci+\\alpi+\\gam:\\rg)coordinate(UM);
-\\draw[\\col, line width=\\lw] (UM)arc(\\gam+\\ci+\\alpi:\\gam+\\ci+\\alpi+\\alpii:\\riii)coordinate(F3);
-\\draw[\\col, line width=\\lw] (UM)arc(\\gam+\\ci+\\alpi:\\gam+\\ci+\\alpi-\\betii:\\riv)coordinate(F4);
+\\draw[%s, %s line width=\\lw] (F1)arc(180+\\ci:180+\\ci+\\alpi:\\ri)coordinate(OM);
+\\draw[%s, %s line width=\\lw] (OM)arc(180+\\ci+\\alpi:180+\\ci+\\alpi+\\beti:\\rii)coordinate(F2);
+\\draw[%s, line width=\\lw] (OM)arc(90+\\ci+\\alpi:90+\\ci+\\alpi+\\gam:\\rg)coordinate(UM);
+\\draw[%s, %s line width=\\lw] (UM)arc(\\gam+\\ci+\\alpi:\\gam+\\ci+\\alpi+\\alpii:\\riii)coordinate(F3);
+\\draw[%s, %s line width=\\lw] (UM)arc(\\gam+\\ci+\\alpi:\\gam+\\ci+\\alpi-\\betii:\\riv)coordinate(F4);
 
-""" % (col, linewidth, alp1, bet1, gam, alp2, bet2, gam*.5, eps, c1, c2, c3, c4,
-       r1, r2, rg, r3, r4, F1[0], F1[1])
+""" % (linewidth, alp1, bet1, gam, alp2, bet2, gam*.5, eps, c1, c2, c3, c4,
+       r1, r2, rg, r3, r4, F1[0], F1[1],
+       col[0], ls[0], col[1], ls[1], col[2], col[3], ls[2], col[4], ls[3])
     if fix:
+        col_ = [col[0], col[1], col[3], col[4]]
         for idx, fixation in enumerate(fix):
             c = [c1, c2, c3, c4]
             if fixation:
-                fixs = '\\draw[\\col, line width=\\lw, fill] (F%s)++(%f :.15) circle(.6);\n' % (str(idx+1), 
+                fixs = '\\draw[%s, line width=\\lw, fill] (F%s)++(%f :\\R) circle(\\R);\n' % (col_[idx], str(idx+1), 
                               c[idx]+90 if idx in [0, 3] else c[idx]-90)
                 elem += fixs
             else:
-                fixs = '\\draw[\\col, line width=\\lw] (F%s)++(%f :.15) circle(.6);\n' % (str(idx+1),
+                fixs = '\\draw[%s, line width=\\lw] (F%s)++(%f :\\R) circle(\\R);\n' % (col_[idx], str(idx+1),
                               c[idx]+90 if idx in [0, 3] else c[idx]-90)
                 elem += fixs
 
