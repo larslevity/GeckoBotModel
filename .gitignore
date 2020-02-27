@@ -10,6 +10,7 @@ __pycache__/
 avconv/*
 
 # Distribution / packaging
+Out/*
 .Python
 build/
 develop-eggs/
