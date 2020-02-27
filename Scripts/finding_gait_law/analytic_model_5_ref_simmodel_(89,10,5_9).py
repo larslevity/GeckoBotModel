@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 22 09:26:30 2019
+Created on Thu Feb 27 15:39:24 2020
 
 @author: AmP
 """
@@ -10,14 +10,14 @@ from os import path
 sys.path.insert(0, path.dirname(path.dirname(path.dirname(
         path.abspath(__file__)))))
 
-# %%
+
 if __name__ == "__main__":
     import numpy as np
     import matplotlib.pyplot as plt
 
     from Src.Utils import plot_fun as pf
-    from Src.Math import kinematic_model as model
     from Src.Utils import save as my_save
+    from Src.Math import kinematic_model as model
 
     from matplotlib import rc
     rc('text', usetex=True)
@@ -26,13 +26,16 @@ if __name__ == "__main__":
 #    rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 
     eps = 90
-    f_l, f_o, f_a = 10, 1, 10
+#    f_l, f_o, f_a = [.1, 1, 10]
+    f_l, f_o, f_a = 89, 10, 5.9
     weight = [f_l, f_o, f_a]
 
+    len_leg, len_tor = [9.1, 10.3]
+
     X1 = [60, 70, 80, 90]  # np.arange(70.01, 90.2, 10.)
+#    X1 = [50, 80, 90]  # np.arange(70.01, 90.2, 10.)
     X2 = np.arange(-.5, .52, .2)
 
-    len_leg, len_tor = [9.1, 10.3]
     n_cyc = 1
     take_every = 7
     sc = 10  # scale factor
@@ -50,11 +53,24 @@ if __name__ == "__main__":
                  ]
         return alpha
 
+    def alpha3(x1, x2, f, c1):
+        alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
+                 cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1),
+                 x1 + x2*abs(x1),
+                 cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
+                 cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1)
+                 ]
+        return alpha
+
+
+
+
 # %%
     for x1_idx, x1 in enumerate(X1):
-        alpha = alpha1
+        print('x1:', x1)
+        alpha = alpha3
         C1 = np.linspace(0, 2, 21)
-    
+
         RESULT_DX = np.zeros((len(X2), len(C1)))
         RESULT_DY = np.zeros((len(X2), len(C1)))
         RESULT_DEPS = np.zeros((len(X2), len(C1)))
@@ -77,10 +93,11 @@ if __name__ == "__main__":
                 ref2 += [ref2[0]]
 
                 init_pose = pf.GeckoBotPose(
-                        *model.set_initial_pose(ref2[0][0], eps,
-                                                (x2_idx*dx, c1_idx*dy),
-                                                len_leg=len_leg, len_tor=len_tor))
-                gait = pf.predict_gait(ref2, init_pose, weight, (len_leg, len_tor))
+                        *model.set_initial_pose(
+                                ref2[0][0], eps, (x2_idx*dx, c1_idx*dy),
+                                len_leg=len_leg, len_tor=len_tor))
+                gait = pf.predict_gait(
+                        ref2, init_pose, weight, (len_leg, len_tor))
 
                 (dxx, dyy), deps = gait.get_travel_distance()
                 RESULT_DX[x2_idx][c1_idx] = dxx
@@ -89,17 +106,17 @@ if __name__ == "__main__":
                 print('(x1, x2, c1):', round(x1, 2), round(x2, 2),
                       round(c1, 2), ':', round(deps, 2))
 
-                Phi = gait.plot_phi()
-                plt.title('Phi')
-
+#                Phi = gait.plot_phi()
+#                plt.title('Phi')
+#
                 cumstress = gait.plot_stress()
                 RESULT_STRESS[x2_idx][c1_idx] = cumstress
                 plt.title('Inner Stress')
-
-                Alp = gait.plot_alpha()
-                plt.title('Alpha')
-
-                plt.figure('GeckoBotGait')
+#
+#                Alp = gait.plot_alpha()
+#                plt.title('Alpha')
+#
+#                plt.figure('GeckoBotGait')
 
                 X_idx[x2_idx][c1_idx] = x2_idx*dx
                 Y_idx[x2_idx][c1_idx] = c1_idx*dy
@@ -108,19 +125,16 @@ if __name__ == "__main__":
 # %% Save all the figs as png
 
         fig = plt.figure('GeckoBotGait')
-        levels = [0, 25, 50, 100, 150, 200, 250, 350, 500, 1300]
+        levels = [0, 25, 50, 100, 150, 200, 250, 350, 500, 1000, 1500, 2000, 3000]
         contour = plt.contourf(X_idx, Y_idx, RESULT_STRESS, alpha=.8,
                                cmap='OrRd', levels=levels)
         plt.colorbar(shrink=0.5, aspect=10,
                      label="cumulative stress over gait")
-        plt.clim(0, 300)
+        plt.clim(0, 1500)
 
         surf = plt.contour(X_idx, Y_idx, RESULT_STRESS, levels=levels,
                            colors='black')
         plt.clabel(surf, levels, inline=True, fmt='%2.0f', fontsize=25)
-
-
-
 
         low_res = []
         gait_tex = ''
@@ -148,8 +162,6 @@ if __name__ == "__main__":
                                        fc=(1., 0.8, 0.8),
                                        ))
 
-
-
         plt.xticks(X_idx.T[0], [round(x, 1) for x in X2])
         plt.yticks(Y_idx[0], [round(x, 2) for x in C1])
         plt.xlabel('steering $q_2$')
@@ -166,15 +178,15 @@ if __name__ == "__main__":
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
 
-        fname = '../../Out/analytic_model5/c1_analysis_q1_{}.tex'.format(x1)
+        fname = '../../Out/analytic_model5ref2/c1_analysis_q1_{}.tex'.format(x1)
         my_save.save_plt_as_tikz(fname,
                                  additional_tex_code=gait_tex,
                                  scale=.7,
                                  scope='scale=.1, opacity=.8')
 
-
+#        fig.set_size_inches(10.5, 8)
 #        fig.savefig(fname[:-3]+'png', transparent=True,
-#                    dpi=300, bbox_inches='tight',)
+#                    dpi=300, bbox_inches='tight')
 # %%
         fig.clear()  # clean figure
 
