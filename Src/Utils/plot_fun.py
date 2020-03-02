@@ -67,19 +67,21 @@ class GeckoBotPose(object):
         print('phi: \t\t\t', [round(xx, 2) for xx in phi])
         print('eps: \t\t\t', round(eps, 2), '\n')
 
-    def get_tikz_repr(self, col='black', shift=None, linewidth='.7mm',
-                      **kwargs):
+    def get_tikz_repr(self, col='black', xshift=None, linewidth='.7mm',
+                      yshift=None, **kwargs):
         alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
                          self.x[-1])
         mx, my = self.markers
-        if shift:
-            geckostring = '\\begin{scope}[xshift=%scm]' % str(shift)
-        else:
+        if xshift:
+            geckostring = '\\begin{scope}[xshift=%scm]' % str(xshift)
+        if yshift:
+            geckostring = '\\begin{scope}[yshift=%scm]' % str(round(yshift, 4))
+        if not xshift and not yshift:
             geckostring = ''
         geckostring += tikz_draw_gecko(
                 alp, ell, eps, (mx[0], my[0]), fix=self.f, col=col,
                 linewidth=linewidth, **kwargs)
-        if shift:
+        if xshift or yshift:
             geckostring += '\\end{scope}\n \n \n'
         else:
             geckostring += '\n\n'
@@ -297,11 +299,16 @@ def predict_gait(references, initial_pose, weight=None, lens=[None]):
         gait.append_pose(GeckoBotPose(
                 x, (mx, my), f, constraint=constraint,
                 cost=cost))
+    _ = gait.poses.pop(0)  # remove initial pose
     return gait
 
 
 def markers_color():
     return ['red', 'orange', 'green', 'blue', 'magenta', 'darkred']
+
+
+def get_actuator_tikzcolor():
+    return ['red', 'red!50!black', 'orange', 'blue', 'blue!50!black']
 
 
 def get_point_repr(x, marks, f):
@@ -536,7 +543,7 @@ def save_animation(line_ani, name='gait.mp4', conv='avconv'):
 
 
 def tikz_draw_gecko(alp, ell, eps, F1, col='black',
-                    linewidth='.5mm', fix=None, dashed=1):
+                    linewidth='.5mm', fix=None, dashed=1, R=.4):
     c1, c2, c3, c4 = model._calc_phi(alp, eps)
     l1, l2, lg, l3, l4 = ell
     for idx, a in enumerate(alp):
@@ -573,7 +580,7 @@ def tikz_draw_gecko(alp, ell, eps, F1, col='black',
 \\def\\riii{%f}
 \\def\\riv{%f}
 
-\\def\\R{.4}
+\\def\\R{%f}
 
 \\path (%f, %f)coordinate(F1);
 
@@ -584,7 +591,7 @@ def tikz_draw_gecko(alp, ell, eps, F1, col='black',
 \\draw[%s, %s line width=\\lw] (UM)arc(\\gam+\\ci+\\alpi:\\gam+\\ci+\\alpi-\\betii:\\riv)coordinate(F4);
 
 """ % (linewidth, alp1, bet1, gam, alp2, bet2, gam*.5, eps, c1, c2, c3, c4,
-       r1, r2, rg, r3, r4, F1[0], F1[1],
+       r1, r2, rg, r3, r4, R, F1[0], F1[1],
        col[0], ls[0], col[1], ls[1], col[2], col[3], ls[2], col[4], ls[3])
     if fix:
         col_ = [col[0], col[1], col[3], col[4]]
