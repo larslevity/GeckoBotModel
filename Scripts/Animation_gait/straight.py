@@ -3,6 +3,9 @@
 Created on Mon Mar  2 13:48:39 2020
 
 @author: AmP
+
+convert -density 500 -delay 8 -loop 0 -alpha remove in.pdf out.gif
+
 """
 
 

@@ -211,44 +211,114 @@ def animate_gait(fig1, data_xy, data_markers, data_stress, inv=100,
 
 
 
-x, marks, f, constraint, cost, gait_ = predict_next_pose(
-        ref1, x, marks, len_leg=9.3, len_tor=11.2, gait=gait)
-
-x, marks, f, constraint, cost, gait_ = predict_next_pose(
-        ref2, x, marks, len_leg=9.3, len_tor=11.2, gait=gait)
-
-x, marks, f, constraint, cost, gait_ = predict_next_pose(
-        ref1, x, marks, len_leg=9.3, len_tor=11.2, gait=gait)
-
-
-
 gait_alt = pf.GeckoBotGait()
 gait_alt.append_pose(initial_pose)
-for (xx, marks, stress) in zip(X.val, Marks.val, Stress.val):
-    gait_alt.append_pose(pf.GeckoBotPose(xx, marks, ref1[1], cost=stress))
+
+x, marks, f1, constraint, cost, gait_ = predict_next_pose(
+        ref1, x, marks, len_leg=9.3, len_tor=11.2, gait=gait)
+idx1 = len(X.val)
+
+x, marks, f2, constraint, cost, gait_ = predict_next_pose(
+        ref2, x, marks, len_leg=9.3, len_tor=11.2, gait=gait)
+idx2 = len(X.val)
+
+x, marks, f1, constraint, cost, gait_ = predict_next_pose(
+        ref1, x, marks, len_leg=9.3, len_tor=11.2, gait=gait)
+idx3 = len(X.val)
+
+
+for idx, (xx, marks, stress) in enumerate(zip(X.val, Marks.val, Stress.val)):
+    f = f1
+    if idx > idx1:
+        f = f2
+        if idx > idx2:
+            f = f1
+    gait_alt.append_pose(pf.GeckoBotPose(xx, marks, f1, cost=stress))
 
 
 print(gait_.poses[1].x[0])
-
-print('Animate')
-
-
-fig1 = plt.figure('GeckoBotGaitAnimation')
-data_xy, data_markers, data_stress = [], [], []
+#%%
+# Meta Data
+data_xy, data_markers, data_stress, lims = [], [], [], [None, None, None, None]
 for pose in gait_alt.poses:
-    print(pose.x[0])
+    # print(pose.x[0])
     (x, y), (fpx, fpy), (nfpx, nfpy) = \
         pf.get_point_repr(pose.x, pose.markers, pose.f)
     data_xy.append((x, y))
     data_markers.append(pose.markers)
     data_stress.append(pose.cost)
-line_ani = animate_gait(fig1, data_xy, data_markers, data_stress)
-plt.show('GeckoBotGaitAnimation')
+    # check lims
+    xmin, xmax, ymin, ymax = min(x), max(x), min(y), max(y)
+    if lims[0]:
+        if lims[0] > xmin:
+            lims[0] = xmin
+        if lims[1] < xmax:
+            lims[1] = xmax
+        if lims[2] > ymin:
+            lims[2] = ymin
+        if lims[3] < ymax:
+            lims[3] = ymax
+    else:
+        lims = [xmin, xmax, ymin, ymax]
 
 
-pf.save_animation(line_ani)
+# %% TikZ Pic 
+
+header_0 = """
+\\documentclass[tikz]{standalone}
+\\begin{document}
+"""
+mar = 2
+header = """
+\\begin{tikzpicture}[scale=.1]
+\\path[use as bounding box](%f,%f) rectangle (%f,%f);
+""" % (lims[0]-mar, lims[2]-mar, lims[1]+mar, lims[3]+mar)
 
 
-gait_alt.plot_gait()
-initial_pose.plot()
+ending = """
+\\end{tikzpicture}
+"""
+
+ending_0 = """
+\\end{document}
+"""
+
+ani_str = header_0
+
+colors = pf.get_actuator_tikzcolor()
+max_stress = max(data_stress)
+
+for pose in gait_alt.poses:
+    _, ypos = pose.get_m1_pos()
+    stress = '\\path[fill=gray!50] (0,0)circle(%s);\n' % round(pose.cost/max_stress*5, 4)
+    ani_str += (header + stress
+                + pose.get_tikz_repr(R=.7, col=colors) + ending)
+
+filename = '../Out/Animations/simulation_model_animation.tex'
+
+with open(filename, 'w') as fout:
+    fout.writelines(ani_str + ending_0)
+
+# To convert:
+# convert -density 500 -delay 8 -loop 0 -alpha remove in.pdf out.gif
+
+
+
+
+
+
+# %%
+#print('Animate')
+#
+#
+#fig1 = plt.figure('GeckoBotGaitAnimation')
+#line_ani = animate_gait(fig1, data_xy, data_markers, data_stress)
+#plt.show('GeckoBotGaitAnimation')
+#
+#
+#pf.save_animation(line_ani)
+#
+#
+#gait_alt.plot_gait()
+#initial_pose.plot()
 
