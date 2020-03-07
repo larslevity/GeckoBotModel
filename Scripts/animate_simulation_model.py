@@ -20,18 +20,30 @@ from Src.Math import kinematic_model as model
 
 
 
-alp = [0, 90, 90, 0, 90]
 eps = 90
 ell = [9.3, 9.3, 11.2, 9.3, 9.3]
 p1 = (0, 0)
 
-# REF
-ref1 = [[20, 10, -90, 30, 120], [1, 0, 0, 1]]
-ref2 = [[80, 100, 120, 0, 100], [0, 1, 1, 0]]
+# REF straight
+alp = [5, 85, 87.5, 5, 85]
+ref1 = [[85, 5, -87.5, 85, 5], [1, 0, 0, 1]]
+ref2 = [[5, 85, 87.5, 5, 85], [0, 1, 1, 0]]
+
+
+# REF curve
+alp = [5, 5, -24, 5, 5]
+ref1 = [[164, 124, -152, 221, 62], [1, 0, 0, 1]]
+ref2 = [[5, 5, -24, 5, 5], [0, 1, 1, 0]]
+
 
 
 x, marks, f = model.set_initial_pose(
         alp, eps, p1, len_leg=ell[0], len_tor=ell[2])
+
+ref1_pose = pf.GeckoBotPose(*model.set_initial_pose(
+        ref1[0], eps, (15, -8), len_leg=ell[0]/5, len_tor=ell[2]/5))
+ref2_pose = pf.GeckoBotPose(*model.set_initial_pose(
+        ref2[0], eps, (15, -8), len_leg=ell[0]/5, len_tor=ell[2]/5))
 
 
 initial_marks = marks
@@ -233,13 +245,13 @@ for idx, (xx, marks, stress) in enumerate(zip(X.val, Marks.val, Stress.val)):
         f = f2
         if idx > idx2:
             f = f1
-    gait_alt.append_pose(pf.GeckoBotPose(xx, marks, f1, cost=stress))
+    gait_alt.append_pose(pf.GeckoBotPose(xx, marks, f, cost=stress))
 
 
 print(gait_.poses[1].x[0])
 #%%
 # Meta Data
-data_xy, data_markers, data_stress, lims = [], [], [], [None, None, None, None]
+data_xy, data_markers, data_stress, lims = [], [], [], [-1, 18, -11, 5]
 for pose in gait_alt.poses:
     # print(pose.x[0])
     (x, y), (fpx, fpy), (nfpx, nfpy) = \
@@ -249,17 +261,14 @@ for pose in gait_alt.poses:
     data_stress.append(pose.cost)
     # check lims
     xmin, xmax, ymin, ymax = min(x), max(x), min(y), max(y)
-    if lims[0]:
-        if lims[0] > xmin:
-            lims[0] = xmin
-        if lims[1] < xmax:
-            lims[1] = xmax
-        if lims[2] > ymin:
-            lims[2] = ymin
-        if lims[3] < ymax:
-            lims[3] = ymax
-    else:
-        lims = [xmin, xmax, ymin, ymax]
+    if lims[0] > xmin:
+        lims[0] = xmin
+    if lims[1] < xmax:
+        lims[1] = xmax
+    if lims[2] > ymin:
+        lims[2] = ymin
+    if lims[3] < ymax:
+        lims[3] = ymax
 
 
 # %% TikZ Pic 
@@ -283,18 +292,33 @@ ending_0 = """
 \\end{document}
 """
 
+init_str = initial_pose.get_tikz_repr(R=.7, col='gray!50')
+init2_str = gait_alt.poses[idx1].get_tikz_repr(R=.7, col='gray!50')
+init3_str = gait_alt.poses[idx2].get_tikz_repr(R=.7, col='gray!50')
+ref1_str = ref1_pose.get_tikz_repr(R=.35, col='blue!50', linewidth=.35, dashed=0)
+ref2_str = ref2_pose.get_tikz_repr(R=.35, col='blue!50', linewidth=.35, dashed=0)
+
 ani_str = header_0
 
 colors = pf.get_actuator_tikzcolor()
 max_stress = max(data_stress)
 
-for pose in gait_alt.poses:
+for idx, pose in enumerate(gait_alt.poses):
+    ref = ref1_str
+    init = init_str
+    if idx > idx1:
+        ref = ref2_str
+        init = init2_str
+        if idx > idx2:
+            ref = ref1_str
+            init = init3_str
     _, ypos = pose.get_m1_pos()
-    stress = '\\path[fill=gray!50] (0,0)circle(%s);\n' % round(pose.cost/max_stress*5, 4)
-    ani_str += (header + stress
+    stress = '\\path[fill=red!50] (15,5)circle(%s)node[red, scale=.75]{stress};\n' % round(pose.cost/max_stress*5, 4)
+    ref_note = '\\path (15, -3)node[blue, scale=0.75]{ref};\n';
+    ani_str += (header + stress + init + ref + ref_note
                 + pose.get_tikz_repr(R=.7, col=colors) + ending)
 
-filename = '../Out/Animations/simulation_model_animation.tex'
+filename = '../Out/Animations/simulation_model_animation_curve.tex'
 
 with open(filename, 'w') as fout:
     fout.writelines(ani_str + ending_0)

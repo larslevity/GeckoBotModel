@@ -310,4 +310,4 @@ def set_initial_pose(alp_, eps, p1, ell=None, len_leg=1, len_tor=1.2):
                   [p0[1], None, None, None, None, None])
     mx, my = _calc_coords(x, marks_init, f)
     # return (x, (mx, my), f)
-    return x, (mx, my), f
+    return x, (mx, my), [0, 0, 0, 0]
