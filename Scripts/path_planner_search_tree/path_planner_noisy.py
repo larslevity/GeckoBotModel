@@ -50,7 +50,7 @@ if __name__ == "__main__":
         alpha, feet, _,  pose_id = ref.get_next_reference(
                 act_pos, eps, xref, act_pose, save_as_tikz=True, gait=gait,
                 save_png=False)
-        alpha = add_noise(alpha)
+#        alpha = add_noise(alpha)
         print(alpha)
         print(calc_dist(gait.poses[-1], xref))
 
