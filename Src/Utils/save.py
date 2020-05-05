@@ -45,7 +45,8 @@ def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, scope=None,
                   {'anchor=origin', 'disabledatascaling', 'x=.1cm', 'y=.1cm',
                    'axis line style={draw opacity=0}',
                    'tick label style={font=\\Large}',
-                   'label style={font=\\huge}'}}
+                   'label style={font=\\huge}',
+                   'clip mode=individual'}}
     tikz_save(aux_fn, encoding='utf-8', **kwargs)
     insert_tex_header(aux_fn, additional_tex_code, scale, scope)
 

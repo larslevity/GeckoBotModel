@@ -15,16 +15,47 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from Src.Utils import save
+from Src.TrajectoryPlanner import rotate_on_spot as ros
 
 
-def draw_point_dir(point, direction, size=12, label=None, colp='red'):
+
+def tex_str(pystr):
+    if len(pystr)==1 or (pystr[0] not in ['L', 'R', 'C']):
+        return pystr
+    if pystr[1] == ':':
+        out = pystr.replace(':fix', '_{ \\mathrm{fix} }')
+        out = out.replace(':dfx', '_{ \\mathrm{dfx} }')
+        return out
+    else:
+        out = pystr.replace('_', ',')
+        out = out[0] + '_{' + out[1:4] + '}' + out[4:]
+        out = out.replace('}:fix', ', \\mathrm{fix}}')
+        out = out.replace('}:dfx', ', \\mathrm{dfx}}')
+
+        return out
+    
+
+
+def draw_point_dir(point, direction, msize=12, label=None, colp='red', **kwargs):
+    x1, y1 = point
+    dx, dy = direction
+    plt.plot([x1], [y1], marker='o', color=colp, markersize=msize)
+    plt.plot([x1, x1+dx], [y1, y1+dy], color='blue')
+    if label:
+        plt.text(x1+dx, y1+dy, label, **kwargs)
+    plt.axis('equal')
+
+
+def draw_point_arrow(point, direction, size=12, label=None, colp='red', w=.8):
     x1, y1 = point
     dx, dy = direction
     plt.plot([x1], [y1], marker='o', color=colp, markersize=size)
-    plt.plot([x1, x1+dx], [y1, y1+dy], color='blue')
+    plt.arrow(x1, y1, dx, dy, color=colp, width=w)
     if label:
         plt.text(x1+dx, y1+dy, label)
     plt.axis('equal')
+
+
 
 
 def draw_line(point1, point2, color='gray', linestyle='dashed'):
@@ -36,37 +67,33 @@ def draw_line(point1, point2, color='gray', linestyle='dashed'):
 g = {  # manually tuned
      'rest': [('R', ((.0, .0), -1)), ('L', ((0, 0), 1)),
              ('rest', ((0, 0), 0))],
+
+# CRAWL
+     'C1_0': [('C1_2:dfx', None)],
+     'C1_2:dfx': [('L', ((0, 1), 1)), ('R', ((0, 1), -1)),
+              ('C1_0', ((0, .1), 70)), ('C1_0', ((0, .1), -70))],
+
 # RIGHT
      'R': [  # ('rest', ((0, 0), 0)),
-             ('R:fix', ((0, .71), 1)), ('R:fix', ((0.15, -.2), -80)),
-             ('R:fix', ((.1, .4), -10)), ('R2_0', ((.1, .3), -20))],
+             ('R:fix', ((0, .71), 1)), ('R:fix', ((.1, .2), -80)),
+             ('R:fix', ((.1, .5), -10)), ('R2_0', ((.1, .4), -20)),
+             ('C1_0', ((0, 0), 120)), ('C1_0', ((0, 0), -120))],
      'R:fix': [('R:dfx', None)],
-     'R:dfx': [('L', ((0, .71), 1)), ('110', ((.15, -.2), -80)),
-               ('R1_0', ((.1, .4), -10))],
+     'R:dfx': [('L', ((0, .71), 1)),
+               ('R1_0', ((.1, .4), -10)), ('R3_0', ((.1, .2), -80))],
 
-     '110': [('110f', None)],
-     '110f': [('110df', None)],
-     '110df': [('111', None)],
-     '111': [('111f', None)],
-     '111f': [('111df', None)],
-     '111df': [('112', None)],
-     '112': [('112f', None)],
-     '112f': [('112df', ((0, 1), -1)), ('110df', ((0.15, -.2), -80)),
-              ('115df', ((0, 1), 1)), ('113df', ((-0.15, -.2), 80))],
-     '112df': [('R', None)],
-
-#     'R3_0': [('R3_0:fix', None)],
-#     'R3_0:fix': [('R3_0:dfx', None)],
-#     'R3_0:dfx': [('R3_1', None)],
-#     'R3_1': [('R3_1:fix', None)],
-#     'R3_1:fix': [('R3_1:dfx', None)],
-#     'R3_1:dfx': [('R3_2', ((0, .2), -130)), ('R3_3', ((0, .4), -70))],
-#     'R3_2': [('R3_2:fix', None)],
-#     'R3_2:fix': [('R3_2:dfx', None)],
-#     'R3_2:dfx': [('R3_1', None)],
-#     'R3_3': [('R3_3:fix', None)],
-#     'R3_3:fix': [('R3_3:dfx', None)],
-#     'R3_3:dfx': [('R', None)],
+     'R3_0': [('R3_0:fix', None)],
+     'R3_0:fix': [('R3_0:dfx', None)],
+     'R3_0:dfx': [('R3_1', None)],
+     'R3_1': [('R3_1:fix', None)],
+     'R3_1:fix': [('R3_1:dfx', None)],
+     'R3_1:dfx': [('R3_2', ((0, .2), -130)), ('R3_3', ((.1, .4), -70))],
+     'R3_2': [('R3_2:fix', None)],
+     'R3_2:fix': [('R3_2:dfx', None)],
+     'R3_2:dfx': [('R3_1', None)],
+     'R3_3': [('R3_3:fix', None)],
+     'R3_3:fix': [('R3_3:dfx', None)],
+     'R3_3:dfx': [('R', None)],
 
      'R1_0': [('R1_0:fix', None)],
      'R1_0:fix': [('R1_0:dfx', None)],
@@ -80,139 +107,118 @@ g = {  # manually tuned
      'R2_1:dfx': [('R2_0', ((0, .4), -30)), ('R', ((0, .6), -15))],
 # LEFT
      'L': [  # ('rest', ((0, 0), 0)),
-             ('010f', ((0, .71), -1)), ('010f', ((-.15, -.2), 80)),
-             ('010f', ((-.1, .4), 10)), ('012', ((-.1, .4), 20))],
-     '010f': [('010df', None)],
-     '010df': [('R', ((0, .71), -1)), ('113', ((-.15, -.2), 80)),
-               ('L1_0', ((-.1, .4), 10))],
+             ('L:fix', ((0, .71), -1)), ('L:fix', ((-.1, .2), 80)),
+             ('L:fix', ((-.1, .5), 10)), ('L2_0', ((-.1, .4), 20)),
+             ('C1_0', ((0, 0), 120)), ('C1_0', ((0, 0), -120))],
+     'L:fix': [('L:dfx', None)],
+     'L:dfx': [('R', ((0, .71), -1)),
+               ('L1_0', ((-.1, .4), 10)), ('L3_0', ((-.1, .2), 80))],
 
-     '113': [('113f', None)],
-     '113f': [('113df', None)],
-     '113df': [('114', None)],
-     '114': [('114f', None)],
-     '114f': [('114df', None)],
-     '114df': [('115', None)],
-     '115': [('112f', None)],
-#     '115f': [('115df', ((0, 1), 1)), ('113df', ((-0.15, -.2), 80))],
-     '115df': [('L', None)],
-
-#     'L3_0': [('L3_0:fix', None)],
-#     'L3_0:fix': [('L3_0:dfx', None)],
-#     'L3_0:dfx': [('L3_1', None)],
-#     'L3_1': [('L3_1:fix', None)],
-#     'L3_1:fix': [('L3_1:dfx', None)],
-#     'L3_1:dfx': [('L3_2', ((0, .2), 130)), ('L3_3', ((0, .4), 70))],
-#     'L3_2': [('L3_2:fix', None)],
-#     'L3_2:fix': [('L3_2:dfx', None)],
-#     'L3_2:dfx': [('L3_1', None)],
-#     'L3_3': [('L3_3:fix', None)],
-#     'L3_3:fix': [('L3_3:dfx', None)],
-#     'L3_3:dfx': [('L', None)],
+     'L3_0': [('L3_0:fix', None)],
+     'L3_0:fix': [('L3_0:dfx', None)],
+     'L3_0:dfx': [('L3_1', None)],
+     'L3_1': [('L3_1:fix', None)],
+     'L3_1:fix': [('L3_1:dfx', None)],
+     'L3_1:dfx': [('L3_2', ((0, .2), 130)), ('L3_3', ((0, .4), 70))],
+     'L3_2': [('L3_2:fix', None)],
+     'L3_2:fix': [('L3_2:dfx', None)],
+     'L3_2:dfx': [('L3_1', None)],
+     'L3_3': [('L3_3:fix', None)],
+     'L3_3:fix': [('L3_3:dfx', None)],
+     'L3_3:dfx': [('L', None)],
 
      'L1_0': [('L1_0:fix', None)],
      'L1_0:fix': [('L1_0:dfx', None)],
      'L1_0:dfx': [('L', None)],
 
-     '012': [('012f', None)],
-     '012f': [('012df', None)],
-     '012df': [('013', None)],
-     '013': [('013f', None)],
-     '013f': [('013df', None)],
-     '013df': [('012', ((0, .4), 30)), ('L', ((0, 0.6), 15))]
+     'L2_0': [('L2_0:fix', None)],
+     'L2_0:fix': [('L2_0:dfx', None)],
+     'L2_0:dfx': [('L2_1', None)],
+     'L2_1': [('L2_1:fix', None)],
+     'L2_1:fix': [('L2_1:dfx', None)],
+     'L2_1:dfx': [('L2_0', ((0, .4), 30)), ('L', ((0, 0.6), 15))]
     }
+
+t_move = .8
+t_fix = .1
+t_dfx = .1
+
 
 ref = {
      'rest': [[0, 0, 0, 0, 0], [1, 0, 0, 0], .1],
 
-     'R': [[0, 90, 90, 0, 90], [0, 1, 1, 0], .8],
-     'R:fix': [[0, 90, 90, 0, 90], [1, 1, 1, 1], .1],
-     'R:dfx': [[0, 90, 90, 0, 90], [1, 0, 0, 1], .1],
+# CRAWL
 
-     '110': [[45, 45, 0, 45, 45], [1, 0, 0, 1], .8],
-     '110f': [[45, 45, 0, 45, 45], [1, 1, 1, 1], .1],
-     '110df': [[45, 45, 0, 45, 45], [1, 1, 0, 0], .1],
+     'C1_0': [[45, 45, 0, 45, 45], [1, 0, 0, 1], t_move],
+     'C1_2:dfx': [[45, 45, 0, 45, 45], [0, 1, 1, 0], t_dfx],
 
-     '111': [[45, 45, -90, 45, 45], [1, 1, 0, 0], .8],
-     '111f': [[45, 45, -90, 45, 45], [1, 1, 1, 1], .1],
-     '111df': [[45, 45, -90, 45, 45], [0, 0, 1, 1], .1],
+# RIGHT
 
-     '112': [[45, 45, 10, 45, 45], [0, 0, 1, 1], .8],
-     '112f': [[45, 45, 0, 45, 45], [1, 1, 1, 1], .1],
-     '112df': [[45, 45, 0, 45, 45], [0, 1, 1, 0], .1],
+     'R': [[0, 90, 90, 0, 90], [0, 1, 1, 0], t_move],
+     'R:fix': [[0, 90, 90, 0, 90], [1, 1, 1, 1], t_fix],
+     'R:dfx': [[0, 90, 90, 0, 90], [1, 0, 0, 1], t_dfx],
 
-     'R3_0': [[50, 30, 90, 30, 150], [1, 0, 0, 1], .8],
-     'R3_0:fix': [[50, 30, 90, 30, 150], [1, 1, 1, 1], .1],
-     'R3_0:dfx': [[50, 30, 90, 30, 150], [0, 1, 1, 0], .1],
+     'R3_0': [[50, 30, 90, 30, 150], [1, 0, 0, 1], t_move],
+     'R3_0:fix': [[50, 30, 90, 30, 150], [1, 1, 1, 1], t_fix],
+     'R3_0:dfx': [[50, 30, 90, 30, 150], [0, 1, 1, 0], t_dfx],
 
-     'R3_1': [[124, 164, 152, 62, 221], [0, 1, 1, 0], .8],
-     'R3_1:fix': [[124, 164, 152, 62, 221], [1, 1, 1, 1], .1],
-     'R3_1:dfx': [[124, 164, 152, 62, 221], [1, 0, 0, 1], .1],
+     'R3_1': [[124, 164, 152, 62, 221], [0, 1, 1, 0], t_move],
+     'R3_1:fix': [[124, 164, 152, 62, 221], [1, 1, 1, 1], t_fix],
+     'R3_1:dfx': [[124, 164, 152, 62, 221], [1, 0, 0, 1], t_dfx],
 
-     'R3_2': [[0, 0, 24, 0, 0], [1, 0, 0, 1], .8],
-     'R3_2:fix': [[0, 0, 24, 0, 0], [1, 1, 1, 1], .1],
-     'R3_2:dfx': [[0, 0, 24, 0, 0], [0, 1, 1, 0], .1],
+     'R3_2': [[0, 0, 24, 0, 0], [1, 0, 0, 1], t_move],
+     'R3_2:fix': [[0, 0, 24, 0, 0], [1, 1, 1, 1], t_fix],
+     'R3_2:dfx': [[0, 0, 24, 0, 0], [0, 1, 1, 0], t_dfx],
 
-     'R3_3': [[30, 90, 80, 10, 10], [1, 0, 0, 1], .8],
-     'R3_3:fix': [[30, 90, 80, 10, 10], [1, 1, 1, 1], .1],
-     'R3_3:dfx': [[30, 90, 80, 10, 10], [0, 1, 1, 0], .1],
+     'R3_3': [[30, 90, 80, 10, 10], [1, 0, 0, 1], t_move],
+     'R3_3:fix': [[30, 90, 80, 10, 10], [1, 1, 1, 1], t_fix],
+     'R3_3:dfx': [[30, 90, 80, 10, 10], [0, 1, 1, 0], t_dfx],
 
-     'R1_0': [[40, 1, -10, 60, 10], [1, 0, 0, 1], .8],
-     'R1_0:fix': [[40, 1, -10, 60, 10], [1, 1, 1, 1], .1],
-     'R1_0:dfx': [[40, 1, -10, 60, 10], [0, 1, 1, 0], .1],
+     'R1_0': [[40, 1, -10, 60, 10], [1, 0, 0, 1], t_move],
+     'R1_0:fix': [[40, 1, -10, 60, 10], [1, 1, 1, 1], t_fix],
+     'R1_0:dfx': [[40, 1, -10, 60, 10], [0, 1, 1, 0], t_dfx],
 
-     'R2_0': [[48, 104, 114, 27, 124], [0, 1, 1, 0], .8],
-     'R2_0:fix': [[48, 104, 114, 27, 124], [1, 1, 1, 1], .1],
-     'R2_0:dfx': [[48, 104, 114, 27, 124], [1, 0, 0, 1], .1],
+     'R2_0': [[48, 104, 114, 27, 124], [0, 1, 1, 0], t_move],
+     'R2_0:fix': [[48, 104, 114, 27, 124], [1, 1, 1, 1], t_fix],
+     'R2_0:dfx': [[48, 104, 114, 27, 124], [1, 0, 0, 1], t_dfx],
 
-     'R2_1': [[1, 72, -10, 1, 55], [1, 0, 0, 1], .8],
-     'R2_1:fix': [[1, 72, -10, 1, 55], [1, 1, 1, 1], .1],
-     'R2_1:dfx': [[1, 72, -10, 1, 55], [0, 1, 1, 0], .1],
+     'R2_1': [[1, 72, -10, 1, 55], [1, 0, 0, 1], t_move],
+     'R2_1:fix': [[1, 72, -10, 1, 55], [1, 1, 1, 1], t_fix],
+     'R2_1:dfx': [[1, 72, -10, 1, 55], [0, 1, 1, 0], t_dfx],
 
      #   LEFT
 
-     'L': [[90, 0, -90, 90, 0], [1, 0, 0, 1], .8],
-     '010f': [[90, 0, -90, 90, 0], [1, 1, 1, 1], .1],
-     '010df': [[90, 0, -90, 90, 0], [0, 1, 1, 0], .1],
+     'L': [[90, 0, -90, 90, 0], [1, 0, 0, 1], t_move],
+     'L:fix': [[90, 0, -90, 90, 0], [1, 1, 1, 1], t_fix],
+     'L:dfx': [[90, 0, -90, 90, 0], [0, 1, 1, 0], t_dfx],
 
-     '113': [[45, 45, 0, 45, 45], [0, 1, 1, 0], .8],
-     '113f': [[45, 45, 0, 45, 45], [1, 1, 1, 1], .1],
-     '113df': [[45, 45, 0, 45, 45], [1, 1, 0, 0], .1],
+     'L3_0': [[30, 50, -90, 150, 30], [0, 1, 1, 0], t_move],
+     'L3_0:fix': [[30, 50, -90, 150, 30], [1, 1, 1, 1], t_fix],
+     'L3_0:dfx': [[30, 50, -90, 150, 30], [1, 0, 0, 1], t_dfx],
 
-     '114': [[45, 45, 90, 45, 45], [1, 1, 0, 0], .8],
-     '114f': [[45, 45, 90, 45, 45], [1, 1, 1, 1], .1],
-     '114df': [[45, 45, 90, 45, 45], [0, 0, 1, 1], .1],
+     'L3_1': [[164, 124, -152, 221, 62], [1, 0, 0, 1], t_move],
+     'L3_1:fix': [[164, 124, -152, 221, 62], [1, 1, 1, 1], t_fix],
+     'L3_1:dfx': [[164, 124, -152, 221, 62], [0, 1, 1, 0], t_dfx],
 
-     '115': [[45, 45, -10, 45, 45], [0, 0, 1, 1], .8],
-#     '115f': [[45, 45, 0, 45, 45], [1, 1, 1, 1], .1],
-     '115df': [[45, 45, 0, 45, 45], [1, 0, 0, 1], .1],
+     'L3_2': [[0, 0, -24, 0, 0], [0, 1, 1, 0], t_move],
+     'L3_2:fix': [[0, 0, -24, 0, 0], [1, 1, 1, 1], t_fix],
+     'L3_2:dfx': [[0, 0, -24, 0, 0], [1, 0, 0, 1], t_dfx],
 
-     'L3_0': [[30, 50, -90, 150, 30], [0, 1, 1, 0], .8],
-     'L3_0:fix': [[30, 50, -90, 150, 30], [1, 1, 1, 1], .1],
-     'L3_0:dfx': [[30, 50, -90, 150, 30], [1, 0, 0, 1], .1],
+     'L3_3': [[90, 30, -80, 10, 10], [0, 1, 1, 0], t_move],
+     'L3_3:fix': [[90, 30, -80, 10, 10], [1, 1, 1, 1], t_fix],
+     'L3_3:dfx': [[90, 30, -80, 10, 10], [1, 0, 0, 1], t_dfx],
 
-     'L3_1': [[164, 124, -152, 221, 62], [1, 0, 0, 1], .8],
-     'L3_1:fix': [[164, 124, -152, 221, 62], [1, 1, 1, 1], .1],
-     'L3_1:dfx': [[164, 124, -152, 221, 62], [0, 1, 1, 0], .1],
+     'L1_0': [[1, 40, 10, 10, 60], [0, 1, 1, 0], t_move],
+     'L1_0:fix': [[1, 40, 10, 10, 60], [1, 1, 1, 1], t_fix],
+     'L1_0:dfx': [[1, 40, 10, 10, 60], [1, 0, 0, 1], t_dfx],
 
-     'L3_2': [[0, 0, -24, 0, 0], [0, 1, 1, 0], .8],
-     'L3_2:fix': [[0, 0, -24, 0, 0], [1, 1, 1, 1], .1],
-     'L3_2:dfx': [[0, 0, -24, 0, 0], [1, 0, 0, 1], .1],
+     'L2_0': [[104, 48, -114, 124, 27], [1, 0, 0, 1], t_move],
+     'L2_0:fix': [[104, 48, -114, 124, 27], [1, 1, 1, 1], t_fix],
+     'L2_0:dfx': [[104, 48, -114, 124, 27], [0, 1, 1, 0], t_dfx],
 
-     'L3_3': [[90, 30, -80, 10, 10], [0, 1, 1, 0], .8],
-     'L3_3:fix': [[90, 30, -80, 10, 10], [1, 1, 1, 1], .1],
-     'L3_3:dfx': [[90, 30, -80, 10, 10], [1, 0, 0, 1], .1],
-
-     'L1_0': [[1, 40, 10, 10, 60], [0, 1, 1, 0], .8],
-     'L1_0:fix': [[1, 40, 10, 10, 60], [1, 1, 1, 1], .1],
-     'L1_0:dfx': [[1, 40, 10, 10, 60], [1, 0, 0, 1], .1],
-
-     '012': [[104, 48, -114, 124, 27], [1, 0, 0, 1], .8],
-     '012f': [[104, 48, -114, 124, 27], [1, 1, 1, 1], .1],
-     '012df': [[104, 48, -114, 124, 27], [0, 1, 1, 0], .1],
-
-     '013': [[72, 1, -70, 55, 1], [0, 1, 1, 0], .8],
-     '013f': [[72, 1, -70, 55, 1], [1, 1, 1, 1], .1],
-     '013df': [[72, 1, -70, 55, 1], [1, 0, 0, 1], .1]
+     'L2_1': [[72, 1, -70, 55, 1], [0, 1, 1, 0], t_move],
+     'L2_1:fix': [[72, 1, -70, 55, 1], [1, 1, 1, 1], t_fix],
+     'L2_1:dfx': [[72, 1, -70, 55, 1], [1, 0, 0, 1], t_dfx]
       }
 
 
@@ -249,6 +255,9 @@ class ReferenceGenerator(object):
         self.idx = 0
         self.last_deps = None
         self.check_consistency()
+        self.crawl = False
+        self.crawl_ptrn = None
+        self.crawl_idx = None
 
     def check_consistency(self):
         for key in self.graph.vertices():
@@ -257,11 +266,11 @@ class ReferenceGenerator(object):
             except KeyError as err:
                 print(err, 'there is no ref')
         for key in self.ref:
-            if key[-1] == 'f' and key[-2] != 'd':
+            if key[-3:] == 'fix':
                 assert sum(self.ref[key][1]) == 4  # all feet must be fix
-            if key[-1] == 'f' and key[-2] == 'd':
+            if key[-3:] == 'dfx':
                 assert sum(self.ref[key][1]) == 2  # 2 feet must be fix
-            if key[-1] != 'f':
+            if key[-1] != 'x':
                 try:
                     assert sum(self.ref[key][1]) == 2  # 2 feet must be fix
                 except AssertionError:
@@ -278,8 +287,8 @@ class ReferenceGenerator(object):
         act_dist = np.linalg.norm(dpos)
 
         if act_dist < .5:
-            pose_id = 'rest'
-        else:
+            pose_id = 'rest'    
+        elif not self.crawl:
             if len(self.graph.get_children(self.pose)) > 1:
                 verts = [v for v, weight in self.graph.get_children(self.pose)]
                 plot = False if all(v[-1] == 'f' for v in verts) else True
@@ -287,18 +296,20 @@ class ReferenceGenerator(object):
                 if plot:
                     figname = 'dec_'+str(self.idx)
                     plt.figure(figname)
-                    draw_point_dir(act_pos, act_dir, size=20)
-                    draw_point_dir(act_pos, [0, 0], size=20,
-                                   label='ROBOT (%s)' % self.pose)
-                    draw_point_dir(xref, [0, 0], size=20,
+                    draw_point_dir(act_pos, act_dir*10, msize=10)
+                    draw_point_dir(act_pos, [0, 0], msize=10,
+                                   label='ROBOT ($ %s $)' % tex_str(self.pose))
+                    draw_point_dir(xref, [0, 0], msize=20,
                                    label='GOAL')
                     act_pose.plot('gray')
                     if save_as_tikz:
                         plt.figure('tikz_'+figname)
-                        draw_point_dir(act_pos, act_dir*.5, size=8)
-                        draw_point_dir(act_pos, [.1, 0], size=1,
-                                       label='ROBOT (%s)' % self.pose)
-                        draw_point_dir(xref, [0, 0], size=8)
+                        draw_point_arrow(act_pos, act_dir*4, size=7, colp='orange')
+                        draw_point_dir(act_pos, [1, 0], msize=1,
+                                       label='robot ($ %s $)' % tex_str(self.pose),
+                                       colp='orange',
+                                       size=20)  # label size
+                        draw_point_dir(xref, [0, 0], msize=7)  # goal
                     
 
                 def suitability(translation_, rotation, v=None, plot=True):
@@ -314,13 +325,15 @@ class ReferenceGenerator(object):
                     # Label the thing
                     if plot:
                         plt.figure(figname)
-                        draw_point_dir(pos_, dir_, label=v)
-                        draw_line(act_pos+translation, xref)
+                        draw_point_dir(act_pos+translation*10, dir_*10, label=v)
+                        draw_line(act_pos+translation*10, xref)
                         if save_as_tikz:
                             plt.figure('tikz_'+figname)
-                            draw_point_dir(pos_, dir_, label=v, size=5,
-                                           colp='orange')
-                            draw_line(act_pos+translation, xref)
+                            draw_point_arrow(act_pos+translation*10, dir_*4, size=5, colp='darkorange', w=.4)
+                            draw_point_dir(act_pos+translation*10, dir_*10, label='$'+tex_str(v)+'$', msize=5,
+                                           colp='darkorange',
+                                           size=20)  # label size
+                            draw_line(act_pos+translation*10, xref)
 
                     return (dist_, deps_)
 
@@ -336,29 +349,32 @@ class ReferenceGenerator(object):
                     _, pose_id = deps.minimum()
                 else:
                     max_deps, _ = deps.maximum()
-                    min_ddist, _ = ddist.maximum()
+                    max_ddist, _ = ddist.maximum()
 
                     w = .5
                     dec = CandidateHandler()
                     for key in deps:
                         for dist, eps in zip(ddist[key], deps[key]):
-                            dec[key] = w*dist/min_ddist + (1-w)*abs(eps)/max_deps
+                            dec[key] = w*dist/max_ddist + (1-w)*abs(eps)/max_deps
                     min_dec, pose_id = dec.minimum()
 
                 if plot:
                     plt.figure(figname)
-                    draw_point_dir(act_pos-act_dir*2, [0, 0], size=1,
-                                   label='choose (%s)' % pose_id)
+                    draw_point_dir(act_pos-act_dir*20, [0, 0], msize=1,
+                                   label='choose ($ %s $)' % pose_id)
                     if save_as_tikz:
                         plt.figure('tikz_'+figname)
-                        draw_point_dir(act_pos-act_dir*2, [0, 0], size=1,
-                                       label='choose (%s)' % pose_id)
+#                        draw_point_dir(act_pos-act_dir*20, [0, 0], msize=1,
+#                                       label='choose ($%s$)' % tex_str(pose_id),
+#                                       colp='gray',
+#                                       size=15)  # label size
                         if gait:
                             gait.plot_markers(1, figname='tikz_'+figname)
                         plt.axis('off')
-                        geckostr = act_pose.get_tikz_repr('gray')
+                        geckostr = act_pose.get_tikz_repr('gray!50', dashed=0,
+                                                          R=.7, linewidth='.3mm')
                         save.save_plt_as_tikz('Out/pathplanner/'+figname+'.tex',
-                                              geckostr)
+                                              geckostr, scope='scale=.1')
                         plt.close('tikz_'+figname)
                     elif save_png:
                         plt.savefig('Out/pathplanner/'+figname+'.png',
@@ -368,22 +384,29 @@ class ReferenceGenerator(object):
             else:  # only 1 child
                 pose_id, _ = self.graph.get_children(self.pose)[0]
 
+            if pose_id == 'C1_0':
+                self.crawl = True
+                alpha, feet, process_time = self.__get_ref(self.pose)
+                self.crawl_ptrn = ros.rotate_on_spot(act_deps, alpha, feet, t_fix, t_dfx, t_move)
+                self.crawl_idx = 0
+        
+        if self.crawl:
+            ref = self.crawl_ptrn[self.crawl_idx]
+            alpha, feet, process_time = ref
+            self.crawl_idx += 1
+            pose_id = 'crawling'
+
+            if self.crawl_idx+1 > len(self.crawl_ptrn):
+                self.crawl = False
+                self.crawl_idx = None
+                pose_id = 'C1_2:dfx'
+                
+        else:
+            alpha, feet, process_time = self.__get_ref(pose_id)
+
         self.pose = pose_id
         self.idx += 1
 
-        alpha, feet, process_time = self.__get_ref(pose_id)
-        if pose_id[:3] == '111':
-            if pose_id == '111':
-                self.last_deps = act_deps
-            if abs(self.last_deps) < 90:
-                alpha[2] = self.last_deps
-                print('something magic\ndeps:\t', act_deps, '\n', alpha)
-        if pose_id[:3] == '114':
-            if pose_id == '114':
-                self.last_deps = act_deps
-            if abs(self.last_deps) < 90:
-                alpha[2] = self.last_deps
-                print('something magic\ndeps:\t', act_deps, '\n', alpha)
 
         return alpha, feet, process_time, pose_id
 
