@@ -113,3 +113,7 @@ venv.bak/
 *.synctex.gz
 *.aux
 *.log
+
+
+# Out folders:
+/Scripts/*/Out/

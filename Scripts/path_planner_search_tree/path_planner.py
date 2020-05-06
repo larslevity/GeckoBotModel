@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     i = 0
     
-    XREF = [(20, 30), (-50, 50), (20, 100)]
+    XREF = [(0, 0), (20, 30), (-45, 50), (20, 95)]
     for xref in XREF:
         while calc_dist(gait.poses[-1], xref) > 8:
             act_pose = gait.poses[-1]
@@ -62,7 +62,7 @@ if __name__ == "__main__":
             print('pose:\t\t', pose_id, ' -- ', alpha)
             print('distance:\t', calc_dist(gait.poses[-1], xref))
             # NOISE
-            alpha = add_noise(alpha)
+#            alpha = add_noise(alpha)
             
             if ':' not in pose_id or pose_id == 'crawling':
                 predicted_pose = model.predict_next_pose(
@@ -81,15 +81,38 @@ if __name__ == "__main__":
     gait.plot_markers(1)
 #    gait.plot_com()
     for idx, xref in enumerate(XREF):
-        st.draw_point_dir(xref, [0, 0], msize=15, label='goal '+str(idx))
+        lab = 'goal '+str(idx) if idx > 0 else 'start'
+        st.draw_point_dir(xref, [0, 0], msize=15, label=lab, fontsize=30)
     st.draw_point_arrow(p1, [np.cos(np.deg2rad(eps0))*10, np.sin(np.deg2rad(eps0))*10],
-                             size=15, label='goal '+str(idx), colp='orange')
-    plt.axis('off')
+                             size=15, colp='orange')
+    plt.grid()
+    plt.xticks([-45, 0, 20.001], ['-45', '0', '20'])
+    plt.yticks([0.001, 30, 50, 95], ['0', '30', '50', '95'])
+    plt.ylim((-25, 120))
+    plt.xlim((-25, 110))
+    
+    plt.xlabel('$x$ position (cm)')
+    plt.ylabel('$y$ position (cm)')
+    
+    plt.axis('scaled')
+    
+    plt.grid()
+    
+    ax = plt.gca()
+    ax.spines['top'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    plt.grid()
 
+    kwargs = {'extra_axis_parameters':
+              {'x=.1cm', 'y=.1cm', 'anchor=origin', 'xmin=-55',
+               'xmax=37','axis line style={draw opacity=0}',
+               'ymin=-20, ymax=105', 'tick pos=left',}}
 
     gait_str = gait.get_tikz_repr(dashed=0)
     save.save_plt_as_tikz('Out/pathplanner/gait.tex', gait_str,
-                          scope='scale=.1')
+                          scope='scale=.1', **kwargs)
     
 # %%
 

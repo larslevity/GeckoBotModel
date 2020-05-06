@@ -400,6 +400,8 @@ class ReferenceGenerator(object):
                 self.crawl = False
                 self.crawl_idx = None
                 pose_id = 'C1_2:dfx'
+                self.ref[pose_id] = self.crawl_ptrn[-1]
+                self.crawl_ptrn = None
                 
         else:
             alpha, feet, process_time = self.__get_ref(pose_id)
@@ -523,3 +525,29 @@ class Graph(object):
 
     def get_children(self, vertex):
         return self.__graph_dict[vertex]
+
+
+if __name__ == '__main__':
+    try:
+        from graphviz import Digraph
+
+        def render_graph(graph):
+            """ requirements:
+            pip install graphviz
+            apt-get install graphviz
+            """
+            dot = Digraph()
+            for v in graph.vertices():
+                dot.node(v, v)
+            for e in graph.edges():
+                v = e[0]
+                w = e[1]
+                c = e[2]
+                dot.edge(v, w, label=str(c) if c else None)
+            dot.render('tree', view=True)
+
+        graph = Graph(g)
+        render_graph(graph)
+    except ImportError:
+        print('Missing package gaphiviz')
+        print('run: "pip install graphviz" or "apt-get install graphviz" ')
