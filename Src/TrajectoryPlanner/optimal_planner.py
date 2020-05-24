@@ -85,7 +85,7 @@ def cut(x):
     return x if x > 0.001 else 0.001
 
 
-def alpha(x1, x2, f, c1=1.0):
+def alpha(x1, x2, c1=1.0):
     alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
              cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1),
              x1 + x2*abs(x1),
@@ -136,7 +136,7 @@ def optimal_planner(xbar, alp_act, feet_act, n=2, dist_min=.1, show_stats=0,
     (x1opt, x2opt), _ = find_opt_x(xbar, n, q1bnds)
     if alp_act[2] > 0:
         x1opt *= -1
-    alpha_ref = alpha(x1opt, x2opt, feet_ref)
+    alpha_ref = alpha(x1opt, x2opt)
 
     if show_stats:
         print('xbar:\t', xbar)
@@ -174,7 +174,7 @@ def optimal_planner_nhorizon(
             break
 #    if lastq1 > 0:  
     x1opt = -np.sign(lastq1)*x1opt  # switch sign
-    alpha_ref = alpha(x1opt, x2opt, feet_ref)
+    alpha_ref = alpha(x1opt, x2opt)
 
     if show_stats:
         print('(q1, q2):\t ({},{})'.format(round(x1opt, 2), round(x2opt, 2)))
