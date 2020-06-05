@@ -277,7 +277,8 @@ class ReferenceGenerator(object):
                     print(key, 'sum is not equal 2')
 
     def get_next_reference(self, act_position, act_eps, xref, act_pose=None,
-                           save_as_tikz=False, gait=False, save_png=False):
+                           save_as_tikz=False, gait=False, save_png=False,
+                           show_dec=True):
         xref = np.r_[xref]
         act_pos = np.r_[act_position]
         dpos = xref - act_pos
@@ -292,6 +293,8 @@ class ReferenceGenerator(object):
             if len(self.graph.get_children(self.pose)) > 1:
                 verts = [v for v, weight in self.graph.get_children(self.pose)]
                 plot = False if all(v[-1] == 'f' for v in verts) else True
+                plot = plot if show_dec else False
+                
 
                 if plot:
                     figname = 'dec_'+str(self.idx)
@@ -538,11 +541,12 @@ if __name__ == '__main__':
             """
             dot = Digraph()
             for v in graph.vertices():
+                v = v.replace(':', '_')  # ':' reserved for port
                 dot.node(v, v)
             for e in graph.edges():
-                v = e[0]
-                w = e[1]
-                c = e[2]
+                v = e[0].replace(':', '_')
+                w = e[1].replace(':', '_')
+                c = e[2]#.replace(':', '_')
                 dot.edge(v, w, label=str(c) if c else None)
             dot.render('tree', view=True)
 
