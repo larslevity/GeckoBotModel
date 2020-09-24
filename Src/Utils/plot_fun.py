@@ -68,23 +68,28 @@ class GeckoBotPose(object):
         print('eps: \t\t\t', round(eps, 2), '\n')
 
     def get_tikz_repr(self, col='black', xshift=None, linewidth='.7mm',
-                      yshift=None, **kwargs):
+                      yshift=None, rotate=None, **kwargs):
         alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
                          self.x[-1])
         mx, my = self.markers
+        geckostring = ''
         if xshift:
-            geckostring = '\\begin{scope}[xshift=%scm]' % str(xshift)
+            geckostring += '\\begin{scope}[xshift=%scm]\n' % str(round(xshift, 4))
         if yshift:
-            geckostring = '\\begin{scope}[yshift=%scm]' % str(round(yshift, 4))
-        if not xshift and not yshift:
-            geckostring = ''
+            geckostring += '\\begin{scope}[yshift=%scm]\n' % str(round(yshift, 4))
+        if rotate:
+            geckostring += '\\begin{scope}[rotate=%s]\n' % str(round(rotate, 4))
+
         geckostring += tikz_draw_gecko(
                 alp, ell, eps, (mx[0], my[0]), fix=self.f, col=col,
                 linewidth=linewidth, **kwargs)
-        if xshift or yshift:
-            geckostring += '\\end{scope}\n \n \n'
-        else:
-            geckostring += '\n\n'
+        if xshift:
+            geckostring += '\\end{scope}\n'
+        if yshift:
+            geckostring += '\\end{scope}\n'
+        if rotate:
+            geckostring += '\\end{scope}\n'
+        geckostring += '\n\n'
         return geckostring
 
     def save_as_tikz(self, filename, compileit=True):

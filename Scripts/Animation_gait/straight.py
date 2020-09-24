@@ -101,7 +101,7 @@ for pose in gait.poses:
     ani_str += (header + init + init2 + init3
                 + pose.get_tikz_repr(R=.7, col=colors, yshift=-ypos) + ending)
 
-filename = '../../Out/Animations/straight_gait_shift.tex'
+filename = 'Out/straight_gait_shift.tex'
 
 with open(filename, 'w') as fout:
     fout.writelines(ani_str + ending_0)

@@ -49,6 +49,7 @@ if __name__ == "__main__":
     i = 0
     
     XREF = [(0, 0), (20, 30), (-45, 50), (20, 95)]
+    XREF = [xref]
     for xref in XREF:
         while calc_dist(gait.poses[-1], xref) > 8:
             act_pose = gait.poses[-1]
