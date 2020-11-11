@@ -386,6 +386,45 @@ class ReferenceGenerator(object):
                     plt.show()
             else:  # only 1 child
                 pose_id, _ = self.graph.get_children(self.pose)[0]
+                
+                if save_as_tikz:
+                    figname = 'dec_'+str(self.idx)
+                    plt.figure(figname)
+                    draw_point_dir(act_pos-act_dir*20, [0, 0], msize=1,
+                                   label='choose ($ %s $)' % pose_id)
+                    
+                    draw_point_dir(act_pos, act_dir*10, msize=10)
+                    draw_point_dir(act_pos, [0, 0], msize=10,
+                                   label='ROBOT ($ %s $)' % tex_str(self.pose))
+                    draw_point_dir(xref, [0, 0], msize=20,
+                                   label='GOAL')
+                    act_pose.plot('gray')
+                    if save_as_tikz:
+                        plt.figure('tikz_'+figname)
+                        draw_point_arrow(act_pos, act_dir*4, size=7, colp='orange')
+                        draw_point_dir(act_pos, [1, 0], msize=1,
+                                       label='robot ($ %s $)' % tex_str(self.pose),
+                                       colp='orange',
+                                       size=20)  # label size
+                        draw_point_dir(xref, [0, 0], msize=7)  # goal
+
+    #                        draw_point_dir(act_pos-act_dir*20, [0, 0], msize=1,
+    #                                       label='choose ($%s$)' % tex_str(pose_id),
+    #                                       colp='gray',
+    #                                       size=15)  # label size
+                        if gait:
+                            gait.plot_markers(1, figname='tikz_'+figname)
+                        plt.axis('off')
+                        geckostr = act_pose.get_tikz_repr('gray!50', dashed=0,
+                                                          R=.7, linewidth='.3mm')
+                        save.save_plt_as_tikz('Out/pathplanner/'+figname+'.tex',
+                                              geckostr, scope='scale=.1')
+                        plt.close('tikz_'+figname)
+                    elif save_png:
+                        plt.savefig('Out/pathplanner/'+figname+'.png',
+                                    transparent=True, dpi=300)
+    
+                    plt.show()
 
             if pose_id == 'C1_0':
                 self.crawl = True
