@@ -7,8 +7,7 @@ Created on Wed Nov 11 18:07:33 2020
 """
 
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
-
+import numpy as np
 import sys
 from os import path
 sys.path.insert(0, path.dirname(path.dirname(path.dirname(
@@ -51,13 +50,13 @@ if __name__ == "__main__":
         [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
             ]
 
-#    elemtary_patterns['curve_left'] = [
-#        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
-#        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
-#        [[1, 40, 10, 10, 60], [0, 1, 1, 0]],
-#        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
-#        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
-#            ]
+    elemtary_patterns['curve_left'] = [
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
+        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
+        [[1, 40, 10, 10, 60], [0, 1, 1, 0]],
+        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
+            ]
 
     elemtary_patterns['curve_right'] = [
         [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
@@ -143,44 +142,76 @@ pose3/.style = {shape=circle, draw, align=center, top color=white, bottom color=
 
     # %%
     
+    plt.close('all')
+
+    example = [
+            elemtary_patterns['curve_right_super_tight'],
+            elemtary_patterns['curve_right'] ,
+            elemtary_patterns['curve_right'] ,
+            elemtary_patterns['straight'] ,
+            elemtary_patterns['straight'] ,
+            elemtary_patterns['curve_left'] ,
+            elemtary_patterns['curve_left'] ,
+            elemtary_patterns['curve_left'] ,
+            elemtary_patterns['curve_right'] ,
+            elemtary_patterns['curve_right'] ,
+            elemtary_patterns['curve_right'] ,
+            elemtary_patterns['straight'] ,
+            elemtary_patterns['straight'] ,
+             ]
+
+    gait = pf.GeckoBotGait()
+    x, marks, f = model.set_initial_pose(
+        alp_0, eps_0, (0, 0), len_leg=1, len_tor=1.2)
+    gait.append_pose(pf.GeckoBotPose(x, marks, f, constraint=constraint))
+    for pattern in example:
+        gait_tmp = pf.GeckoBotGait()
+        gait_tmp.append_pose(pf.GeckoBotPose(x, marks, f, constraint=constraint))
+        for ref in pattern:
+            try:
+                posename = ref[2]
+                ref = ref[:2]
+            except IndexError:
+                posename = None
+            if np.linalg.norm(x[:5] - ref[0]) > 1:
+                x, marks, f, constraint, cost = model.predict_next_pose(
+                        ref, x, marks, len_leg=1, len_tor=1.2, f=f_weights)
+                gait.append_pose(
+                        pf.GeckoBotPose(x, marks, f, constraint=constraint, name=None))
+                gait_tmp.append_pose(
+                        pf.GeckoBotPose(x, marks, f, constraint=constraint, name=None))
+        plt.figure('tikz')
+        gait_tmp.plot_travel_distance(w=.05, size=5, colp='blue')
+        gait_tmp.plot_orientation(poses=[-1],w=.05, size=5, colp='orange', length=1)
+        
+## %%
+#    gait.plot_gait()
+
+# %
+
+    option = """
+pose1/.style = {shape=circle, draw, align=center, top color=white, bottom color=blue!40, minimum width=1.9cm, opacity=.5},
+pose2/.style = {shape=circle, draw, align=center, top color=white, bottom color=red!40, minimum width=1.9cm, opacity=.5},
+pose3/.style = {shape=circle, draw, align=center, top color=white, bottom color=yellow!40},"""
+
+    extra_axis_parameters = {'anchor=origin', 'disabledatascaling', 'x=1cm', 'y=1cm',
+               'axis line style={draw opacity=0}',
+               'clip mode=individual'}
+
     
-#    calc_gait_and_draw_tikz(curve_right_super_tight, 'curve_right_super_tight')
-#
-#    example = [
-#            curve_right_super_tight,
-#            curve_right,
-#            curve_right,
-#            straight,
-#            straight,
-#            straight,
-#            curve_left,
-#            curve_left,
-#            curve_left,
-#            curve_left
-#             ]
-##    draw_multiple_gaits_in_a_row(example, 'example', eps0=110)
-#    example2 = [
-#            straight,
-#            straight,
-#            curve_right,
-#            straight,
-#            curve_right,
-#            straight,
-#            straight,
-#            curve_right_tight,
-#            curve_right_super_tight,
-#            straight,
-#            curve_left,
-#            straight,
-#            straight,
-#            straight,
-#            straight,
-#            straight,
-#            curve_right,
-#            curve_right_tight,
-#            straight,
-#            curve_right_tight,
-#            straight
-#             ]
-#
-#    draw_multiple_gaits_in_a_row(example2, 'example2', eps0=110)
+    plt.figure('tikz')
+    xshift = 0
+
+    gait.plot_orientation(poses=[0,-1],w=.08, size=8, colp='orange', length=1.5)
+#    gait.plot_travel_distance(w=.05, size=5, colp='blue', shift=[0,4])
+    plt.axis('off')
+#    for idx in range(len(gait.poses)):
+#        plt.annotate(str(idx), [xshift*idx+.5, -2.5], size=35)
+    
+    gait_str = gait.get_tikz_repr(shift=xshift, R=.1, dashed=0, reverse_col=-60,
+                                  linewidth='.6mm')
+    save.save_plt_as_tikz('Out/elemtary_patterns/example.tex'.format(key),
+                          gait_str, additional_options=option, scale=1,
+                          extra_axis_parameters=extra_axis_parameters)
+
+

@@ -139,8 +139,8 @@ class GeckoBotGait(object):
             c = int(20 + (float(idx)/len(self.poses))*80.)
             if reverse_col:
                 c = 120 - c
-            if reverse_col == -1:
-                c = 100
+            if reverse_col < 0:
+                c = abs(reverse_col)
             col = 'black!{}'.format(c)
             shift_ = idx*shift if shift else None
             gait_str += pose.get_tikz_repr(col, shift_, linewidth, **kwargs)
@@ -209,8 +209,6 @@ class GeckoBotGait(object):
         plt.figure('GeckoBotGait')
         dist, deps = self.get_travel_distance()
         start = self.poses[0].get_m1_pos()
-        
-        self.plot_orientation(length=1, shift=shift, colp=colp, w=w, size=size)
 
         plt.plot([start[0]+shift[0]], [start[1]+shift[1]], marker='o', color=colp, markersize=size)
         plt.plot([start[0]+shift[0], start[0]+shift[0]+dist[0], start[0]],
@@ -224,7 +222,7 @@ class GeckoBotGait(object):
             start = self.poses[pose].get_m1_pos()
             eps = self.poses[pose].get_eps()
             plt.plot([start[0]+shift[0], start[0]+shift[0]+np.cos(np.deg2rad(eps))*length],
-                     [start[1]+shift[1], start[1]+shift[1]+np.sin(np.deg2rad(eps))*length], color=colp)
+                     [start[1]+shift[1], start[1]+shift[1]+np.sin(np.deg2rad(eps))*length], color=colp, alpha=0)
             plt.plot([start[0]+shift[0]], [start[1]+shift[1]], marker='o', color=colp, markersize=size)
             plt.arrow(start[0]+shift[0], start[1]+shift[1],
                       np.cos(np.deg2rad(eps))*length,

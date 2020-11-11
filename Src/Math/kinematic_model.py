@@ -301,7 +301,7 @@ def set_initial_pose(alp_, eps, p1, ell=None, len_leg=1, len_tor=1.2):
     alp = _check_alpha(alp_)
     if isinstance(ell, type(None)):
         ell = (len_leg, len_leg, len_tor, len_leg, len_leg)
-    x = flat_list([alp, ell, [eps]])
+    x = np.array(flat_list([alp, ell, [eps]]))
     f = [1, 0, 0, 0]
     T_Ori_1 = T0(eps-alp[2]/2, p1)
     T_10 = T(90, 0)*T(-alp[0], ell[0])
