@@ -30,7 +30,7 @@ def load_data(filename):
 
 
 def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, scope=None,
-                     **kwargs):
+                     additional_options=None, **kwargs):
 
 #    wdir = sys.path[0].replace('\\', '/')
     mdir = os.path.dirname(os.path.abspath(__name__)).replace('\\', '/')
@@ -48,7 +48,7 @@ def save_plt_as_tikz(filename, additional_tex_code=None, scale=1, scope=None,
                    'label style={font=\\huge}',
                    'clip mode=individual'}}
     tikz_save(aux_fn, encoding='utf-8', **kwargs)
-    insert_tex_header(aux_fn, additional_tex_code, scale, scope)
+    insert_tex_header(aux_fn, additional_tex_code, scale, scope, additional_options)
 
     # remove blank lines:
     with open(aux_fn, 'r') as file:
@@ -89,7 +89,8 @@ def save_geckostr_as_tikz(filename, additional_tex_code):
         fout.writelines(header + additional_tex_code + ending)
 
 
-def insert_tex_header(filename, additional_tex_code=None, scale=1, scope=None):
+def insert_tex_header(filename, additional_tex_code=None, scale=1, scope=None, 
+                      additional_options=None):
     header = """
 \\documentclass[crop,tikz]{standalone}
 \\usepackage[utf8]{inputenc}
@@ -108,7 +109,8 @@ def insert_tex_header(filename, additional_tex_code=None, scale=1, scope=None):
         with open(filename, 'w', newline='\r\n') as fout:
             fout.writelines([data[0]] + data[2:])
         # add geckostr between header and matplotlib2tikz data
-        header = (header + '\n\\begin{tikzpicture}[scale=%s]' % (scale)
+        header = (header + '\n\\begin{tikzpicture}[scale=%s, %s]' % (scale,
+                  additional_options if additional_options else '')
                   )
         # remove \end{tikzpicture}
         with open(filename, 'r', newline='\r\n') as fin:

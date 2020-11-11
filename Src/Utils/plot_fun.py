@@ -26,7 +26,7 @@ arc_res = 40    # resolution of arcs
 
 class GeckoBotPose(object):
     def __init__(self, x, marks, f, constraint=0, cost=0,
-                 len_leg=1, len_tor=1.2):
+                 len_leg=1, len_tor=1.2, name=None):
         self.x = x
         self.markers = marks
         self.f = f
@@ -37,6 +37,7 @@ class GeckoBotPose(object):
         self.alp = self.x[0:n_limbs]
         self.ell = self.x[n_limbs:2*n_limbs]
         self.eps = self.x[-1]
+        self.name = name
 
     def get_eps(self):
         return self.x[-1]
@@ -82,7 +83,7 @@ class GeckoBotPose(object):
 
         geckostring += tikz_draw_gecko(
                 alp, ell, eps, (mx[0], my[0]), fix=self.f, col=col,
-                linewidth=linewidth, **kwargs)
+                linewidth=linewidth, posename=self.name, **kwargs)
         if xshift:
             geckostring += '\\end{scope}\n'
         if yshift:
@@ -138,6 +139,8 @@ class GeckoBotGait(object):
             c = int(20 + (float(idx)/len(self.poses))*80.)
             if reverse_col:
                 c = 120 - c
+            if reverse_col == -1:
+                c = 100
             col = 'black!{}'.format(c)
             shift_ = idx*shift if shift else None
             gait_str += pose.get_tikz_repr(col, shift_, linewidth, **kwargs)
@@ -202,19 +205,31 @@ class GeckoBotGait(object):
         deps = self.poses[-1].get_eps() - self.poses[0].get_eps()
         return dist, deps
 
-    def plot_travel_distance(self):
+    def plot_travel_distance(self, shift=[0, 0], colp='orange', size=12, w=.8):
         plt.figure('GeckoBotGait')
         dist, deps = self.get_travel_distance()
         start = self.poses[0].get_m1_pos()
-        plt.plot([start[0], start[0]+dist[0]], [start[1], start[1]+dist[1]])
+        
+        self.plot_orientation(length=1, shift=shift, colp=colp, w=w, size=size)
 
-    def plot_orientation(self, length=.5, poses=[0, -1]):
+        plt.plot([start[0]+shift[0]], [start[1]+shift[1]], marker='o', color=colp, markersize=size)
+        plt.plot([start[0]+shift[0], start[0]+shift[0]+dist[0], start[0]],
+                 [start[1]+shift[1], start[1]+shift[1]+dist[1], start[1]], alpha=0)
+        plt.arrow(start[0]+shift[0], start[1]+shift[1], dist[0], dist[1], color='blue', width=w,
+                  length_includes_head=True)
+
+    def plot_orientation(self, length=1, poses=[0, -1], shift=[0,0], colp='k', w=.1, size=12):
         plt.figure('GeckoBotGait')
         for pose in poses:
             start = self.poses[pose].get_m1_pos()
             eps = self.poses[pose].get_eps()
-            plt.plot([start[0], start[0]+np.cos(np.deg2rad(eps))*length],
-                     [start[1], start[1]+np.sin(np.deg2rad(eps))*length], 'r')
+            plt.plot([start[0]+shift[0], start[0]+shift[0]+np.cos(np.deg2rad(eps))*length],
+                     [start[1]+shift[1], start[1]+shift[1]+np.sin(np.deg2rad(eps))*length], color=colp)
+            plt.plot([start[0]+shift[0]], [start[1]+shift[1]], marker='o', color=colp, markersize=size)
+            plt.arrow(start[0]+shift[0], start[1]+shift[1],
+                      np.cos(np.deg2rad(eps))*length,
+                      np.sin(np.deg2rad(eps))*length, color=colp, width=w,
+                      length_includes_head=True)
 
     def plot_epsilon(self):
         plt.figure('GeckoBotGaitEpsHistory')
@@ -547,7 +562,7 @@ def save_animation(line_ani, name='gait.mp4', conv='avconv'):
     line_ani.save(name, writer=writer)
 
 
-def tikz_draw_gecko(alp, ell, eps, F1, col='black',
+def tikz_draw_gecko(alp, ell, eps, F1, col='black', posename=None,
                     linewidth='.5mm', fix=None, dashed=1, R=.4):
     c1, c2, c3, c4 = model._calc_phi(alp, eps)
     l1, l2, lg, l3, l4 = ell
@@ -589,6 +604,9 @@ def tikz_draw_gecko(alp, ell, eps, F1, col='black',
 
 \\path (%f, %f)coordinate(F1);
 
+\\path (F1)arc(180+\\ci:180+\\ci+\\alpi:\\ri)coordinate(OM)arc(90+\\ci+\\alpi:90+\\ci+\\alpi+\\gam:\\rg)coordinate(UM);
+\\path (OM)--(UM)node[midway, %s](middle){};
+
 \\draw[%s, %s line width=\\lw] (F1)arc(180+\\ci:180+\\ci+\\alpi:\\ri)coordinate(OM);
 \\draw[%s, %s line width=\\lw] (OM)arc(180+\\ci+\\alpi:180+\\ci+\\alpi+\\beti:\\rii)coordinate(F2);
 \\draw[%s, line width=\\lw] (OM)arc(90+\\ci+\\alpi:90+\\ci+\\alpi+\\gam:\\rg)coordinate(UM);
@@ -596,7 +614,7 @@ def tikz_draw_gecko(alp, ell, eps, F1, col='black',
 \\draw[%s, %s line width=\\lw] (UM)arc(\\gam+\\ci+\\alpi:\\gam+\\ci+\\alpi-\\betii:\\riv)coordinate(F4);
 
 """ % (linewidth, alp1, bet1, gam, alp2, bet2, gam*.5, eps, c1, c2, c3, c4,
-       r1, r2, rg, r3, r4, R, F1[0], F1[1],
+       r1, r2, rg, r3, r4, R, F1[0], F1[1], posename if posename else '',
        col[0], ls[0], col[1], ls[1], col[2], col[3], ls[2], col[4], ls[3])
     if fix:
         col_ = [col[0], col[1], col[3], col[4]]

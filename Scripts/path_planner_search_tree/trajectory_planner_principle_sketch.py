@@ -34,47 +34,60 @@ if __name__ == "__main__":
     elemtary_patterns = {}
     
     elemtary_patterns['straight'] = [
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
-        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
+#        [[1, 90, 90, 1, 90], [1, 1, 1, 1]],
+        [[1, 90, 90, 1, 90], [1, 0, 0, 1]],
+        [[90, 1, -90, 90, 1], [1, 0, 0, 1], 'pose2'], 
+#        [[90, 1, -90, 90, 1], [1, 1, 1, 1]],
+        [[90, 1, -90, 90, 1], [0, 1, 1, 0]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
             ]
 
-    elemtary_patterns['curve_spezial'] = [
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+    elemtary_patterns['crawling_left_curve'] = [
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
         [[45, 45, 1, 45, 45], [1, 0, 0, 1]],
         [[45, 45, 90, 45, 45], [1, 1, 0, 0]],
         [[45, 45, 1, 45, 45], [0, 0, 1, 1]],
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
             ]
 
-    elemtary_patterns['curve_left'] = [
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
-        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
-        [[1, 40, 10, 10, 60], [0, 1, 1, 0]],
-        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
-            ]
+#    elemtary_patterns['curve_left'] = [
+#        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+#        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
+#        [[1, 40, 10, 10, 60], [0, 1, 1, 0]],
+#        [[90, 1, -90, 90, 1], [1, 0, 0, 1]],
+#        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+#            ]
 
     elemtary_patterns['curve_right'] = [
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
+        [[1, 90, 90, 1, 90], [1, 0, 0, 1]],
         [[40, 1, -10, 60, 10], [1, 0, 0, 1]],
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+        [[40, 1, -10, 60, 10], [0, 1, 1, 1]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
             ]
 
     elemtary_patterns['curve_right_tight'] = [
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
+        [[1, 90, 90, 1, 90], [1, 0, 0, 1]],
         [[48, 104, 114, 27, 124], [0, 1, 1, 0]],
+        [[48, 104, 114, 27, 124], [1, 0, 0, 1]],
         [[1, 72, 70, 1, 55], [1, 0, 0, 1]],
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+        [[1, 72, 70, 1, 55], [0, 1, 1, 0]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
             ]
-
-
+#
+#
     elemtary_patterns['curve_right_super_tight'] = [
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
+        [[1, 90, 90, 1, 90], [1, 0, 0, 1]],
         [[50, 30, 90, 30, 150], [1, 0, 0, 1]],
+        [[50, 30, 90, 30, 150], [0, 1, 1, 0]],
         [[124, 164, 152, 62, 221], [0, 1, 1, 0]],
+        [[124, 164, 152, 62, 221], [1, 0, 0, 1]],
         [[30, 90, 80, 10, 10], [1, 0, 0, 1]],
-        [[1, 90, 90, 1, 90], [0, 1, 1, 0]],
+        [[30, 90, 80, 10, 10], [0, 1, 1, 0]],
+        [[1, 90, 90, 1, 90], [0, 1, 1, 0], 'pose1'],
             ]
     
     
@@ -83,25 +96,50 @@ if __name__ == "__main__":
         x, marks, f = model.set_initial_pose(
             alp_0, eps_0, (0, 0), len_leg=1, len_tor=1.2)
         for ref in elemtary_patterns[key]:
+            try:
+                posename = ref[2]
+                ref = ref[:2]
+            except IndexError:
+                posename = None
             x, marks, f, constraint, cost = model.predict_next_pose(
                     ref, x, marks, len_leg=1, len_tor=1.2, f=f_weights)
             gait.append_pose(
-                    pf.GeckoBotPose(x, marks, f, constraint=constraint, cost=cost))
+                    pf.GeckoBotPose(x, marks, f, constraint=constraint, name=posename))
             
         
  
     # %%
+        plt.figure('python')
         gait.plot_gait()
         gait.plot_markers([1])
         plt.axis('off')
         plt.show()
+        
     
     # %% SAVE AS TIKZ
-        gait.plot_markers(1)
+        option = """
+pose1/.style = {shape=circle, draw, align=center, top color=white, bottom color=blue!40, minimum width=1.9cm, opacity=.5},
+pose2/.style = {shape=circle, draw, align=center, top color=white, bottom color=red!40, minimum width=1.9cm, opacity=.5},
+pose3/.style = {shape=circle, draw, align=center, top color=white, bottom color=yellow!40},"""
+
+        extra_axis_parameters = {'anchor=origin', 'disabledatascaling', 'x=1cm', 'y=1cm',
+                   'axis line style={draw opacity=0}',
+                   'clip mode=individual'}
+
+        plt.figure('tikz')
+        xshift = 4
+#        gait.plot_travel_distance(shift=[xshift*(len(gait.poses)-1)+4,-.5], w=.05, size=5, colp='k')
+        gait.plot_orientation(poses=[0],w=.05, size=5)
+        gait.plot_orientation(poses=[-1], shift=[xshift*(len(gait.poses)-1),0], w=.05, size=5)
         plt.axis('off')
-        gait_str = gait.get_tikz_repr(shift=3)
+        for idx in range(len(gait.poses)):
+            plt.annotate(str(idx), [xshift*idx+.5, -2.5], size=35)
+        
+        gait_str = gait.get_tikz_repr(shift=xshift, R=.15, dashed=0, reverse_col=-1,
+                                      linewidth='.4mm')
         save.save_plt_as_tikz('Out/elemtary_patterns/{}.tex'.format(key),
-                              gait_str)
+                              gait_str, additional_options=option, scale=.7,
+                              extra_axis_parameters=extra_axis_parameters)
 
     # %%
     
