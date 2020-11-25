@@ -1,9 +1,19 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 22 09:26:30 2019
+Created on Wed Nov 25 16:19:28 2020
 
-@author: AmP
+@author: ls
 """
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 25 15:42:16 2020
+
+@author: ls
+"""
+
 
 import sys
 from os import path
@@ -26,13 +36,13 @@ if __name__ == "__main__":
 #    rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
 
     eps = 90
-    f_l, f_o, f_a = .1, .5, 10
-#    f_l, f_o, f_a = .1, 3, 10
-#    f_l, f_o, f_a = .1, 10, 10
+#    f_l, f_o, f_a = .1, .1, 10
 #    f_l, f_o, f_a = .1, .5, 10
+    f_l, f_o, f_a = .1, 1, 10
+#    f_l, f_o, f_a = .1, 2, 10
     weight = [f_l, f_o, f_a]
 
-    X1 = [70, 80] # [70, 80, 90]  # np.arange(70.01, 90.2, 10.)
+    X1 = [70, 80, 90] # [70, 80, 90]  # np.arange(70.01, 90.2, 10.)
     X2 = np.arange(-.5, .52, .2)
 
     len_leg, len_tor = [9.1, 10.3]
@@ -45,6 +55,9 @@ if __name__ == "__main__":
         return x if x > 0.001 else 0.001
 
     def alpha1(x1, x2, f, c1=1):
+        val = abs(x1-60)
+        val = 0 if val < 0 else val
+        c1 = val/40*2/abs(x2)
         alpha = [cut(45 - x1/2. - abs(x1)*x2/2. + x1*x2*c1),
                  cut(45 + x1/2. + abs(x1)*x2/2. + x1*x2*c1),
                  x1 + x2*abs(x1),
@@ -109,14 +122,17 @@ if __name__ == "__main__":
                 GAITS.append(gait)
 
 # %% Save all the figs as png
+        ## norm
+#        RESULT_STRESS = RESULT_STRESS/np.max(RESULT_STRESS)*100
 
         fig = plt.figure('GeckoBotGait')
         levels = [0, 5, 10, 15, 25, 50, 100, 150, 200, 250, 350, 500, 1300]
+#        levels = [0, 1, 2, 5, 10, 20, 30, 40, 50, 75, 100]
         contour = plt.contourf(X_idx, Y_idx, RESULT_STRESS, alpha=.8,
                                cmap='RdYlGn_r', levels=levels)
-        plt.colorbar(shrink=0.5, aspect=20,
-                     label="cumulative stress over gait")
-        plt.clim(0, 300)
+        plt.colorbar(shrink=0.5, aspect=len(levels),
+                     label="nomalized cumulative stress over gait")
+        plt.clim(0, 50)
 
         surf = plt.contour(X_idx, Y_idx, RESULT_STRESS, levels=levels,
                            colors='black')
@@ -169,10 +185,10 @@ if __name__ == "__main__":
         ax.spines['right'].set_visible(False)
         ax.spines['bottom'].set_visible(False)
 
-        fname = 'Out/analytic_model5/c1_analysis_q1_{}_weights_{}-{}-{}.tex'.format(x1, f_l, f_o, f_a)
+        fname = 'Out/analytic_model5/test_c1_calc/c1_analysis_q1_{}_weights_{}-{}-{}.tex'.format(x1, f_l, f_o, f_a)
         my_save.save_plt_as_tikz(fname,
                                  additional_tex_code=gait_tex,
-                                 scale=.7,
+                                 scale=.4,
                                  scope='scale=.1, opacity=.8')
 
 
