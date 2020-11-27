@@ -40,9 +40,10 @@ if __name__ == "__main__":
         gait = pf.GeckoBotGait()
         gait.append_pose(initial_pose)
 
-        xref = (70, 100)
+        xref = (20, 30)
 
         XREF = [(65, 0), (65, 65), (0, 65), (0, 110)]
+        XREF = [xref]
 
         nmax = 4
         Q1, Q2, DIST = [], [], []
@@ -105,10 +106,10 @@ if __name__ == "__main__":
     
     
     plt.grid()
-    plt.yticks([0, 65, 110.002], ['0', '65', '110'])
-    plt.xticks([0, 65.002], ['0', '65'])
-    plt.ylim((-25, 120))
-    plt.xlim((-25, 110))
+#    plt.yticks([0, 65, 110.002], ['0', '65', '110'])
+#    plt.xticks([0, 65.002], ['0', '65'])
+#    plt.ylim((-25, 120))
+#    plt.xlim((-25, 110))
     plt.axis('scaled')
     plt.xlabel('x position (cm)')
     plt.ylabel('y position (cm)')

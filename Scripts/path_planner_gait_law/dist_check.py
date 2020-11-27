@@ -26,7 +26,7 @@ tries = 1
 
 MINDIST = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-MINDIST = [1, 2, 3]
+MINDIST = [2.01]
 
 sucess = {}
 
@@ -43,7 +43,7 @@ for mindist in MINDIST:
         eps0 = 90
         p1 = (0, 0)
         ell = [9.1, 9.1, 10.3, 9.1, 9.1]
-        f_l, f_o, f_a = 1, 1, 1
+        f_l, f_o, f_a = .1, 1, 10
 
     
         x, (mx, my), f = model.set_initial_pose(alpha, eps0, p1, len_leg=ell[0], len_tor=ell[2])
@@ -88,7 +88,7 @@ for mindist in MINDIST:
                 print('\n\npose ', i)
                 print('distance:\t', dist)
                 # NOISE
-                alpha = add_noise(alpha)
+#                alpha = add_noise(alpha)
 
                 predicted_pose = model.predict_next_pose(
                         [alpha, feet], act_pose.x, (x, y),
@@ -133,8 +133,8 @@ for mindist in MINDIST:
 #                   'ymin=-20, ymax=105',
                    'tick pos=left',}}
     
-        gait_str = gait.get_tikz_repr(dashed=0)
-        save.save_plt_as_tikz('Out/gait_'+str(mindist)+'.tex', gait_str,
+        gait_str = gait.get_tikz_repr(dashed=0, linewidth='1mm', R=.8)
+        save.save_plt_as_tikz('Out/gait_'+str(mindist)+'_'+str(try_idx)+'.tex', gait_str,
                               scope='scale=.1', **kwargs)
         plt.show()
         fig = plt.gcf()
