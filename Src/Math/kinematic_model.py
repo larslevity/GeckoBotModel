@@ -28,6 +28,76 @@ def get_feet_pos(markers):
     return (xf, yf)
 
 
+def predict_next_pose_2(reference, x_init, markers_init,
+                      f=[f_l, f_o, f_a],
+                      len_leg=1, len_tor=1.2,
+                      dev_ang=dev_ang, bounds=(blow, bup)):
+    blow, bup = bounds
+    f_len, f_ori, f_ang = f
+    ell_nominal = (len_leg, len_leg, len_tor, len_leg, len_leg)
+
+    alpref_, f = reference
+    alpref = _check_alpha(alpref_)
+    alp_init, eps_init = x_init[0:n_limbs], x_init[-1]
+    phi_init = _calc_phi(alp_init, eps_init)
+
+    # Initial guess
+    x0 = x_init
+
+    def objective(x):
+        alp, ell, eps = x[0:n_limbs], x[n_limbs:2*n_limbs], x[-1]
+        phi = _calc_phi(alp, eps)
+        obj_ori, obj_len, obj_ang = 0, 0, 0
+        for idx in range(n_foot):
+            if f[idx]:
+                # dphi = calc_difference(phi[idx], phi_init[idx])
+                dphi = phi[idx] - phi_init[idx]
+                obj_ori = (obj_ori + dphi**2)
+        for idx in range(n_limbs):
+            obj_ang = obj_ang + (alpref[idx]-alp[idx])**2
+        for idx in range(n_limbs):
+            obj_len = obj_len + (ell[idx]-ell_nominal[idx])**2
+        objective = (f_ori*np.sqrt(obj_ori) + f_ang*np.sqrt(obj_ang) +
+                     f_len*np.sqrt(obj_len))
+#        print('objective:\t', objective)
+        return objective
+
+#    def constraint1(x):
+#        """ feet should be at the right position """
+#        mx, my = _calc_coords(x, markers_init, f)
+#        xf, yf = get_feet_pos((mx, my))
+#        xflast, yflast = get_feet_pos(markers_init)
+#        constraint = 0
+#        for idx in range(n_foot):
+#            if f[idx]:
+#                constraint = constraint + \
+#                    np.sqrt((xflast[idx] - xf[idx])**2 +
+#                            (yflast[idx] - yf[idx])**2)
+#        return constraint
+
+    bleg = (blow*len_leg, bup*len_leg)
+    btor = (blow*len_tor, bup*len_tor)
+    bang = [(alpref[i]-dev_ang, alpref[i]+dev_ang) for i in range(n_limbs)]
+    bnds = (bang[0], bang[1], bang[2], bang[3], bang[4],
+            bleg, bleg, btor, bleg, bleg,
+            (-360, 360))
+#    con1 = {'type': 'eq', 'fun': constraint1}
+#    cons = ([con1])
+    solution = minimize(objective, x0, method='SLSQP',
+                        bounds=bnds, 
+#                        constraints=cons
+                        )
+    x = solution.x
+    mx, my = _calc_coords(x, markers_init, f)
+
+#    constraint = constraint1(x)
+    cost = objective(x)
+
+    return (x, (mx, my), f, 0, cost)
+
+
+
+
 def predict_next_pose(reference, x_init, markers_init,
                       f=[f_l, f_o, f_a],
                       len_leg=1, len_tor=1.2,
@@ -297,17 +367,26 @@ def _check_alpha(alpha):
     return alpref
 
 
-def set_initial_pose(alp_, eps, p1, ell=None, len_leg=1, len_tor=1.2):
+def set_initial_pose(alp_, eps, p1, ell=None, len_leg=1, len_tor=1.2,
+                     f=[1, 0, 0, 0]):
     alp = _check_alpha(alp_)
     if isinstance(ell, type(None)):
         ell = (len_leg, len_leg, len_tor, len_leg, len_leg)
     x = np.array(flat_list([alp, ell, [eps]]))
-    f = [1, 0, 0, 0]
-    T_Ori_1 = T0(eps-alp[2]/2, p1)
-    T_10 = T(90, 0)*T(-alp[0], ell[0])
-    p0 = vec2lis(T_Ori_1*T_10*np.c_[[0, 0, 1]])
-    marks_init = ([p0[0], None, None, None, None, None],
-                  [p0[1], None, None, None, None, None])
-    mx, my = _calc_coords(x, marks_init, f)
+    if f[0]:
+        T_Ori_1 = T0(eps-alp[2]/2, p1)
+        T_10 = T(90, 0)*T(-alp[0], ell[0])
+        p0 = vec2lis(T_Ori_1*T_10*np.c_[[0, 0, 1]])
+        marks_init = ([p0[0], None, None, None, None, None],
+                      [p0[1], None, None, None, None, None])
+        mx, my = _calc_coords(x, marks_init, f)
+    elif f[1]:
+        T_Ori_1 = T0(eps-alp[2]/2, p1)
+        T_12 =  T(-90, 0)*T(alp[1], ell[1])
+        p2 = vec2lis(T_Ori_1*T_12*np.c_[[0, 0, 1]])
+        marks_init = ([None, None, p2[0], None, None, None],
+                      [None, None, p2[1], None, None, None])
+        mx, my = _calc_coords(x, marks_init, f)
+        
     # return (x, (mx, my), f)
     return x, (mx, my), [0, 0, 0, 0]
