@@ -21,18 +21,18 @@ from Src.TrajectoryPlanner import rotate_on_spot as ros
 
 def tex_str(pystr):
     if len(pystr)==1 or (pystr[0] not in ['L', 'R', 'C']):
-        return pystr
+        return '$'+pystr+'$'
     if pystr[1] == ':':
         out = pystr.replace(':fix', '_{ \\mathrm{fix} }')
         out = out.replace(':dfx', '_{ \\mathrm{dfx} }')
-        return out
+        return '$'+out+'$'
     else:
         out = pystr.replace('_', ',')
         out = out[0] + '_{' + out[1:4] + '}' + out[4:]
         out = out.replace('}:fix', ', \\mathrm{fix}}')
         out = out.replace('}:dfx', ', \\mathrm{dfx}}')
 
-        return out
+        return '$'+out+'$'
     
 
 
@@ -65,14 +65,14 @@ def draw_line(point1, point2, color='gray', linestyle='dashed'):
 
 
 g = {  # manually tuned
-     'rest': [('R', ((.0, .0), -1)), ('L', ((0, 0), 1)),
-             ('rest', ((0, 0), 0))],
+#     'rest': [('R', ((.0, .0), -1)), ('L', ((0, 0), 1)),
+#             ('rest', ((0, 0), 0))],
 
 # CRAWL
      'C1_0': [('C1_2:dfx', None)],
      'C1_2:dfx': [('L', ((0, 1), 1)), ('R', ((0, 1), -1)),
-              ('C1_0', ((0, .1), 70)), ('C1_0', ((0, .1), -70))],
-
+              ('C1_0', ((0, .1), 70)), ('C1_0', ((0, .1), -70))
+              ],
 # RIGHT
      'R': [  # ('rest', ((0, 0), 0)),
              ('R:fix', ((0, .71), 1)), ('R:fix', ((.1, .2), -80)),
@@ -588,9 +588,51 @@ if __name__ == '__main__':
                 c = e[2]#.replace(':', '_')
                 dot.edge(v, w, label=str(c) if c else None)
             dot.render('tree', view=True)
+            return dot
 
         graph = Graph(g)
-        render_graph(graph)
+        dot = render_graph(graph)
     except ImportError:
-        print('Missing package gaphiviz')
+        print('Missing package graphviz')
         print('run: "pip install graphviz" or "apt-get install graphviz" ')
+        
+        
+# %%        
+        
+#    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+    import networkx as nx
+#    from matplotlib import rc
+#    rc('text', usetex=True)
+    
+
+    options = {"with_labels": True, "node_color": "white", "edgecolors": "black"}
+    
+    G = nx.MultiDiGraph() 
+    for v in graph.vertices():
+        print(v,'\t\t', tex_str(v))
+        v = tex_str(v)
+        G.add_node(v)
+    edge_labels = {}
+    for e in graph.edges():
+        v = tex_str(e[0])
+        w = tex_str(e[1])
+        weight = e[2]
+        G.add_edge(v, w, weight=10 if weight else 5)
+        if weight:
+            edge_labels[(v, w)] = str(weight)
+    
+    cm = 1/2.54 * 2  # centimeters in inches
+    plt.figure(figsize=(17*cm,19*cm))
+
+    pos = nx.kamada_kawai_layout(G)
+#    pos = nx.spring_layout(G)
+#    pos = nx.shell_layout(G)
+#    pos = nx.spiral_layout(G)
+#    pos = nx.planar_layout(G)
+
+    
+    nx.draw(G, pos, node_size=1300, **options)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='blue')
+    plt.tight_layout()
+    plt.savefig('tree_netx.pdf')
