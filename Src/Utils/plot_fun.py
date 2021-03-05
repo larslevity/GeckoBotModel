@@ -24,6 +24,15 @@ n_foot = 4
 arc_res = 40    # resolution of arcs
 
 
+def markers_color():
+    return ['red', 'orange', 'green', 'blue', 'magenta', 'darkred']
+
+
+def get_actuator_tikzcolor():
+    return ['red', 'red!50!black', 'orange', 'blue', 'blue!50!black']
+
+
+
 class GeckoBotPose(object):
     def __init__(self, x, marks, f, constraint=0, cost=0,
                  len_leg=1, len_tor=1.2, name=None):
@@ -68,7 +77,7 @@ class GeckoBotPose(object):
         print('phi: \t\t\t', [round(xx, 2) for xx in phi])
         print('eps: \t\t\t', round(eps, 2), '\n')
 
-    def get_tikz_repr(self, col='black', xshift=None, linewidth='.7mm',
+    def get_tikz_repr(self, col=get_actuator_tikzcolor(), xshift=None, linewidth='.7mm',
                       yshift=None, rotate=None, **kwargs):
         alp, ell, eps = (self.x[0:n_limbs], self.x[n_limbs:2*n_limbs],
                          self.x[-1])
@@ -143,7 +152,8 @@ class GeckoBotGait(object):
                 c = abs(reverse_col)
             col = 'black!{}'.format(c)
             shift_ = idx*shift if shift else None
-            gait_str += pose.get_tikz_repr(col, shift_, linewidth, **kwargs)
+            col_ = get_actuator_tikzcolor() if shift else col
+            gait_str += pose.get_tikz_repr(col_, shift_, linewidth, **kwargs)
         return gait_str
 
     def plot_markers(self, markernum=range(6), figname='GeckoBotGait'):
@@ -319,14 +329,6 @@ def predict_gait(references, initial_pose, weight=None, lens=[None]):
                 cost=cost))
     _ = gait.poses.pop(0)  # remove initial pose
     return gait
-
-
-def markers_color():
-    return ['red', 'orange', 'green', 'blue', 'magenta', 'darkred']
-
-
-def get_actuator_tikzcolor():
-    return ['red', 'red!50!black', 'orange', 'blue', 'blue!50!black']
 
 
 def get_point_repr(x, marks, f):
