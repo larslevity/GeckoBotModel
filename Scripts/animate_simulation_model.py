@@ -27,13 +27,14 @@ p1 = (0, 0)
 # REF straight
 alp = [5, 85, 87.5, 5, 85]
 ref1 = [[85, 5, -87.5, 85, 5], [1, 0, 0, 1]]
-ref2 = [[5, 85, 87.5, 5, 85], [0, 1, 1, 0]]
+ref2 = [[85, 5, -87.5, 85, 5], [1, 0, 0, 1]]
+#ref2 = [[5, 85, 87.5, 5, 85], [0, 1, 1, 0]]
 
 
 # REF curve
-alp = [5, 5, -24, 5, 5]
-ref1 = [[164, 124, -152, 221, 62], [1, 0, 0, 1]]
-ref2 = [[5, 5, -24, 5, 5], [0, 1, 1, 0]]
+#alp = [5, 5, -24, 5, 5]
+#ref1 = [[164, 124, -152, 221, 62], [1, 0, 0, 1]]
+#ref2 = [[5, 5, -24, 5, 5], [0, 1, 1, 0]]
 
 
 
@@ -41,9 +42,9 @@ x, marks, f = model.set_initial_pose(
         alp, eps, p1, len_leg=ell[0], len_tor=ell[2])
 
 ref1_pose = pf.GeckoBotPose(*model.set_initial_pose(
-        ref1[0], eps, (15, -8), len_leg=ell[0]/5, len_tor=ell[2]/5))
+        ref1[0], eps, (25, -3), len_leg=ell[0]*.6, len_tor=ell[2]*.6))
 ref2_pose = pf.GeckoBotPose(*model.set_initial_pose(
-        ref2[0], eps, (15, -8), len_leg=ell[0]/5, len_tor=ell[2]/5))
+        ref2[0], eps, (25, -3), len_leg=ell[0]*.6, len_tor=ell[2]*.6))
 
 
 initial_marks = marks
@@ -251,7 +252,7 @@ for idx, (xx, marks, stress) in enumerate(zip(X.val, Marks.val, Stress.val)):
 print(gait_.poses[1].x[0])
 #%%
 # Meta Data
-data_xy, data_markers, data_stress, lims = [], [], [], [-1, 18, -11, 5]
+data_xy, data_markers, data_stress, lims = [], [], [], [-4, 35, -11, 18]
 for pose in gait_alt.poses:
     # print(pose.x[0])
     (x, y), (fpx, fpy), (nfpx, nfpy) = \
@@ -275,6 +276,8 @@ for pose in gait_alt.poses:
 
 header_0 = """
 \\documentclass[tikz]{standalone}
+%% This file was create by 'GeckoBotModel/Scripts/animate_simulation_model.py'
+\\usepackage[sfdefault, light]{FiraSans}
 \\begin{document}
 """
 mar = 2
@@ -295,8 +298,8 @@ ending_0 = """
 init_str = initial_pose.get_tikz_repr(R=.7, col='gray!50')
 init2_str = gait_alt.poses[idx1].get_tikz_repr(R=.7, col='gray!50')
 init3_str = gait_alt.poses[idx2].get_tikz_repr(R=.7, col='gray!50')
-ref1_str = ref1_pose.get_tikz_repr(R=.35, col='blue!50', linewidth=.35, dashed=0)
-ref2_str = ref2_pose.get_tikz_repr(R=.35, col='blue!50', linewidth=.35, dashed=0)
+ref1_str = ref1_pose.get_tikz_repr(R=.6, col='black!50', dashed=0)
+ref2_str = ref2_pose.get_tikz_repr(R=.6, col='black!50', dashed=0)
 
 ani_str = header_0
 
@@ -304,21 +307,27 @@ colors = pf.get_actuator_tikzcolor()
 max_stress = max(data_stress)
 
 for idx, pose in enumerate(gait_alt.poses):
+#    if idx%2==0:
+#        continue
     ref = ref1_str
     init = init_str
+
     if idx > idx1:
+        if ref1 == ref2:
+            break
         ref = ref2_str
         init = init2_str
         if idx > idx2:
             ref = ref1_str
             init = init3_str
     _, ypos = pose.get_m1_pos()
-    stress = '\\path[fill=red!50] (15,5)circle(%s)node[red, scale=.75]{stress};\n' % round(pose.cost/max_stress*5, 4)
-    ref_note = '\\path (15, -3)node[blue, scale=0.75]{ref};\n';
+    stress = '\\path[fill=red!50] (25,13)circle(%s)++(0,0)node[red, scale=.75]{Spannung};\n' % round(pose.cost/max_stress*5, 4)
+    ref_note = '\\path (25, 3)node[black!50, scale=0.75]{Referenz};\n';
     ani_str += (header + stress + init + ref + ref_note
                 + pose.get_tikz_repr(R=.7, col=colors) + ending)
 
-filename = '../Out/Animations/simulation_model_animation_curve.tex'
+#filename = '../Out/Animations/simulation_model_animation_curve.tex'
+filename = '../Out/Animations/simulation_model_animation_straight.tex'
 
 with open(filename, 'w') as fout:
     fout.writelines(ani_str + ending_0)

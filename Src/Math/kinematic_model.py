@@ -368,7 +368,7 @@ def _check_alpha(alpha):
 
 
 def set_initial_pose(alp_, eps, p1, ell=None, len_leg=1, len_tor=1.2,
-                     f=[1, 0, 0, 0]):
+                     f=[1, 1, 1, 1]):
     alp = _check_alpha(alp_)
     if isinstance(ell, type(None)):
         ell = (len_leg, len_leg, len_tor, len_leg, len_leg)
@@ -389,4 +389,4 @@ def set_initial_pose(alp_, eps, p1, ell=None, len_leg=1, len_tor=1.2,
         mx, my = _calc_coords(x, marks_init, f)
         
     # return (x, (mx, my), f)
-    return x, (mx, my), [0, 0, 0, 0]
+    return x, (mx, my), f
